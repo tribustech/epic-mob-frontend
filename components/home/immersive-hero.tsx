@@ -1,0 +1,461 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "@/lib/gsap-config";
+import { heroImages } from "@/lib/site-data";
+
+/* ── Data ── */
+
+interface HeroPair {
+  sliderName: string;
+  title: string;
+  location: string;
+  punch: string;
+  color: string;
+  left: string;
+  right: string;
+}
+
+const heroPairs: HeroPair[] = [
+  {
+    sliderName: "living",
+    title: "Living",
+    location: "Biblioteci, riflaje, media",
+    punch: "Gandita pentru spatiul tau",
+    color: "#8f927a",
+    left: heroImages[0],
+    right: heroImages[1],
+  },
+  {
+    sliderName: "bucatarie",
+    title: "Bucatarie",
+    location: "Fronturi, blat, integrare",
+    punch: "Mobila la comanda",
+    color: "#c7652d",
+    left: heroImages[2],
+    right: heroImages[3],
+  },
+  {
+    sliderName: "baie",
+    title: "Baie",
+    location: "Rezistent, coerent, curat",
+    punch: "Te ajutam sa iti alegi stilul",
+    color: "#b69a76",
+    left: heroImages[4],
+    right: heroImages[5],
+  },
+];
+
+const SLIDE_COUNT = heroPairs.length;
+const LOOPS = 1;
+
+/* ── Clip-path helpers (match Mersi main.js) ── */
+
+const VISIBLE = "inset(0% 0% 0% 0%)";
+const HIDDEN_TOP = "inset(100% 0% 0% 0%)";
+const HIDDEN_BOTTOM = "inset(0% 0% 100% 0%)";
+
+function hiddenCard(mobile: boolean) {
+  return mobile ? "inset(50% 0% 50% 0%)" : HIDDEN_TOP;
+}
+
+function cardReveal(progress: number, mobile: boolean) {
+  if (mobile) {
+    const p = (1 - progress) * 50;
+    return `inset(${p}% 0% ${p}% 0%)`;
+  }
+  return `inset(${(1 - progress) * 100}% 0% 0% 0%)`;
+}
+
+/* ── Component ── */
+
+export function ImmersiveHero() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const leftPanelRef = useRef<HTMLDivElement>(null);
+  const rightPanelRef = useRef<HTMLDivElement>(null);
+  const leftRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rightRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cardListRef = useRef<HTMLDivElement>(null);
+  const cardWrapRef = useRef<HTMLDivElement>(null);
+  const textureRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const isMobile = () => window.innerWidth <= 991;
+    const getHeroStep = () => {
+      if (!isMobile()) return window.innerHeight;
+      return window.innerHeight - section.offsetTop;
+    };
+
+    /* ── Initial clip-path state ── */
+    const initSlides = () => {
+      const mobile = isMobile();
+      leftRefs.current.forEach((el, i) => {
+        if (!el) return;
+        gsap.set(el, {
+          clipPath: i === 0 ? VISIBLE : HIDDEN_TOP,
+          zIndex: i === 0 ? SLIDE_COUNT : i + 1,
+        });
+      });
+      rightRefs.current.forEach((el, i) => {
+        if (!el) return;
+        gsap.set(el, {
+          clipPath: i === 0 ? VISIBLE : HIDDEN_BOTTOM,
+          zIndex: i === 0 ? SLIDE_COUNT : i + 1,
+        });
+      });
+      const firstName = heroPairs[0].sliderName;
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const name = el.dataset.sliderName;
+        gsap.set(el, {
+          clipPath: name === firstName ? VISIBLE : hiddenCard(mobile),
+          zIndex: name === firstName ? SLIDE_COUNT : i + 1,
+        });
+      });
+
+      if (cardListRef.current) {
+        gsap.set(cardListRef.current, {
+          clipPath: mobile ? VISIBLE : "inset(0% 0% 100% 0%)",
+        });
+      }
+    };
+
+    initSlides();
+
+    /* ── Desktop scroll handler ── */
+    let snapTimer: ReturnType<typeof setTimeout> | null = null;
+    let isSnapping = false;
+
+    const applyHeroScroll = (scrollY: number) => {
+      const sectionTop = section.offsetTop;
+      const step = getHeroStep();
+      const totalSlides = SLIDE_COUNT * step;
+      const relScroll = Math.max(0, scrollY - sectionTop);
+
+      /* ── Exit phase: after all slides ── */
+      if (relScroll >= totalSlides) {
+        const exitProgress = Math.min((relScroll - totalSlides) / step, 1);
+        const s = 1 - exitProgress * 0.08; // 1 → 0.92
+        const o = 1 - exitProgress;
+
+        if (leftPanelRef.current)
+          gsap.set(leftPanelRef.current, { scale: s, opacity: o });
+        if (rightPanelRef.current)
+          gsap.set(rightPanelRef.current, { scale: s, opacity: o });
+        if (cardWrapRef.current)
+          gsap.set(cardWrapRef.current, { y: exitProgress * 60, opacity: o });
+        if (textureRef.current)
+          gsap.set(textureRef.current, { opacity: o });
+        return;
+      }
+
+      /* Reset exit transforms when back in slide range */
+      if (leftPanelRef.current)
+        gsap.set(leftPanelRef.current, { scale: 1, opacity: 1 });
+      if (rightPanelRef.current)
+        gsap.set(rightPanelRef.current, { scale: 1, opacity: 1 });
+      if (cardWrapRef.current)
+        gsap.set(cardWrapRef.current, { y: 0, opacity: 1 });
+      if (textureRef.current)
+        gsap.set(textureRef.current, { opacity: 1 });
+
+      const slideScroll = Math.min(relScroll, totalSlides - 1);
+      const cur = Math.min(Math.floor(slideScroll / step), SLIDE_COUNT - 1);
+      const next = (cur + 1) % SLIDE_COUNT;
+      const progress = (slideScroll % step) / step;
+
+      // Left slides
+      leftRefs.current.forEach((el, i) => {
+        if (!el) return;
+        if (i === cur) {
+          gsap.set(el, { clipPath: VISIBLE, zIndex: SLIDE_COUNT });
+        } else if (i === next) {
+          gsap.set(el, {
+            clipPath: `inset(${(1 - progress) * 100}% 0% 0% 0%)`,
+            zIndex: SLIDE_COUNT + 1,
+          });
+        } else {
+          gsap.set(el, { clipPath: HIDDEN_TOP, zIndex: i + 1 });
+        }
+      });
+
+      // Right slides
+      rightRefs.current.forEach((el, i) => {
+        if (!el) return;
+        if (i === cur) {
+          gsap.set(el, { clipPath: VISIBLE, zIndex: SLIDE_COUNT });
+        } else if (i === next) {
+          gsap.set(el, {
+            clipPath: `inset(0% 0% ${(1 - progress) * 100}% 0%)`,
+            zIndex: SLIDE_COUNT + 1,
+          });
+        } else {
+          gsap.set(el, { clipPath: HIDDEN_BOTTOM, zIndex: i + 1 });
+        }
+      });
+
+      // Cards (matched by slider-name)
+      const curName = heroPairs[cur].sliderName;
+      const nextName = heroPairs[next].sliderName;
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const name = el.dataset.sliderName;
+        if (name === nextName && nextName !== curName) {
+          gsap.set(el, {
+            clipPath: cardReveal(progress, isMobile()),
+            zIndex: SLIDE_COUNT + 1,
+          });
+        } else if (name === curName) {
+          gsap.set(el, { clipPath: VISIBLE, zIndex: SLIDE_COUNT });
+        } else {
+          gsap.set(el, { clipPath: hiddenCard(isMobile()), zIndex: i + 1 });
+        }
+      });
+    };
+
+    /* ── Snap logic ── */
+    let lastScrollDir = 0;
+    let prevScrollY = 0;
+
+    const scheduleSnap = (scrollY: number) => {
+      if (isMobile() || isSnapping) return;
+
+      /* Track scroll direction */
+      if (scrollY > prevScrollY) lastScrollDir = 1;
+      else if (scrollY < prevScrollY) lastScrollDir = -1;
+      prevScrollY = scrollY;
+
+      if (snapTimer) clearTimeout(snapTimer);
+      snapTimer = setTimeout(() => {
+        const lenis = window.__lenis;
+        if (!lenis) return;
+        const sectionTop = section.offsetTop;
+        const step = getHeroStep();
+        const totalSlides = SLIDE_COUNT * step;
+        const relScroll = Math.max(0, scrollY - sectionTop);
+
+        /* Exit phase snap: commit based on scroll direction, not midpoint */
+        if (relScroll >= totalSlides) {
+          const exitProgress = (relScroll - totalSlides) / step;
+          if (exitProgress < 0.02 || exitProgress > 0.98) return;
+
+          /* Forward scroll → leave hero. Backward → return to last slide. */
+          const target = lastScrollDir >= 0
+            ? sectionTop + totalSlides + step
+            : sectionTop + totalSlides;
+          isSnapping = true;
+          lenis.scrollTo(target, {
+            duration: 0.7,
+            easing: (t: number) => 1 - Math.pow(1 - t, 3),
+            onComplete: () => { isSnapping = false; },
+          });
+          return;
+        }
+
+        /* Slide phase snap */
+        const slideScroll = Math.min(relScroll, totalSlides - 1);
+        const cur = Math.floor(slideScroll / step);
+        const localProgress = (slideScroll % step) / step;
+
+        if (localProgress < 0.02 || localProgress > 0.98) return;
+
+        const targetIndex = localProgress >= 0.5 ? cur + 1 : cur;
+        const targetScroll =
+          sectionTop +
+          Math.floor(relScroll / totalSlides) * totalSlides +
+          targetIndex * step;
+
+        isSnapping = true;
+        lenis.scrollTo(targetScroll, {
+          duration: 0.7,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3),
+          onComplete: () => { isSnapping = false; },
+        });
+      }, 160);
+    };
+
+    /* ── Lenis scroll subscription ── */
+    const onScroll = ({ scroll }: { scroll: number }) => {
+      applyHeroScroll(scroll);
+      scheduleSnap(scroll);
+    };
+
+    let lenisAttached = false;
+    const attachLenis = () => {
+      if (lenisAttached) return;
+      const lenis = window.__lenis;
+      if (lenis) {
+        lenis.on("scroll", onScroll);
+        lenisAttached = true;
+      }
+    };
+
+    /* ── Resize handler ── */
+    let lastWasMobile = isMobile();
+
+    const onResize = () => {
+      const nowMobile = isMobile();
+      if (nowMobile === lastWasMobile) return;
+      lastWasMobile = nowMobile;
+
+      initSlides();
+
+      attachLenis();
+      applyHeroScroll(window.scrollY);
+    };
+
+    window.addEventListener("resize", onResize);
+
+    /* ── Intro card reveal (matches Mersi Tg function) ── */
+    const introReveal = () => {
+      const cardList = cardListRef.current;
+      if (cardList && !isMobile()) {
+        gsap.fromTo(
+          cardList,
+          { clipPath: "inset(0% 0% 100% 0%)" },
+          {
+            clipPath: VISIBLE,
+            duration: 1.2,
+            ease: "power4.inOut",
+            delay: 0.3,
+          }
+        );
+      }
+      attachLenis();
+      applyHeroScroll(window.scrollY);
+    };
+
+    let introDone = false;
+    let fallback: ReturnType<typeof setTimeout> | null = null;
+    const runIntroOnce = () => {
+      if (introDone) return;
+      introDone = true;
+      if (fallback) clearTimeout(fallback);
+      introReveal();
+    };
+    window.addEventListener("introComplete", runIntroOnce, { once: true });
+    fallback = setTimeout(runIntroOnce, 2000);
+
+    /* ── Visibility: hide panels when section out of viewport ── */
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(section);
+
+    return () => {
+      window.removeEventListener("introComplete", runIntroOnce);
+      window.removeEventListener("resize", onResize);
+      clearTimeout(fallback);
+      if (snapTimer) clearTimeout(snapTimer);
+      observer.disconnect();
+      const lenis = window.__lenis;
+      if (lenis) {
+        lenis.off("scroll", onScroll);
+        lenisAttached = false;
+      }
+      setVisible(false);
+    };
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      className={`epic-hero ${visible ? "epic-hero--visible" : ""}`}
+      style={{ height: `${(SLIDE_COUNT * LOOPS + 1) * 100}vh` }}
+    >
+      {/* Left panel */}
+      <div ref={leftPanelRef} className="epic-hero__panel epic-hero__panel--left">
+        {heroPairs.map((pair, i) => (
+          <div
+            key={pair.sliderName}
+            ref={(node) => { leftRefs.current[i] = node; }}
+            className="epic-hero__slide"
+            data-slider-name={pair.sliderName}
+          >
+            <Image
+              src={pair.left}
+              alt=""
+              fill
+              priority={i === 0}
+              sizes="(max-width: 991px) 100vw, 50vw"
+              style={{ objectFit: "cover" }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Right panel */}
+      <div ref={rightPanelRef} className="epic-hero__panel epic-hero__panel--right">
+        {heroPairs.map((pair, i) => (
+          <div
+            key={pair.sliderName}
+            ref={(node) => { rightRefs.current[i] = node; }}
+            className="epic-hero__slide"
+            data-slider-name={pair.sliderName}
+          >
+            <Image
+              src={pair.right}
+              alt=""
+              fill
+              priority={i === 0}
+              sizes="(max-width: 991px) 100vw, 50vw"
+              style={{ objectFit: "cover" }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Texture overlay */}
+      <div ref={textureRef} className="epic-hero__texture" />
+
+      {/* Center card */}
+      <div ref={cardWrapRef} className="epic-hero__card-w">
+        <div ref={cardListRef} className="epic-hero__card-list">
+          {heroPairs.map((pair, i) => (
+            <div
+              key={pair.sliderName}
+              ref={(node) => { cardRefs.current[i] = node; }}
+              className="epic-hero__card-item"
+              data-slider-name={pair.sliderName}
+            >
+              <Link
+                href="/portfolio"
+                aria-label={`Vezi ${pair.title}`}
+                className="epic-hero__card-link"
+              >
+                <div
+                  className="epic-hero__card-btn"
+                  style={{ backgroundColor: pair.color }}
+                >
+                  <div className="epic-hero__card-info-left">
+                    <h2 className="epic-hero__card-title">{pair.title}</h2>
+                    <div className="epic-hero__card-detail--desktop">
+                      {pair.location}
+                    </div>
+                  </div>
+                  <p className="epic-hero__card-punch">{pair.punch}</p>
+                  <div className="epic-hero__card-etiquette">
+                    <span className="epic-hero__card-pager">
+                      {`${String(i + 1).padStart(2, "0")} / ${String(heroPairs.length).padStart(2, "0")}`}
+                    </span>
+                    <span className="epic-hero__card-cta">
+                      Vezi <span className="epic-hero__card-cta-arrow">→</span>
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
