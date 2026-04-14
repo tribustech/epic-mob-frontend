@@ -1,8 +1,10 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { prefersReducedMotion } from "@/lib/motion-preferences";
+import { getRenderShowcaseMotion } from "@/lib/render-showcase-motion";
 
 interface RenderSlide {
   id: string;
@@ -47,7 +49,9 @@ export function MaterialPinnedScene() {
       setActiveIndex((current) => (current + 1) % renderSlides.length);
     }, SLIDE_INTERVAL_MS);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+    };
   }, []);
 
   return (
@@ -57,23 +61,44 @@ export function MaterialPinnedScene() {
       aria-label="Randari interioare"
     >
       <div className="render-showcase__slides" aria-hidden="true">
-        {renderSlides.map((slide, index) => (
-          <div
-            key={slide.id}
-            className={`render-showcase__slide ${
-              index === activeIndex ? "render-showcase__slide--active" : ""
-            }`}
-          >
-            <Image
-              src={slide.image}
-              alt=""
-              fill
-              sizes="100vw"
-              className="render-showcase__image"
-              priority={index === 0}
-            />
-          </div>
-        ))}
+        {renderSlides.map((slide, index) => {
+          const motion = getRenderShowcaseMotion(slide.id);
+          const motionStyle = {
+            "--render-start-scale": motion.startScale,
+            "--render-end-scale": motion.endScale,
+            "--render-start-x": motion.startX,
+            "--render-end-x": motion.endX,
+            "--render-start-y": motion.startY,
+            "--render-end-y": motion.endY,
+          } as CSSProperties;
+
+          return (
+            <div
+              key={slide.id}
+              className={`render-showcase__slide ${
+                index === activeIndex ? "render-showcase__slide--active" : ""
+              }`}
+            >
+              <div
+                className={`render-showcase__motion-layer ${
+                  index === activeIndex
+                    ? "render-showcase__motion-layer--active"
+                    : ""
+                }`}
+                style={motionStyle}
+              >
+                <Image
+                  src={slide.image}
+                  alt=""
+                  fill
+                  sizes="100vw"
+                  className="render-showcase__image"
+                  priority={index === 0}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="render-showcase__shade" />
