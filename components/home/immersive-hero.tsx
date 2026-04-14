@@ -143,7 +143,13 @@ export function ImmersiveHero() {
     const releaseMobileHero = () => {
       mobileReleased = true;
       isMobileAnimating = false;
+      section.classList.remove("epic-hero--visible");
       setVisible(false);
+    };
+
+    const forceMobileHeroVisible = () => {
+      section.classList.add("epic-hero--visible");
+      setVisible(true);
     };
 
     const resetMobileHeroChrome = () => {
@@ -348,18 +354,18 @@ export function ImmersiveHero() {
       const overlay = mobileExit;
       const card = cardWrapRef.current;
       const pair = heroPairs[SLIDE_COUNT - 1];
+      const mobileReturnHold = 0.16;
 
       if (!overlay || !card) {
         mobileReleased = false;
         mobileReturnTrigger = false;
-        setVisible(true);
+        forceMobileHeroVisible();
         setMobileSlideState(SLIDE_COUNT - 1);
         resetMobileHeroChrome();
         window.scrollTo(0, section.offsetTop);
         return;
       }
 
-      const cardRect = card.getBoundingClientRect();
       const chrome = [
         leftPanelRef.current,
         rightPanelRef.current,
@@ -369,9 +375,13 @@ export function ImmersiveHero() {
 
       isMobileAnimating = true;
       mobileReturnTrigger = true;
-      setVisible(true);
+      forceMobileHeroVisible();
       setMobileSlideState(SLIDE_COUNT - 1);
       gsap.set(chrome, { opacity: 0, scale: 0.985, y: 0 });
+      window.scrollTo(0, section.offsetTop);
+
+      const cardRect = card.getBoundingClientRect();
+
       gsap.set(overlay, {
         display: "flex",
         opacity: 1,
@@ -384,7 +394,6 @@ export function ImmersiveHero() {
         clipPath: VISIBLE,
       });
 
-      window.scrollTo(0, section.offsetTop);
       mobileReleased = false;
 
       gsap
@@ -396,7 +405,8 @@ export function ImmersiveHero() {
             isMobileAnimating = false;
           },
         })
-        .to(chrome, { opacity: 1, scale: 1, duration: 0.42 }, 0.12)
+        .to(overlay, { duration: mobileReturnHold }, 0)
+        .to(chrome, { opacity: 1, scale: 1, duration: 0.42 }, mobileReturnHold + 0.1)
         .to(
           overlay,
           {
@@ -407,9 +417,9 @@ export function ImmersiveHero() {
             borderRadius: 8,
             duration: 0.72,
           },
-          0
+          mobileReturnHold
         )
-        .to(overlay, { opacity: 0, duration: 0.24 }, 0.55);
+        .to(overlay, { opacity: 0, duration: 0.24 }, mobileReturnHold + 0.58);
     };
 
     const onTouchStart = (event: TouchEvent) => {
@@ -419,7 +429,7 @@ export function ImmersiveHero() {
         if (window.scrollY <= section.offsetTop + 2) {
           mobileReleased = false;
           mobileReturnTrigger = false;
-          setVisible(true);
+          forceMobileHeroVisible();
           initSlides();
           resetMobileHeroChrome();
         } else {
