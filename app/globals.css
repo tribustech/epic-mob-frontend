@@ -485,8 +485,10 @@ select {
 /* ── Hero mobile ── */
 @media (max-width: 991px) {
   .epic-hero {
-    height: calc((100svh - var(--site-header-height)) * 4) !important;
-    height: calc((100dvh - var(--site-header-height)) * 4) !important;
+    height: calc(100svh - var(--site-header-height)) !important;
+    height: calc(100dvh - var(--site-header-height)) !important;
+    overscroll-behavior: none;
+    touch-action: none;
   }
 
   .epic-hero__panel--left,

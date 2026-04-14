@@ -129,11 +129,176 @@ export function ImmersiveHero() {
 
     initSlides();
 
+    /* ── Mobile swipe handler ── */
+    let mobileIndex = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchMoved = false;
+    let isMobileAnimating = false;
+
+    const animateMobileSlide = (targetIndex: number, direction: 1 | -1) => {
+      if (isMobileAnimating || targetIndex === mobileIndex) return;
+
+      const currentIndex = mobileIndex;
+      const currentName = heroPairs[currentIndex].sliderName;
+      const targetName = heroPairs[targetIndex].sliderName;
+      const nextLeftFrom = direction > 0 ? HIDDEN_TOP : HIDDEN_BOTTOM;
+      const nextRightFrom = direction > 0 ? HIDDEN_BOTTOM : HIDDEN_TOP;
+
+      isMobileAnimating = true;
+      mobileIndex = targetIndex;
+
+      leftRefs.current.forEach((el, i) => {
+        if (!el) return;
+        if (i === targetIndex) {
+          gsap.set(el, { clipPath: nextLeftFrom, zIndex: SLIDE_COUNT + 1 });
+        } else if (i === currentIndex) {
+          gsap.set(el, { clipPath: VISIBLE, zIndex: SLIDE_COUNT });
+        } else {
+          gsap.set(el, {
+            clipPath: direction > 0 ? HIDDEN_TOP : HIDDEN_BOTTOM,
+            zIndex: i + 1,
+          });
+        }
+      });
+
+      rightRefs.current.forEach((el, i) => {
+        if (!el) return;
+        if (i === targetIndex) {
+          gsap.set(el, { clipPath: nextRightFrom, zIndex: SLIDE_COUNT + 1 });
+        } else if (i === currentIndex) {
+          gsap.set(el, { clipPath: VISIBLE, zIndex: SLIDE_COUNT });
+        } else {
+          gsap.set(el, {
+            clipPath: direction > 0 ? HIDDEN_BOTTOM : HIDDEN_TOP,
+            zIndex: i + 1,
+          });
+        }
+      });
+
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const name = el.dataset.sliderName;
+        if (name === targetName) {
+          gsap.set(el, { clipPath: hiddenCard(true), zIndex: SLIDE_COUNT + 1 });
+        } else if (name === currentName) {
+          gsap.set(el, { clipPath: VISIBLE, zIndex: SLIDE_COUNT });
+        } else {
+          gsap.set(el, { clipPath: hiddenCard(true), zIndex: i + 1 });
+        }
+      });
+
+      const currentCard = cardRefs.current[currentIndex];
+      const targetCard = cardRefs.current[targetIndex];
+
+      gsap
+        .timeline({
+          defaults: { duration: 0.8, ease: "power2.inOut" },
+          onComplete: () => {
+            leftRefs.current.forEach((el, i) => {
+              if (!el || i === targetIndex) return;
+              gsap.set(el, {
+                clipPath: direction > 0 ? HIDDEN_TOP : HIDDEN_BOTTOM,
+                zIndex: i + 1,
+              });
+            });
+            rightRefs.current.forEach((el, i) => {
+              if (!el || i === targetIndex) return;
+              gsap.set(el, {
+                clipPath: direction > 0 ? HIDDEN_BOTTOM : HIDDEN_TOP,
+                zIndex: i + 1,
+              });
+            });
+            cardRefs.current.forEach((el, i) => {
+              if (!el || i === targetIndex) return;
+              gsap.set(el, { clipPath: hiddenCard(true), zIndex: i + 1 });
+            });
+            isMobileAnimating = false;
+          },
+        })
+        .to(leftRefs.current[targetIndex], { clipPath: VISIBLE }, 0)
+        .to(rightRefs.current[targetIndex], { clipPath: VISIBLE }, 0)
+        .to(targetCard, { clipPath: VISIBLE }, 0)
+        .to(currentCard, { clipPath: hiddenCard(true) }, 0);
+    };
+
+    const exitMobileHero = () => {
+      if (isMobileAnimating) return;
+
+      isMobileAnimating = true;
+      const target = section.offsetTop + section.offsetHeight;
+      const lenis = window.__lenis;
+
+      if (lenis) {
+        lenis.scrollTo(target, {
+          duration: 0.8,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3),
+          onComplete: () => {
+            isMobileAnimating = false;
+          },
+        });
+        return;
+      }
+
+      window.scrollTo({ top: target, behavior: "smooth" });
+      window.setTimeout(() => {
+        isMobileAnimating = false;
+      }, 850);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (!isMobile()) return;
+      const touch = event.touches[0];
+      if (!touch) return;
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchMoved = false;
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (!isMobile()) return;
+      event.preventDefault();
+      touchMoved = true;
+    };
+
+    const onTouchEnd = (event: TouchEvent) => {
+      if (!isMobile() || isMobileAnimating || !touchMoved) return;
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      const isVerticalSwipe =
+        Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 36;
+
+      if (!isVerticalSwipe) return;
+
+      if (deltaY < 0) {
+        if (mobileIndex === SLIDE_COUNT - 1) {
+          exitMobileHero();
+          return;
+        }
+        animateMobileSlide(mobileIndex + 1, 1);
+        return;
+      }
+
+      animateMobileSlide(
+        mobileIndex === 0 ? SLIDE_COUNT - 1 : mobileIndex - 1,
+        -1
+      );
+    };
+
+    section.addEventListener("touchstart", onTouchStart, { passive: true });
+    section.addEventListener("touchmove", onTouchMove, { passive: false });
+    section.addEventListener("touchend", onTouchEnd, { passive: true });
+
     /* ── Desktop scroll handler ── */
     let snapTimer: ReturnType<typeof setTimeout> | null = null;
     let isSnapping = false;
 
     const applyHeroScroll = (scrollY: number) => {
+      if (isMobile()) return;
+
       const sectionTop = section.offsetTop;
       const step = getHeroStep();
       const totalSlides = SLIDE_COUNT * step;
@@ -305,6 +470,7 @@ export function ImmersiveHero() {
       if (nowMobile === lastWasMobile) return;
       lastWasMobile = nowMobile;
 
+      mobileIndex = 0;
       initSlides();
 
       attachLenis();
@@ -353,6 +519,9 @@ export function ImmersiveHero() {
     return () => {
       window.removeEventListener("introComplete", runIntroOnce);
       window.removeEventListener("resize", onResize);
+      section.removeEventListener("touchstart", onTouchStart);
+      section.removeEventListener("touchmove", onTouchMove);
+      section.removeEventListener("touchend", onTouchEnd);
       clearTimeout(fallback);
       if (snapTimer) clearTimeout(snapTimer);
       observer.disconnect();
