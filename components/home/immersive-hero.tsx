@@ -81,11 +81,13 @@ export function ImmersiveHero() {
   const cardListRef = useRef<HTMLDivElement>(null);
   const cardWrapRef = useRef<HTMLDivElement>(null);
   const textureRef = useRef<HTMLDivElement>(null);
+  const mobileExitRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
+    const mobileExit = mobileExitRef.current;
 
     const isMobile = () => window.innerWidth <= 991;
     const getHeroStep = () => {
@@ -135,6 +137,29 @@ export function ImmersiveHero() {
     let touchStartY = 0;
     let touchMoved = false;
     let isMobileAnimating = false;
+    let mobileReleased = false;
+    let mobileReturnTrigger = false;
+
+    const releaseMobileHero = () => {
+      mobileReleased = true;
+      isMobileAnimating = false;
+      setVisible(false);
+    };
+
+    const resetMobileHeroChrome = () => {
+      const chrome = [
+        leftPanelRef.current,
+        rightPanelRef.current,
+        cardWrapRef.current,
+        textureRef.current,
+      ].filter(Boolean) as HTMLElement[];
+
+      gsap.set(chrome, { opacity: 1, scale: 1, y: 0 });
+
+      if (mobileExit) {
+        gsap.set(mobileExit, { display: "none", clearProps: "all" });
+      }
+    };
 
     const animateMobileSlide = (targetIndex: number, direction: 1 | -1) => {
       if (isMobileAnimating || targetIndex === mobileIndex) return;
@@ -222,32 +247,186 @@ export function ImmersiveHero() {
         .to(currentCard, { clipPath: hiddenCard(true) }, 0);
     };
 
-    const exitMobileHero = () => {
-      if (isMobileAnimating) return;
+    const animateMobileExit = () => {
+      const overlay = mobileExit;
+      const card = cardWrapRef.current;
+      const pair = heroPairs[mobileIndex];
+      const target = section.offsetTop + section.offsetHeight + 1;
 
-      isMobileAnimating = true;
-      const target = section.offsetTop + section.offsetHeight;
-      const lenis = window.__lenis;
-
-      if (lenis) {
-        lenis.scrollTo(target, {
-          duration: 0.8,
-          easing: (t: number) => 1 - Math.pow(1 - t, 3),
-          onComplete: () => {
-            isMobileAnimating = false;
-          },
-        });
+      if (!overlay || !card) {
+        releaseMobileHero();
+        window.scrollTo(0, target);
         return;
       }
 
-      window.scrollTo({ top: target, behavior: "smooth" });
-      window.setTimeout(() => {
-        isMobileAnimating = false;
-      }, 850);
+      const rect = card.getBoundingClientRect();
+      const chrome = [
+        leftPanelRef.current,
+        rightPanelRef.current,
+        cardWrapRef.current,
+        textureRef.current,
+      ].filter(Boolean) as HTMLElement[];
+
+      gsap.killTweensOf([overlay, ...chrome]);
+      isMobileAnimating = true;
+
+      gsap.set(overlay, {
+        display: "flex",
+        opacity: 1,
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        borderRadius: 8,
+        backgroundColor: pair.color,
+        clipPath: VISIBLE,
+      });
+
+      gsap
+        .timeline({
+          defaults: { ease: "power3.inOut" },
+          onComplete: () => {
+            gsap.set(overlay, { display: "none", clearProps: "all" });
+          },
+        })
+        .to(chrome, { opacity: 0, scale: 0.985, duration: 0.42 }, 0)
+        .to(
+          overlay,
+          {
+            left: 0,
+            top: 0,
+            width: "100vw",
+            height: "100dvh",
+            borderRadius: 0,
+            duration: 0.72,
+          },
+          0
+        )
+        .add(() => {
+          window.scrollTo(0, target);
+          releaseMobileHero();
+        })
+        .to(overlay, { clipPath: "inset(0% 0% 100% 0%)", duration: 0.5 });
+    };
+
+    const exitMobileHero = () => {
+      if (isMobileAnimating) return;
+      animateMobileExit();
+    };
+
+    const setMobileSlideState = (targetIndex: number) => {
+      mobileIndex = targetIndex;
+      const targetName = heroPairs[targetIndex].sliderName;
+
+      leftRefs.current.forEach((el, i) => {
+        if (!el) return;
+        gsap.set(el, {
+          clipPath: i === targetIndex ? VISIBLE : HIDDEN_TOP,
+          zIndex: i === targetIndex ? SLIDE_COUNT : i + 1,
+        });
+      });
+
+      rightRefs.current.forEach((el, i) => {
+        if (!el) return;
+        gsap.set(el, {
+          clipPath: i === targetIndex ? VISIBLE : HIDDEN_BOTTOM,
+          zIndex: i === targetIndex ? SLIDE_COUNT : i + 1,
+        });
+      });
+
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const name = el.dataset.sliderName;
+        gsap.set(el, {
+          clipPath: name === targetName ? VISIBLE : hiddenCard(true),
+          zIndex: name === targetName ? SLIDE_COUNT : i + 1,
+        });
+      });
+    };
+
+    const animateMobileReturn = () => {
+      const overlay = mobileExit;
+      const card = cardWrapRef.current;
+      const pair = heroPairs[SLIDE_COUNT - 1];
+
+      if (!overlay || !card) {
+        mobileReleased = false;
+        mobileReturnTrigger = false;
+        setVisible(true);
+        setMobileSlideState(SLIDE_COUNT - 1);
+        resetMobileHeroChrome();
+        window.scrollTo(0, section.offsetTop);
+        return;
+      }
+
+      const cardRect = card.getBoundingClientRect();
+      const chrome = [
+        leftPanelRef.current,
+        rightPanelRef.current,
+        cardWrapRef.current,
+        textureRef.current,
+      ].filter(Boolean) as HTMLElement[];
+
+      isMobileAnimating = true;
+      mobileReturnTrigger = true;
+      setVisible(true);
+      setMobileSlideState(SLIDE_COUNT - 1);
+      gsap.set(chrome, { opacity: 0, scale: 0.985, y: 0 });
+      gsap.set(overlay, {
+        display: "flex",
+        opacity: 1,
+        left: 0,
+        top: 0,
+        width: "100vw",
+        height: "100dvh",
+        borderRadius: 0,
+        backgroundColor: pair.color,
+        clipPath: VISIBLE,
+      });
+
+      window.scrollTo(0, section.offsetTop);
+      mobileReleased = false;
+
+      gsap
+        .timeline({
+          defaults: { ease: "power3.inOut" },
+          onComplete: () => {
+            gsap.set(overlay, { display: "none", clearProps: "all" });
+            mobileReturnTrigger = false;
+            isMobileAnimating = false;
+          },
+        })
+        .to(chrome, { opacity: 1, scale: 1, duration: 0.42 }, 0.12)
+        .to(
+          overlay,
+          {
+            left: cardRect.left,
+            top: cardRect.top,
+            width: cardRect.width,
+            height: cardRect.height,
+            borderRadius: 8,
+            duration: 0.72,
+          },
+          0
+        )
+        .to(overlay, { opacity: 0, duration: 0.24 }, 0.55);
     };
 
     const onTouchStart = (event: TouchEvent) => {
       if (!isMobile()) return;
+
+      if (mobileReleased) {
+        if (window.scrollY <= section.offsetTop + 2) {
+          mobileReleased = false;
+          mobileReturnTrigger = false;
+          setVisible(true);
+          initSlides();
+          resetMobileHeroChrome();
+        } else {
+          return;
+        }
+      }
+
       const touch = event.touches[0];
       if (!touch) return;
       touchStartX = touch.clientX;
@@ -256,13 +435,13 @@ export function ImmersiveHero() {
     };
 
     const onTouchMove = (event: TouchEvent) => {
-      if (!isMobile()) return;
+      if (!isMobile() || mobileReleased) return;
       event.preventDefault();
       touchMoved = true;
     };
 
     const onTouchEnd = (event: TouchEvent) => {
-      if (!isMobile() || isMobileAnimating || !touchMoved) return;
+      if (!isMobile() || mobileReleased || isMobileAnimating || !touchMoved) return;
       const touch = event.changedTouches[0];
       if (!touch) return;
 
@@ -471,13 +650,32 @@ export function ImmersiveHero() {
       lastWasMobile = nowMobile;
 
       mobileIndex = 0;
+      mobileReleased = false;
       initSlides();
+      resetMobileHeroChrome();
 
       attachLenis();
       applyHeroScroll(window.scrollY);
     };
 
     window.addEventListener("resize", onResize);
+
+    const onWindowScroll = () => {
+      if (
+        !isMobile() ||
+        !mobileReleased ||
+        mobileReturnTrigger ||
+        isMobileAnimating
+      ) {
+        return;
+      }
+
+      if (window.scrollY <= section.offsetTop + 4) {
+        animateMobileReturn();
+      }
+    };
+
+    window.addEventListener("scroll", onWindowScroll, { passive: true });
 
     /* ── Intro card reveal (matches Mersi Tg function) ── */
     const introReveal = () => {
@@ -519,12 +717,14 @@ export function ImmersiveHero() {
     return () => {
       window.removeEventListener("introComplete", runIntroOnce);
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onWindowScroll);
       section.removeEventListener("touchstart", onTouchStart);
       section.removeEventListener("touchmove", onTouchMove);
       section.removeEventListener("touchend", onTouchEnd);
       clearTimeout(fallback);
       if (snapTimer) clearTimeout(snapTimer);
       observer.disconnect();
+      gsap.killTweensOf(mobileExit);
       const lenis = window.__lenis;
       if (lenis) {
         lenis.off("scroll", onScroll);
@@ -584,6 +784,10 @@ export function ImmersiveHero() {
 
       {/* Texture overlay */}
       <div ref={textureRef} className="epic-hero__texture" />
+
+      <div ref={mobileExitRef} className="epic-hero__mobile-exit">
+        <span>EpicMob</span>
+      </div>
 
       {/* Center card */}
       <div ref={cardWrapRef} className="epic-hero__card-w">

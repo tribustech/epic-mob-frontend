@@ -482,13 +482,31 @@ select {
   display: none;
 }
 
+.epic-hero__mobile-exit {
+  position: fixed;
+  z-index: 180;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--home-charcoal);
+  box-shadow: 0 1.25rem 4rem rgba(0, 0, 0, 0.22);
+}
+
+.epic-hero__mobile-exit span {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(2rem, 14vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
 /* ── Hero mobile ── */
 @media (max-width: 991px) {
   .epic-hero {
     height: calc(100svh - var(--site-header-height)) !important;
     height: calc(100dvh - var(--site-header-height)) !important;
     overscroll-behavior: none;
-    touch-action: none;
   }
 
   .epic-hero__panel--left,
