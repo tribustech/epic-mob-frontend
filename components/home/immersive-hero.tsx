@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { gsap } from "@/lib/gsap-config";
+import { gsap, Observer } from "@/lib/gsap-config";
 import { heroImages } from "@/lib/site-data";
 
 /* ── Data ── */
@@ -133,18 +133,17 @@ export function ImmersiveHero() {
 
     /* ── Mobile swipe handler ── */
     let mobileIndex = 0;
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchMoved = false;
     let isMobileAnimating = false;
     let mobileReleased = false;
     let mobileReturnTrigger = false;
+    let mobileObserver: ReturnType<typeof Observer.create> | null = null;
 
-    const releaseMobileHero = () => {
+    const hideMobileHero = () => {
       mobileReleased = true;
       isMobileAnimating = false;
       section.classList.remove("epic-hero--visible");
       setVisible(false);
+      mobileObserver?.disable();
     };
 
     const forceMobileHeroVisible = () => {
@@ -260,7 +259,7 @@ export function ImmersiveHero() {
       const target = section.offsetTop + section.offsetHeight + 1;
 
       if (!overlay || !card) {
-        releaseMobileHero();
+        hideMobileHero();
         window.scrollTo(0, target);
         return;
       }
@@ -310,7 +309,7 @@ export function ImmersiveHero() {
         )
         .add(() => {
           window.scrollTo(0, target);
-          releaseMobileHero();
+          hideMobileHero();
         })
         .to(overlay, { clipPath: "inset(0% 0% 100% 0%)", duration: 0.5 });
     };
@@ -350,6 +349,15 @@ export function ImmersiveHero() {
       });
     };
 
+    const showMobileHeroAt = (targetIndex: number) => {
+      mobileReleased = false;
+      mobileReturnTrigger = false;
+      forceMobileHeroVisible();
+      setMobileSlideState(targetIndex);
+      resetMobileHeroChrome();
+      mobileObserver?.enable();
+    };
+
     const animateMobileReturn = () => {
       const overlay = mobileExit;
       const card = cardWrapRef.current;
@@ -357,11 +365,7 @@ export function ImmersiveHero() {
       const mobileReturnHold = 0.16;
 
       if (!overlay || !card) {
-        mobileReleased = false;
-        mobileReturnTrigger = false;
-        forceMobileHeroVisible();
-        setMobileSlideState(SLIDE_COUNT - 1);
-        resetMobileHeroChrome();
+        showMobileHeroAt(SLIDE_COUNT - 1);
         window.scrollTo(0, section.offsetTop);
         return;
       }
@@ -403,6 +407,7 @@ export function ImmersiveHero() {
             gsap.set(overlay, { display: "none", clearProps: "all" });
             mobileReturnTrigger = false;
             isMobileAnimating = false;
+            mobileObserver?.enable();
           },
         })
         .to(overlay, { duration: mobileReturnHold }, 0)
@@ -422,64 +427,36 @@ export function ImmersiveHero() {
         .to(overlay, { opacity: 0, duration: 0.24 }, mobileReturnHold + 0.58);
     };
 
-    const onTouchStart = (event: TouchEvent) => {
-      if (!isMobile()) return;
-
-      if (mobileReleased) {
-        if (window.scrollY <= section.offsetTop + 2) {
-          mobileReleased = false;
-          mobileReturnTrigger = false;
-          forceMobileHeroVisible();
-          initSlides();
-          resetMobileHeroChrome();
-        } else {
-          return;
-        }
-      }
-
-      const touch = event.touches[0];
-      if (!touch) return;
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-      touchMoved = false;
-    };
-
-    const onTouchMove = (event: TouchEvent) => {
-      if (!isMobile() || mobileReleased) return;
-      event.preventDefault();
-      touchMoved = true;
-    };
-
-    const onTouchEnd = (event: TouchEvent) => {
-      if (!isMobile() || mobileReleased || isMobileAnimating || !touchMoved) return;
-      const touch = event.changedTouches[0];
-      if (!touch) return;
-
-      const deltaX = touch.clientX - touchStartX;
-      const deltaY = touch.clientY - touchStartY;
-      const isVerticalSwipe =
-        Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 36;
-
-      if (!isVerticalSwipe) return;
-
-      if (deltaY < 0) {
-        if (mobileIndex === SLIDE_COUNT - 1) {
-          exitMobileHero();
-          return;
-        }
-        animateMobileSlide(mobileIndex + 1, 1);
+    const goMobileForward = () => {
+      if (!isMobile() || mobileReleased || isMobileAnimating) return;
+      if (mobileIndex === SLIDE_COUNT - 1) {
+        exitMobileHero();
         return;
       }
+      animateMobileSlide(mobileIndex + 1, 1);
+    };
 
+    const goMobileBackward = () => {
+      if (!isMobile() || mobileReleased || isMobileAnimating) return;
       animateMobileSlide(
         mobileIndex === 0 ? SLIDE_COUNT - 1 : mobileIndex - 1,
         -1
       );
     };
 
-    section.addEventListener("touchstart", onTouchStart, { passive: true });
-    section.addEventListener("touchmove", onTouchMove, { passive: false });
-    section.addEventListener("touchend", onTouchEnd, { passive: true });
+    mobileObserver = Observer.create({
+      target: section,
+      type: "touch,pointer,wheel",
+      preventDefault: true,
+      tolerance: 18,
+      wheelSpeed: -1,
+      onUp: goMobileForward,
+      onDown: goMobileBackward,
+    });
+
+    if (!isMobile()) {
+      mobileObserver.disable();
+    }
 
     /* ── Desktop scroll handler ── */
     let snapTimer: ReturnType<typeof setTimeout> | null = null;
@@ -663,6 +640,11 @@ export function ImmersiveHero() {
       mobileReleased = false;
       initSlides();
       resetMobileHeroChrome();
+      if (nowMobile) {
+        mobileObserver?.enable();
+      } else {
+        mobileObserver?.disable();
+      }
 
       attachLenis();
       applyHeroScroll(window.scrollY);
@@ -728,9 +710,7 @@ export function ImmersiveHero() {
       window.removeEventListener("introComplete", runIntroOnce);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", onWindowScroll);
-      section.removeEventListener("touchstart", onTouchStart);
-      section.removeEventListener("touchmove", onTouchMove);
-      section.removeEventListener("touchend", onTouchEnd);
+      mobileObserver?.kill();
       clearTimeout(fallback);
       if (snapTimer) clearTimeout(snapTimer);
       observer.disconnect();
