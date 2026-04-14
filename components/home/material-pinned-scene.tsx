@@ -1,98 +1,101 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
-import { gsap, ScrollTrigger } from "@/lib/gsap-config";
+import { useEffect, useState } from "react";
 import { prefersReducedMotion } from "@/lib/motion-preferences";
 
+interface RenderSlide {
+  id: string;
+  title: string;
+  detail: string;
+  image: string;
+}
+
+const renderSlides: RenderSlide[] = [
+  {
+    id: "baie",
+    title: "Baie",
+    detail: "Mobilier integrat pentru zone curate si rezistente.",
+    image: "/portfolio/schite/baie_randare1.jpg",
+  },
+  {
+    id: "bucatarie",
+    title: "Bucatarie",
+    detail: "Fronturi, blat si integrare gandite inainte de productie.",
+    image: "/portfolio/schite/bucatarie_randare1.jpg",
+  },
+  {
+    id: "living",
+    title: "Living",
+    detail: "Volume, riflaje si depozitare puse in proportie.",
+    image: "/portfolio/schite/living_randare1.jpg",
+  },
+];
+
+const SLIDE_INTERVAL_MS = 5200;
+
 export function MaterialPinnedScene() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeSlide = renderSlides[activeIndex];
 
   useEffect(() => {
-    const section = sectionRef.current;
-    const image = imageRef.current;
-
-    if (!section || !image || prefersReducedMotion()) {
+    if (prefersReducedMotion()) {
       return;
     }
 
-    const context = gsap.context(() => {
-      gsap.set(image, { clipPath: "inset(12% 14% 12% 14%)" });
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % renderSlides.length);
+    }, SLIDE_INTERVAL_MS);
 
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: "+=140%",
-          scrub: true,
-          pin: true,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      timeline
-        .to(image, {
-          clipPath: "inset(0% 0% 0% 0%)",
-          scale: 1.08,
-          ease: "none",
-        })
-        .to(
-          section.querySelector("[data-material-copy]"),
-          { color: "var(--home-ivory)", ease: "none" },
-          0.2
-        )
-        .fromTo(
-          section.querySelectorAll("[data-material-detail]"),
-          { yPercent: 100, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            stagger: 0.12,
-            ease: "power3.out",
-          },
-          0.45
-        );
-    }, section);
-
-    return () => {
-      context.revert();
-      ScrollTrigger.refresh();
-    };
+    return () => window.clearInterval(timer);
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="home-material-surface relative min-h-[100svh] overflow-hidden py-24 text-[var(--home-ivory)]"
-    >
-      <div
-        ref={imageRef}
-        className="absolute inset-[8vw] overflow-hidden rounded-[2rem] max-md:inset-x-6"
-      >
-        <Image
-          src="/portfolio/kitchen-ornate-cabinets-close.jpg"
-          alt="Fronturi MDF vopsit si detalii de mobilier premium"
-          fill
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-[rgba(7,7,7,0.32)]" />
-      </div>
-      <div className="home-shell relative z-10 flex min-h-[80svh] items-end">
-        <div
-          data-material-copy
-          className="max-w-4xl text-[var(--home-charcoal)]"
-        >
-          <p className="home-kicker">Material si proportie</p>
-          <h2 className="display-font mt-5 text-[clamp(3rem,8vw,8rem)] leading-[0.9] tracking-[-0.06em]">
-            Fiecare suprafata spune cum a fost construita.
-          </h2>
-          <div className="mt-8 grid gap-4 text-sm uppercase tracking-[0.24em] sm:grid-cols-3">
-            <span data-material-detail>PAL pentru structura</span>
-            <span data-material-detail>MDF pentru fronturi</span>
-            <span data-material-detail>Feronerie Blum</span>
+    <section className="render-showcase" aria-label="Randari interioare">
+      <div className="render-showcase__slides" aria-hidden="true">
+        {renderSlides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`render-showcase__slide ${
+              index === activeIndex ? "render-showcase__slide--active" : ""
+            }`}
+          >
+            <Image
+              src={slide.image}
+              alt=""
+              fill
+              sizes="100vw"
+              className="render-showcase__image"
+              priority={index === 0}
+            />
           </div>
+        ))}
+      </div>
+
+      <div className="render-showcase__shade" />
+
+      <div className="home-shell render-showcase__content">
+        <p className="home-kicker">Randari interioare</p>
+        <h2 className="display-font render-showcase__title">
+          Vezi camera inainte sa intre in productie.
+        </h2>
+        <div className="render-showcase__meta" aria-live="polite">
+          <span className="render-showcase__room">{activeSlide.title}</span>
+          <span className="render-showcase__detail">{activeSlide.detail}</span>
+        </div>
+        <div className="render-showcase__progress" aria-label="Randare activa">
+          {renderSlides.map((slide, index) => (
+            <button
+              key={slide.id}
+              type="button"
+              className={`render-showcase__dot ${
+                index === activeIndex ? "render-showcase__dot--active" : ""
+              }`}
+              aria-label={`Afiseaza ${slide.title}`}
+              aria-pressed={index === activeIndex}
+              onClick={() => setActiveIndex(index)}
+            />
+          ))}
         </div>
       </div>
     </section>
