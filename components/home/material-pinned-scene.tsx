@@ -51,7 +51,11 @@ export function MaterialPinnedScene() {
   }, []);
 
   return (
-    <section className="render-showcase" aria-label="Randari interioare">
+    <section
+      id="render-showcase"
+      className="render-showcase"
+      aria-label="Randari interioare"
+    >
       <div className="render-showcase__slides" aria-hidden="true">
         {renderSlides.map((slide, index) => (
           <div
