@@ -136,10 +136,15 @@ export function ImmersiveHero() {
     let isMobileAnimating = false;
     let mobileReleased = false;
     let mobileReturnTrigger = false;
+    let mobileDismissed = false;
     let mobileObserver: ReturnType<typeof Observer.create> | null = null;
 
     const hideMobileHero = () => {
       mobileReleased = true;
+      if (isMobile()) {
+        mobileDismissed = true;
+        section.classList.add("epic-hero--mobile-dismissed");
+      }
       isMobileAnimating = false;
       section.classList.remove("epic-hero--visible");
       setVisible(false);
@@ -147,6 +152,7 @@ export function ImmersiveHero() {
     };
 
     const forceMobileHeroVisible = () => {
+      section.classList.remove("epic-hero--mobile-dismissed");
       section.classList.add("epic-hero--visible");
       setVisible(true);
     };
@@ -640,11 +646,15 @@ export function ImmersiveHero() {
       mobileReleased = false;
       initSlides();
       resetMobileHeroChrome();
-      if (nowMobile) {
+      if (nowMobile && !mobileDismissed) {
         mobileObserver?.enable();
       } else {
         mobileObserver?.disable();
       }
+      section.classList.toggle(
+        "epic-hero--mobile-dismissed",
+        nowMobile && mobileDismissed
+      );
 
       attachLenis();
       applyHeroScroll(window.scrollY);
@@ -656,6 +666,7 @@ export function ImmersiveHero() {
       if (
         !isMobile() ||
         !mobileReleased ||
+        mobileDismissed ||
         mobileReturnTrigger ||
         isMobileAnimating
       ) {
