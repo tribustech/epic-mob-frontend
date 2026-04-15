@@ -70,8 +70,11 @@ function cardReveal(progress: number, mobile: boolean) {
 }
 
 /* ── Component ── */
+interface ImmersiveHeroProps {
+  onMobileExitComplete?: () => void;
+}
 
-export function ImmersiveHero() {
+export function ImmersiveHero({ onMobileExitComplete }: ImmersiveHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const leftPanelRef = useRef<HTMLDivElement>(null);
   const rightPanelRef = useRef<HTMLDivElement>(null);
@@ -135,8 +138,8 @@ export function ImmersiveHero() {
     let mobileIndex = 0;
     let isMobileAnimating = false;
     let mobileReleased = false;
-    let mobileReturnTrigger = false;
     let mobileObserver: ReturnType<typeof Observer.create> | null = null;
+    let mobileExitFailSafe: ReturnType<typeof setTimeout> | null = null;
 
     const hideMobileHero = () => {
       mobileReleased = true;
@@ -144,9 +147,11 @@ export function ImmersiveHero() {
       section.classList.remove("epic-hero--visible");
       setVisible(false);
       mobileObserver?.disable();
+      onMobileExitComplete?.();
     };
 
     const forceMobileHeroVisible = () => {
+      section.classList.remove("epic-hero--mobile-dismissed");
       section.classList.add("epic-hero--visible");
       setVisible(true);
     };
@@ -291,6 +296,7 @@ export function ImmersiveHero() {
         .timeline({
           defaults: { ease: "power3.inOut" },
           onComplete: () => {
+            if (mobileExitFailSafe) clearTimeout(mobileExitFailSafe);
             gsap.set(overlay, { display: "none", clearProps: "all" });
           },
         })
@@ -311,120 +317,19 @@ export function ImmersiveHero() {
           window.scrollTo(0, target);
           hideMobileHero();
         })
-        .to(overlay, { clipPath: "inset(0% 0% 100% 0%)", duration: 0.5 });
+        .to(
+          overlay,
+          { clipPath: "inset(50% 0% 50% 0%)", duration: 0.35, ease: "power2.out" }
+        );
+
+      mobileExitFailSafe = setTimeout(() => {
+        hideMobileHero();
+      }, 1800);
     };
 
     const exitMobileHero = () => {
       if (isMobileAnimating) return;
       animateMobileExit();
-    };
-
-    const setMobileSlideState = (targetIndex: number) => {
-      mobileIndex = targetIndex;
-      const targetName = heroPairs[targetIndex].sliderName;
-
-      leftRefs.current.forEach((el, i) => {
-        if (!el) return;
-        gsap.set(el, {
-          clipPath: i === targetIndex ? VISIBLE : HIDDEN_TOP,
-          zIndex: i === targetIndex ? SLIDE_COUNT : i + 1,
-        });
-      });
-
-      rightRefs.current.forEach((el, i) => {
-        if (!el) return;
-        gsap.set(el, {
-          clipPath: i === targetIndex ? VISIBLE : HIDDEN_BOTTOM,
-          zIndex: i === targetIndex ? SLIDE_COUNT : i + 1,
-        });
-      });
-
-      cardRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const name = el.dataset.sliderName;
-        gsap.set(el, {
-          clipPath: name === targetName ? VISIBLE : hiddenCard(true),
-          zIndex: name === targetName ? SLIDE_COUNT : i + 1,
-        });
-      });
-    };
-
-    const showMobileHeroAt = (targetIndex: number) => {
-      mobileReleased = false;
-      mobileReturnTrigger = false;
-      forceMobileHeroVisible();
-      setMobileSlideState(targetIndex);
-      resetMobileHeroChrome();
-      mobileObserver?.enable();
-    };
-
-    const animateMobileReturn = () => {
-      const overlay = mobileExit;
-      const card = cardWrapRef.current;
-      const pair = heroPairs[SLIDE_COUNT - 1];
-      const mobileReturnHold = 0.16;
-
-      if (!overlay || !card) {
-        showMobileHeroAt(SLIDE_COUNT - 1);
-        window.scrollTo(0, section.offsetTop);
-        return;
-      }
-
-      const chrome = [
-        leftPanelRef.current,
-        rightPanelRef.current,
-        cardWrapRef.current,
-        textureRef.current,
-      ].filter(Boolean) as HTMLElement[];
-
-      isMobileAnimating = true;
-      mobileReturnTrigger = true;
-      forceMobileHeroVisible();
-      setMobileSlideState(SLIDE_COUNT - 1);
-      gsap.set(chrome, { opacity: 0, scale: 0.985, y: 0 });
-      window.scrollTo(0, section.offsetTop);
-
-      const cardRect = card.getBoundingClientRect();
-
-      gsap.set(overlay, {
-        display: "flex",
-        opacity: 1,
-        left: 0,
-        top: 0,
-        width: "100vw",
-        height: "100dvh",
-        borderRadius: 0,
-        backgroundColor: pair.color,
-        clipPath: VISIBLE,
-      });
-
-      mobileReleased = false;
-
-      gsap
-        .timeline({
-          defaults: { ease: "power3.inOut" },
-          onComplete: () => {
-            gsap.set(overlay, { display: "none", clearProps: "all" });
-            mobileReturnTrigger = false;
-            isMobileAnimating = false;
-            mobileObserver?.enable();
-          },
-        })
-        .to(overlay, { duration: mobileReturnHold }, 0)
-        .to(chrome, { opacity: 1, scale: 1, duration: 0.42 }, mobileReturnHold + 0.1)
-        .to(
-          overlay,
-          {
-            left: cardRect.left,
-            top: cardRect.top,
-            width: cardRect.width,
-            height: cardRect.height,
-            borderRadius: 8,
-            duration: 0.72,
-          },
-          mobileReturnHold
-        )
-        .to(overlay, { opacity: 0, duration: 0.24 }, mobileReturnHold + 0.58);
     };
 
     const goMobileForward = () => {
@@ -641,6 +546,8 @@ export function ImmersiveHero() {
       initSlides();
       resetMobileHeroChrome();
       if (nowMobile) {
+        section.classList.remove("epic-hero--mobile-dismissed");
+        forceMobileHeroVisible();
         mobileObserver?.enable();
       } else {
         mobileObserver?.disable();
@@ -651,23 +558,6 @@ export function ImmersiveHero() {
     };
 
     window.addEventListener("resize", onResize);
-
-    const onWindowScroll = () => {
-      if (
-        !isMobile() ||
-        !mobileReleased ||
-        mobileReturnTrigger ||
-        isMobileAnimating
-      ) {
-        return;
-      }
-
-      if (window.scrollY <= section.offsetTop + 4) {
-        animateMobileReturn();
-      }
-    };
-
-    window.addEventListener("scroll", onWindowScroll, { passive: true });
 
     /* ── Intro card reveal (matches Mersi Tg function) ── */
     const introReveal = () => {
@@ -709,9 +599,9 @@ export function ImmersiveHero() {
     return () => {
       window.removeEventListener("introComplete", runIntroOnce);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onWindowScroll);
       mobileObserver?.kill();
       clearTimeout(fallback);
+      if (mobileExitFailSafe) clearTimeout(mobileExitFailSafe);
       if (snapTimer) clearTimeout(snapTimer);
       observer.disconnect();
       gsap.killTweensOf(mobileExit);
@@ -722,7 +612,7 @@ export function ImmersiveHero() {
       }
       setVisible(false);
     };
-  }, []);
+  }, [onMobileExitComplete]);
 
   return (
     <section

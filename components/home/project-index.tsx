@@ -15,7 +15,7 @@ export function ProjectIndex() {
               data-home-reveal="text"
               className="display-font mt-4 max-w-4xl text-[clamp(3rem,8vw,8rem)] leading-[0.9] tracking-[-0.06em]"
             >
-              Proiecte reale, nu randari.
+              Selectie de proiecte si detalii.
             </h2>
           </div>
           <Link
@@ -31,23 +31,20 @@ export function ProjectIndex() {
             <Link
               href="/portfolio"
               key={project.title}
-              className="group grid gap-6 border-t border-[color-mix(in_srgb,var(--home-ivory)_16%,transparent)] pt-8 lg:grid-cols-[0.8fr_1.2fr]"
+              className="group grid gap-8 border-t border-[color-mix(in_srgb,var(--home-ivory)_16%,transparent)] pt-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start"
             >
-              <div className="flex items-start justify-between gap-6">
-                <div>
+              <div className="grid gap-4 lg:max-w-[26rem]">
+                <div className="flex items-center justify-between gap-6">
                   <span className="text-xs uppercase tracking-[0.3em] text-[var(--home-orange)]">
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  <h3
-                    data-home-hover
-                    className="display-font mt-4 text-4xl leading-none tracking-[-0.04em] sm:text-6xl"
-                  >
-                    {project.title}
-                  </h3>
+                  <span className="text-xs uppercase tracking-[0.3em] text-[color-mix(in_srgb,var(--home-ivory)_52%,transparent)]">
+                    {project.space}
+                  </span>
                 </div>
-                <span className="text-xs uppercase tracking-[0.3em] text-[color-mix(in_srgb,var(--home-ivory)_52%,transparent)]">
-                  {project.space}
-                </span>
+                <h3 className="display-font text-[clamp(2.5rem,5.2vw,4.75rem)] leading-[0.92] tracking-[-0.04em] text-balance">
+                  {project.title}
+                </h3>
               </div>
               <div className="relative h-[44vh] min-h-80 overflow-hidden rounded-[1.5rem]">
                 <Image

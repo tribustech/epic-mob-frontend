@@ -40,8 +40,16 @@ export function HomeAnimationProvider({ children }: { children: ReactNode }) {
     const splitReverts: Array<() => void> = [];
     const hoverCleanups: Array<() => void> = [];
     const animations: gsap.core.Tween[] = [];
+    let hasSetup = false;
+    let setupFrame = 0;
 
     const setup = () => {
+      if (hasSetup) {
+        return;
+      }
+
+      hasSetup = true;
+
       document
         .querySelectorAll<HTMLElement>("[data-home-reveal='line']")
         .forEach((line) => {
@@ -135,10 +143,16 @@ export function HomeAnimationProvider({ children }: { children: ReactNode }) {
       requestAnimationFrame(() => ScrollTrigger.refresh());
     };
 
-    window.addEventListener("introComplete", setup, { once: true });
+    const handleIntroComplete = () => {
+      setup();
+    };
+
+    window.addEventListener("introComplete", handleIntroComplete, { once: true });
+    setupFrame = window.requestAnimationFrame(setup);
 
     return () => {
-      window.removeEventListener("introComplete", setup);
+      window.cancelAnimationFrame(setupFrame);
+      window.removeEventListener("introComplete", handleIntroComplete);
       hoverCleanups.forEach((cleanup) => cleanup());
       animations.forEach((animation) => animation.kill());
       splitReverts.forEach((revert) => revert());
