@@ -208,31 +208,46 @@ export const processSteps = [
     title: "Consultanta",
     description:
       "Preluam camerele, stilul dorit si evaluam ce este deja decis.",
+    image: "/portfolio/schite/bucatarie_shita_mana.jpg",
+    imageAlt: "Schita de bucatarie desenata de mana",
+    imageVariant: "photo" as const,
   },
   {
     title: "Design",
     description:
       "Clarificam directia cromatica, volumele si materialele.",
+    image: "/portfolio/schite/bucatarie.png",
+    imageAlt: "Randare digitala a unei bucatarii",
+    imageVariant: "photo" as const,
   },
   {
     title: "Selectie materiale",
     description:
       "Alegem impreuna PAL, MDF vopsit sau infoliat pentru fiecare zona.",
+    image: "/portfolio/schite/paletar.png",
+    imageAlt: "Paletar cu mostre de materiale si finisaje",
+    imageVariant: "photo" as const,
   },
   {
     title: "Oferta si contract",
     description:
       "Prezentam oferta detaliata si semnam contractul.",
+    image: "/portfolio/schite/contract.png",
+    imageAlt: "Ilustratie cu un contract si strangere de mana",
+    imageVariant: "illustration" as const,
   },
-  {
-    title: "Productie",
-    description:
-      "Executam cu feronerie Blum si atentie la fiecare detaliu.",
-  },
+  // {
+  //   title: "Productie",
+  //   description:
+  //     "Executam cu feronerie Blum si atentie la fiecare detaliu.",
+  // },
   {
     title: "Montaj & Predare",
     description:
       "Montaj complet, inclusiv electrocasnice si adaptari de instalatii.",
+    image: "/portfolio/schite/bucatarie_randare1.jpg",
+    imageAlt: "Randare finala a unei bucatarii montate",
+    imageVariant: "photo" as const,
   },
 ];
 
