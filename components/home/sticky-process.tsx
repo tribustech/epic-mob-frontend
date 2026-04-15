@@ -122,14 +122,7 @@ export function StickyProcess() {
             data-process-panel
             className="absolute inset-0 flex flex-col bg-[var(--home-charcoal)] lg:grid lg:grid-cols-[1.05fr_0.95fr]"
           >
-            <div
-              className={
-                "relative h-[55%] w-full overflow-hidden lg:h-full " +
-                (step.imageVariant === "illustration"
-                  ? "bg-[var(--home-material)] p-10 lg:p-16"
-                  : "")
-              }
-            >
+            <div className="relative h-[55%] w-full overflow-hidden lg:h-full">
               <Image
                 src={step.image}
                 alt={step.imageAlt}
@@ -138,23 +131,16 @@ export function StickyProcess() {
                 priority={index === 0}
                 className={
                   step.imageVariant === "illustration"
-                    ? "object-contain"
+                    ? "object-contain p-8 lg:p-16"
                     : "object-cover"
                 }
               />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/75 via-black/40 to-transparent"
-              />
-              <span className="display-font pointer-events-none absolute bottom-4 left-4 text-[clamp(4.5rem,14vw,14rem)] leading-none tracking-[-0.08em] text-[var(--home-orange)] sm:bottom-6 sm:left-6 lg:bottom-10 lg:left-10">
-                {String(index + 1).padStart(2, "0")}
-              </span>
             </div>
             <div className="relative flex flex-1 items-center px-6 py-10 sm:px-10 lg:px-16 lg:py-20">
               <div className="max-w-xl">
-                <p className="home-kicker text-[color-mix(in_srgb,var(--home-ivory)_60%,transparent)]">
-                  Pasul {String(index + 1).padStart(2, "0")}
-                </p>
+                <span className="display-font block text-[clamp(4rem,10vw,9rem)] leading-none tracking-[-0.06em] text-[var(--home-orange)]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 <h2 className="display-font mt-4 text-[clamp(2.5rem,6vw,6rem)] leading-[0.95] tracking-[-0.05em] text-[var(--home-ivory)]">
                   {step.title}
                 </h2>
