@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(node --test --experimental-strip-types tests/process-steps-data.test.ts)",
+      "Bash(npm run *)",
+      "Bash(node --test --experimental-strip-types tests/process-steps-data.test.ts tests/sticky-process-viewport.test.ts tests/portfolio-immersive-state.test.ts tests/render-showcase-motion.test.ts)",
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(git branch *)"
+    ]
+  }
+}
