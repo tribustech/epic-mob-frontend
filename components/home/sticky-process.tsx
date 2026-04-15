@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap-config";
 import { prefersReducedMotion } from "@/lib/motion-preferences";
 import { processSteps } from "@/lib/site-data";
+import {
+  getStickyProcessScrollDistance,
+  getStickyProcessViewportHeight,
+} from "@/lib/sticky-process-viewport";
 
 export function StickyProcess() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -18,8 +22,36 @@ export function StickyProcess() {
     const panels = Array.from(
       section.querySelectorAll<HTMLElement>("[data-process-panel]")
     );
+    let refreshFrame = 0;
+    const visualViewport = window.visualViewport;
+    const isMobile = () => window.innerWidth <= 991;
+    const syncViewportHeight = () => {
+      if (!isMobile()) {
+        section.style.removeProperty("--sticky-process-height");
+        return;
+      }
+
+      const viewportHeight = getStickyProcessViewportHeight({
+        innerHeight: window.innerHeight,
+        visualViewportHeight: visualViewport?.height,
+      });
+
+      section.style.setProperty("--sticky-process-height", `${viewportHeight}px`);
+    };
+    const refresh = () => {
+      if (refreshFrame) {
+        window.cancelAnimationFrame(refreshFrame);
+      }
+
+      refreshFrame = window.requestAnimationFrame(() => {
+        syncViewportHeight();
+        ScrollTrigger.refresh();
+      });
+    };
 
     const context = gsap.context(() => {
+      syncViewportHeight();
+
       panels.forEach((panel, index) => {
         gsap.set(panel, {
           clipPath:
@@ -32,7 +64,14 @@ export function StickyProcess() {
         scrollTrigger: {
           trigger: section,
           start: "top top",
-          end: () => `+=${(panels.length - 1) * window.innerHeight}`,
+          end: () =>
+            `+=${getStickyProcessScrollDistance({
+              panelCount: panels.length,
+              viewportHeight: getStickyProcessViewportHeight({
+                innerHeight: window.innerHeight,
+                visualViewportHeight: visualViewport?.height,
+              }),
+            })}`,
           pin: true,
           scrub: true,
           invalidateOnRefresh: true,
@@ -48,7 +87,16 @@ export function StickyProcess() {
       });
     }, section);
 
+    visualViewport?.addEventListener("resize", refresh);
+    window.addEventListener("orientationchange", refresh);
+
     return () => {
+      if (refreshFrame) {
+        window.cancelAnimationFrame(refreshFrame);
+      }
+      section.style.removeProperty("--sticky-process-height");
+      visualViewport?.removeEventListener("resize", refresh);
+      window.removeEventListener("orientationchange", refresh);
       context.revert();
       ScrollTrigger.refresh();
     };
@@ -57,12 +105,16 @@ export function StickyProcess() {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[100svh] overflow-hidden bg-[var(--home-charcoal)] text-[var(--home-ivory)]"
+      className="relative min-h-[100svh] min-h-[100dvh] overflow-hidden bg-[var(--home-charcoal)] text-[var(--home-ivory)]"
+      style={{ minHeight: "var(--sticky-process-height, 100dvh)" }}
     >
       <div className="absolute left-6 top-6 z-20 sm:left-10 sm:top-10">
         <p className="home-kicker">Proces</p>
       </div>
-      <div className="relative h-[100svh]">
+      <div
+        className="relative h-[100svh] h-[100dvh]"
+        style={{ height: "var(--sticky-process-height, 100dvh)" }}
+      >
         {processSteps.map((step, index) => (
           <article
             key={step.title}
