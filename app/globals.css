@@ -270,6 +270,7 @@ select {
   --home-material: #c8aa87;
   --home-stone: #8c7d6f;
   --site-header-height: clamp(4.5rem, 8vh, 6rem);
+  --image-radius: 1rem;
 }
 
 .home-immersive {
