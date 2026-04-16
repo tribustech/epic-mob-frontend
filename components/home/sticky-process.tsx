@@ -161,7 +161,7 @@ export function StickyProcess() {
                 color: theme.foreground,
               }}
             >
-              <div className="relative flex flex-1 items-center px-6 py-10 sm:px-10 lg:px-16 lg:py-20">
+              <div className="relative flex flex-1 items-start px-6 pb-10 pt-4 sm:px-10 lg:items-center lg:px-16 lg:py-20">
                 <div className="max-w-xl">
                   <span
                     className="display-font block text-[clamp(4rem,10vw,9rem)] leading-none tracking-[-0.06em]"
