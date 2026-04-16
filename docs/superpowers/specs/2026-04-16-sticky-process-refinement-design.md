@@ -88,7 +88,9 @@ The section's CSS `min-height` becomes `calc(100svh - var(--site-header-height))
 
 ### 2. Desktop layout swap (text left, image right)
 
-Grid template changes from `lg:grid-cols-[1.05fr_0.95fr]` to `lg:grid-cols-[0.95fr_1.05fr]`. JSX source order flips: text `div` first, image `div` second. Mobile flex column is untouched — image on top (55% h), text below. Reading order now matches visual order on desktop (a11y win).
+Grid template changes from `lg:grid-cols-[1.05fr_0.95fr]` to `lg:grid-cols-[0.95fr_1.05fr]`. JSX source order flips: text `div` first, image `div` second. This gives screen-reader reading order `title → description → image` — a11y win.
+
+To keep mobile's "image on top, text below" visual stack while having text first in source, the container uses `flex flex-col-reverse lg:grid`. On mobile (flex), `flex-col-reverse` visually inverts the source order; on desktop (grid), `flex-col-reverse` is overridden and grid places children left-to-right in source order — text first (left), image second (right).
 
 ### 3. Image frame (80% centered)
 
@@ -135,7 +137,7 @@ Applied per panel:
 const theme = processStepThemes[index];
 <article
   data-process-panel
-  className="absolute inset-0 flex flex-col lg:grid lg:grid-cols-[0.95fr_1.05fr]"
+  className="absolute inset-0 flex flex-col-reverse lg:grid lg:grid-cols-[0.95fr_1.05fr]"
   style={{ backgroundColor: theme.background, color: theme.foreground }}
 >
   ...
