@@ -185,8 +185,8 @@ export function StickyProcess() {
                   </p>
                 </div>
               </div>
-              <div className="relative flex h-[55%] w-full items-center justify-center p-[8%] lg:h-full lg:p-[10%]">
-                <div className="relative aspect-[4/3] w-full max-w-[min(80%,720px)] overflow-hidden rounded-[var(--image-radius)]">
+              <div className="relative flex h-[55%] w-full items-center justify-center p-[4%] lg:h-full lg:p-[10%]">
+                <div className="relative aspect-[4/3] w-full max-w-[min(92%,720px)] overflow-hidden rounded-[var(--image-radius)] lg:max-w-[min(80%,720px)]">
                   <Image
                     src={step.image}
                     alt={step.imageAlt}
