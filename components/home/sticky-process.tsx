@@ -4,11 +4,29 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap-config";
 import { prefersReducedMotion } from "@/lib/motion-preferences";
-import { processSteps } from "@/lib/site-data";
+import { processSteps, processStepThemes } from "@/lib/site-data";
 import {
   getStickyProcessScrollDistance,
   getStickyProcessViewportHeight,
 } from "@/lib/sticky-process-viewport";
+
+function readHeaderHeight(): number {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue("--site-header-height")
+    .trim();
+
+  if (!raw) return 0;
+
+  const probe = document.createElement("div");
+  probe.style.height = raw;
+  probe.style.position = "absolute";
+  probe.style.visibility = "hidden";
+  probe.style.pointerEvents = "none";
+  document.body.appendChild(probe);
+  const px = probe.getBoundingClientRect().height;
+  probe.remove();
+  return px;
+}
 
 export function StickyProcess() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -35,6 +53,7 @@ export function StickyProcess() {
       const viewportHeight = getStickyProcessViewportHeight({
         innerHeight: window.innerHeight,
         visualViewportHeight: visualViewport?.height,
+        headerHeight: readHeaderHeight(),
       });
 
       section.style.setProperty("--sticky-process-height", `${viewportHeight}px`);
@@ -56,7 +75,7 @@ export function StickyProcess() {
       panels.forEach((panel, index) => {
         gsap.set(panel, {
           clipPath:
-            index === 0 ? "inset(0% 0% 0% 0%)" : "inset(100% 0% 0% 0%)",
+            index === 0 ? "inset(0% 0% 0% 0%)" : "inset(100% 0% -1% 0%)",
           zIndex: index + 1,
         });
       });
@@ -64,16 +83,18 @@ export function StickyProcess() {
       const timeline = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: "top top",
+          start: () => `top ${readHeaderHeight()}`,
           end: () =>
             `+=${getStickyProcessScrollDistance({
               panelCount: panels.length,
               viewportHeight: getStickyProcessViewportHeight({
                 innerHeight: window.innerHeight,
                 visualViewportHeight: visualViewport?.height,
+                headerHeight: readHeaderHeight(),
               }),
             })}`,
           pin: true,
+          pinType: "fixed",
           scrub: true,
           invalidateOnRefresh: true,
         },
@@ -106,51 +127,79 @@ export function StickyProcess() {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[100svh] min-h-[100dvh] overflow-hidden bg-[var(--home-charcoal)] text-[var(--home-ivory)]"
-      style={{ minHeight: "var(--sticky-process-height, 100dvh)" }}
+      className="relative overflow-hidden"
+      style={{
+        minHeight:
+          "var(--sticky-process-height, calc(100svh - var(--site-header-height)))",
+      }}
     >
       <div className="absolute left-6 top-6 z-20 sm:left-10 sm:top-10">
-        <p className="home-kicker">Proces</p>
+        <p
+          className="home-kicker"
+          style={{ color: "var(--home-ivory)", mixBlendMode: "difference" }}
+        >
+          Proces
+        </p>
       </div>
       <div
-        className="relative h-[100svh] h-[100dvh]"
-        style={{ height: "var(--sticky-process-height, 100dvh)" }}
+        className="relative"
+        style={{
+          height:
+            "var(--sticky-process-height, calc(100svh - var(--site-header-height)))",
+        }}
       >
-        {processSteps.map((step, index) => (
-          <article
-            key={step.title}
-            data-process-panel
-            className="absolute inset-0 flex flex-col bg-[var(--home-charcoal)] lg:grid lg:grid-cols-[1.05fr_0.95fr]"
-          >
-            <div className="relative h-[55%] w-full overflow-hidden lg:h-full">
-              <Image
-                src={step.image}
-                alt={step.imageAlt}
-                fill
-                sizes="(min-width: 1024px) 55vw, 100vw"
-                priority={index === 0}
-                className={
-                  step.imageVariant === "illustration"
-                    ? "object-contain p-8 lg:p-16"
-                    : "object-cover"
-                }
-              />
-            </div>
-            <div className="relative flex flex-1 items-center px-6 py-10 sm:px-10 lg:px-16 lg:py-20">
-              <div className="max-w-xl">
-                <span className="display-font block text-[clamp(4rem,10vw,9rem)] leading-none tracking-[-0.06em] text-[var(--home-orange)]">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h2 className="display-font mt-4 text-[clamp(2.5rem,6vw,6rem)] leading-[0.95] tracking-[-0.05em] text-[var(--home-ivory)]">
-                  {step.title}
-                </h2>
-                <p className="mt-6 text-lg leading-8 text-[color-mix(in_srgb,var(--home-ivory)_68%,transparent)]">
-                  {step.description}
-                </p>
+        {processSteps.map((step, index) => {
+          const theme = processStepThemes[index];
+
+          return (
+            <article
+              key={step.title}
+              data-process-panel
+              className="absolute inset-0 flex flex-col-reverse lg:grid lg:grid-cols-[0.95fr_1.05fr]"
+              style={{
+                backgroundColor: theme.background,
+                color: theme.foreground,
+              }}
+            >
+              <div className="relative flex flex-1 items-center px-6 py-10 sm:px-10 lg:px-16 lg:py-20">
+                <div className="max-w-xl">
+                  <span
+                    className="display-font block text-[clamp(4rem,10vw,9rem)] leading-none tracking-[-0.06em]"
+                    style={{ color: theme.accent }}
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <h2
+                    className="display-font mt-4 text-[clamp(2.5rem,6vw,6rem)] leading-[0.95] tracking-[-0.05em]"
+                    style={{ color: theme.foreground }}
+                  >
+                    {step.title}
+                  </h2>
+                  <p
+                    className="mt-6 text-lg leading-8"
+                    style={{
+                      color: `color-mix(in srgb, ${theme.foreground} 68%, transparent)`,
+                    }}
+                  >
+                    {step.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+              <div className="relative flex h-[55%] w-full items-center justify-center p-[8%] lg:h-full lg:p-[10%]">
+                <div className="relative aspect-[4/3] w-full max-w-[min(80%,720px)] overflow-hidden rounded-[var(--image-radius)]">
+                  <Image
+                    src={step.image}
+                    alt={step.imageAlt}
+                    fill
+                    sizes="(min-width: 1024px) 45vw, 80vw"
+                    priority={index === 0}
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
