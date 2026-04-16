@@ -210,7 +210,6 @@ export const processSteps = [
       "Preluam camerele, stilul dorit si evaluam ce este deja decis.",
     image: "/portfolio/schite/bucatarie_shita_mana.jpg",
     imageAlt: "Schita de bucatarie desenata de mana",
-    imageVariant: "photo" as const,
   },
   {
     title: "Design",
@@ -218,7 +217,6 @@ export const processSteps = [
       "Clarificam directia cromatica, volumele si materialele.",
     image: "/portfolio/schite/bucatarie.png",
     imageAlt: "Randare digitala a unei bucatarii",
-    imageVariant: "photo" as const,
   },
   {
     title: "Selectie materiale",
@@ -226,7 +224,6 @@ export const processSteps = [
       "Alegem impreuna PAL, MDF vopsit sau infoliat pentru fiecare zona.",
     image: "/portfolio/schite/paletar.png",
     imageAlt: "Paletar cu mostre de materiale si finisaje",
-    imageVariant: "photo" as const,
   },
   {
     title: "Oferta si contract",
@@ -234,7 +231,6 @@ export const processSteps = [
       "Prezentam oferta detaliata si semnam contractul.",
     image: "/portfolio/schite/contract.png",
     imageAlt: "Ilustratie cu un contract si strangere de mana",
-    imageVariant: "illustration" as const,
   },
   // {
   //   title: "Productie",
@@ -247,9 +243,36 @@ export const processSteps = [
       "Montaj complet, inclusiv electrocasnice si adaptari de instalatii.",
     image: "/portfolio/schite/bucatarie_randare1.jpg",
     imageAlt: "Randare finala a unei bucatarii montate",
-    imageVariant: "photo" as const,
   },
 ];
+
+export const processStepThemes = [
+  {
+    background: "var(--home-charcoal)",
+    foreground: "var(--home-ivory)",
+    accent: "var(--home-orange)",
+  },
+  {
+    background: "var(--home-stone)",
+    foreground: "var(--home-ivory)",
+    accent: "var(--home-orange)",
+  },
+  {
+    background: "var(--home-material)",
+    foreground: "var(--home-charcoal)",
+    accent: "var(--home-charcoal)",
+  },
+  {
+    background: "color-mix(in srgb, var(--home-orange) 55%, var(--home-charcoal))",
+    foreground: "var(--home-ivory)",
+    accent: "var(--home-ivory)",
+  },
+  {
+    background: "var(--home-ivory)",
+    foreground: "var(--home-charcoal)",
+    accent: "var(--home-orange)",
+  },
+] as const;
 
 export const basicQuestions = [
   "Camerele pe care vrei sa le mobilezi",

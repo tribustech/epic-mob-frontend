@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { processSteps } from "../lib/site-data.ts";
+import { processSteps, processStepThemes } from "../lib/site-data.ts";
 
 test("each process step has an image asset under /portfolio/schite/", () => {
   assert.ok(processSteps.length >= 5);
@@ -21,17 +21,17 @@ test("each process step has non-empty alt text", () => {
   }
 });
 
-test("each process step has a valid imageVariant", () => {
-  for (const step of processSteps) {
-    assert.ok(
-      step.imageVariant === "photo" || step.imageVariant === "illustration",
-      `${step.title} must have imageVariant photo or illustration`
-    );
-  }
+test("processStepThemes has the same length as processSteps", () => {
+  assert.equal(processStepThemes.length, processSteps.length);
 });
 
-test("the contract step uses the illustration variant", () => {
-  const contract = processSteps.find((step) => step.title === "Oferta si contract");
-  assert.ok(contract, "Oferta si contract step exists");
-  assert.equal(contract?.imageVariant, "illustration");
+test("every theme defines background, foreground, and accent strings", () => {
+  for (const [index, theme] of processStepThemes.entries()) {
+    assert.equal(typeof theme.background, "string", `theme ${index} background`);
+    assert.equal(typeof theme.foreground, "string", `theme ${index} foreground`);
+    assert.equal(typeof theme.accent, "string", `theme ${index} accent`);
+    assert.ok(theme.background.length > 0);
+    assert.ok(theme.foreground.length > 0);
+    assert.ok(theme.accent.length > 0);
+  }
 });
