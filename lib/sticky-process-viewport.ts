@@ -1,11 +1,14 @@
 export function getStickyProcessViewportHeight({
   innerHeight,
   visualViewportHeight,
+  headerHeight,
 }: {
   innerHeight: number;
   visualViewportHeight?: number;
+  headerHeight: number;
 }) {
-  return Math.max(visualViewportHeight ?? innerHeight, 1);
+  const base = visualViewportHeight ?? innerHeight;
+  return Math.max(base - headerHeight, 1);
 }
 
 export function getStickyProcessScrollDistance({

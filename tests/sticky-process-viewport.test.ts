@@ -5,13 +5,14 @@ import {
   getStickyProcessViewportHeight,
 } from "../lib/sticky-process-viewport.ts";
 
-test("prefers the visual viewport height on mobile", () => {
+test("prefers the visual viewport height on mobile, minus header", () => {
   assert.equal(
     getStickyProcessViewportHeight({
       innerHeight: 844,
       visualViewportHeight: 724,
+      headerHeight: 72,
     }),
-    724
+    652
   );
 });
 
@@ -19,18 +20,30 @@ test("falls back to innerHeight when visualViewport is unavailable", () => {
   assert.equal(
     getStickyProcessViewportHeight({
       innerHeight: 844,
+      headerHeight: 72,
     }),
-    844
+    772
   );
 });
 
-test("never returns a non-positive viewport height", () => {
+test("never returns a non-positive viewport height after subtraction", () => {
   assert.equal(
     getStickyProcessViewportHeight({
       innerHeight: 40,
       visualViewportHeight: 0,
+      headerHeight: 72,
     }),
     1
+  );
+});
+
+test("handles zero header height (e.g. before CSS resolves)", () => {
+  assert.equal(
+    getStickyProcessViewportHeight({
+      innerHeight: 800,
+      headerHeight: 0,
+    }),
+    800
   );
 });
 
