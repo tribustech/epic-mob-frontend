@@ -1634,6 +1634,73 @@ select {
   color: var(--home-orange);
 }
 
+.portfolio-filters {
+  position: sticky;
+  top: 120px;
+  z-index: 30;
+  padding: 18px 0;
+  background: rgba(7, 7, 7, 0.92);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid color-mix(in srgb, var(--home-ivory) 12%, transparent);
+}
+
+.portfolio-filters__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.portfolio-filters__group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.portfolio-filters__group-label {
+  margin-right: 14px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--home-ivory) 48%, transparent);
+}
+
+.portfolio-filters__chip {
+  padding: 9px 18px;
+  border: 1px solid color-mix(in srgb, var(--home-ivory) 24%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in srgb, var(--home-ivory) 72%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+}
+
+.portfolio-filters__chip:hover {
+  border-color: var(--home-orange);
+  color: var(--home-orange);
+}
+
+.portfolio-filters__chip--active {
+  border-color: var(--home-orange);
+  color: var(--home-orange);
+  background: var(--home-orange-soft);
+}
+
+.portfolio-filters__count {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--home-ivory) 48%, transparent);
+}
+
 .portfolio-scene {
   position: relative;
   padding: 140px 0;
