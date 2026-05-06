@@ -1634,9 +1634,189 @@ select {
   color: var(--home-orange);
 }
 
+.portfolio-scene {
+  position: relative;
+  padding: 140px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--home-ivory) 12%, transparent);
+}
+
+.portfolio-scene__grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.portfolio-scene--reverse .portfolio-scene__grid {
+  grid-template-columns: 1fr 1.15fr;
+}
+
+.portfolio-scene--reverse .portfolio-scene__text {
+  order: -1;
+}
+
+.portfolio-scene--reverse .portfolio-scene__image {
+  order: 1;
+}
+
+.portfolio-scene__image {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #2a2a2a, var(--home-charcoal));
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.45);
+}
+
+.portfolio-scene__image-media {
+  object-fit: cover;
+}
+
+.portfolio-scene__badge {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 2;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(237, 231, 222, 0.92);
+  color: #1a1a1a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.portfolio-scene__number {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 200px;
+  line-height: 0.85;
+  color: rgba(214, 108, 0, 0.18);
+  transform: translate(-12%, 18%);
+}
+
+.portfolio-scene__index {
+  margin-bottom: 22px;
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--home-orange);
+}
+
+.portfolio-scene__title {
+  margin: 0 0 24px;
+  font-family: var(--font-display), serif;
+  font-weight: 500;
+  font-size: clamp(40px, 4.5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+}
+
+.portfolio-scene__title em {
+  color: var(--home-orange);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.portfolio-scene__lede {
+  max-width: 46ch;
+  margin: 0 0 28px;
+  font-size: 17px;
+  line-height: 1.8;
+  color: color-mix(in srgb, var(--home-ivory) 72%, transparent);
+}
+
+.portfolio-scene__body {
+  max-width: 48ch;
+  margin: 0 0 36px;
+  font-size: 15px;
+  line-height: 1.85;
+  color: color-mix(in srgb, var(--home-ivory) 72%, transparent);
+}
+
+.portfolio-scene__body em {
+  color: var(--home-orange);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.portfolio-scene__specs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px 36px;
+  max-width: 520px;
+  margin: 32px 0 36px;
+  padding: 32px 0 0;
+  list-style: none;
+  border-top: 1px solid color-mix(in srgb, var(--home-ivory) 12%, transparent);
+}
+
+.portfolio-scene__specs li {
+  font-size: 13px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--home-ivory) 72%, transparent);
+}
+
+.portfolio-scene__specs b {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--home-ivory) 48%, transparent);
+}
+
+.portfolio-scene__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--home-orange);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--home-orange);
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.portfolio-scene__cta:hover {
+  border-color: var(--home-ivory);
+  color: var(--home-ivory);
+}
+
 @media (max-width: 980px) {
   .portfolio-hero__stats {
     grid-template-columns: repeat(2, 1fr);
     gap: 32px;
+  }
+
+  .portfolio-scene {
+    padding: 90px 0;
+  }
+
+  .portfolio-scene__grid,
+  .portfolio-scene--reverse .portfolio-scene__grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .portfolio-scene--reverse .portfolio-scene__text,
+  .portfolio-scene--reverse .portfolio-scene__image {
+    order: 0;
+  }
+
+  .portfolio-scene__specs {
+    grid-template-columns: 1fr;
   }
 }
