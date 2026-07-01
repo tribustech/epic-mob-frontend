@@ -1,14 +1,24 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useScroll } from "framer-motion";
-import { MessageCircle, Ruler, SwatchBook, FileText, Hammer, Wrench } from "lucide-react";
+import {
+  MessageCircle,
+  Ruler,
+  SwatchBook,
+  FileText,
+  Hammer,
+  Wrench,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 // Faithful port of dropship.io's "Our journey" [data-timeline-track] routine
 // (odyn bundle `dt()`): a runtime SVG circular arc with ~200 ruler ticks that
 // grow near a travelling dot, the passed portion coloured. Horizontal on all
-// sizes (like dropship); driven by page scroll instead of a Swiper. Content is
-// EpicMob's own project milestones; palette is the warm theme.
+// sizes (like dropship). Content is EpicMob's own project milestones; palette
+// is the warm theme. The cards are a native horizontally-scrollable strip
+// (swipe on touch, drag/scroll on desktop); the ruler dot + tick fill are
+// driven by the strip's scroll position.
 const milestones = [
   {
     icon: MessageCircle,
@@ -83,17 +93,10 @@ type Built = {
 };
 
 export function WarmJourney() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Array<HTMLElement | null>>([]);
   const trackRef = useRef<HTMLDivElement>(null);
   const builtRef = useRef<Built | null>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
 
   useEffect(() => {
     const g = () => builtRef.current;
@@ -110,9 +113,8 @@ export function WarmJourney() {
       const n = Math.round(D * 0.22);
       const de = D + n * 2;
       const center = n + D / 2;
-      const f = D * 1.07; // arc radius
-      const y = 3.75 * l;
-      const p = 7.5 * l;
+      const f = D * 3; // arc radius — large so the arc stays gentle and fully fits its box
+      const y = 3.25 * l; // baseline height (from top of the SVG)
       const h = Math.min(420, Math.round(de / 7)); // dense ticks, ~7px apart
       const d = Math.max(4, 0.32 * l); // dot radius
       const lens = [3 * l, 2.75 * l, 2.5 * l, 2.25 * l, 2.125 * l, 2 * l];
@@ -127,6 +129,10 @@ export function WarmJourney() {
         const J = Math.min(Math.abs(F), f - 1);
         return F / Math.sqrt(f * f - J * J);
       };
+
+      // Size the SVG so the full arc + longest ruler tick are contained (no clipping).
+      // The deepest visible point is at the edge of the fade mask (8% / 92% of `de`).
+      const p = Math.ceil(Math.max(W(0.08 * de), W(0.92 * de)) + lens[0] / 2 + 8);
       const pathD = () => {
         let s = "";
         for (let i = 0; i <= 200; i += 1) {
@@ -186,37 +192,22 @@ export function WarmJourney() {
       builtRef.current = { clipRect, dot, ticks, n, D, h, l, lens, W };
     };
 
-    // ── Per-frame update (odyn `he()`) ──
+    // ── Per-frame update ── `ce` is the strip's scroll fraction (0→1).
     const render = (ce: number) => {
       const b = g();
       const strip = stripRef.current;
-      const vp = viewportRef.current;
       const cards = cardRefs.current.filter(Boolean) as HTMLElement[];
 
-      // Slides: centre the active card and ride a gentle arc.
-      if (strip && vp && cards.length) {
-        const idx = ce * (cards.length - 1);
-        const lo = Math.max(0, Math.floor(idx));
-        const hi = Math.min(cards.length - 1, lo + 1);
-        const fr = idx - lo;
-        const co = (el: HTMLElement) => el.offsetLeft + el.offsetWidth / 2;
-        const target = co(cards[lo]) + (co(cards[hi]) - co(cards[lo])) * fr;
-        const vpW = vp.offsetWidth;
-        strip.style.transform = `translateX(${(vpW / 2 - target).toFixed(1)}px)`;
-        // Large radius so cards only tilt gently; rotation clamped for legibility.
-        const arcR = vpW * 2.2;
-        const vpCenter = vp.getBoundingClientRect().left + vpW / 2;
+      // Emphasise the card nearest the strip centre (scale + opacity focus).
+      if (strip && cards.length) {
+        const rect = strip.getBoundingClientRect();
+        const center = rect.left + strip.clientWidth / 2;
+        const half = strip.clientWidth / 2 || 1;
         for (const el of cards) {
           const r = el.getBoundingClientRect();
-          const ae = r.left + r.width / 2 - vpCenter;
-          const se = Math.min(Math.abs(ae), arcR);
-          const K = Math.sqrt(arcR * arcR - se * se) - arcR;
-          let rot =
-            Math.atan2(se, Math.sqrt(arcR * arcR - se * se)) * (180 / Math.PI) * Math.sign(ae);
-          rot = Math.max(-10, Math.min(10, rot));
-          const scale = Math.max(0.86, 1 - Math.abs(ae) / (vpW * 2.4));
-          el.style.transform = `translateY(${(-K).toFixed(1)}px) rotate(${rot.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-          el.style.opacity = String(Math.max(0.3, 1 - Math.abs(ae) / (vpW * 0.72)));
+          const t = Math.min(1, Math.abs(r.left + r.width / 2 - center) / half);
+          el.style.transform = `scale(${(1 - 0.14 * t).toFixed(3)})`;
+          el.style.opacity = (1 - 0.55 * t).toFixed(3);
         }
       }
 
@@ -239,30 +230,250 @@ export function WarmJourney() {
       }
     };
 
+    const progress = () => {
+      const strip = stripRef.current;
+      if (!strip) return 0;
+      const max = strip.scrollWidth - strip.clientWidth;
+      return max > 0 ? strip.scrollLeft / max : 0;
+    };
+
     build();
-    render(scrollYProgress.get());
-    const unsub = scrollYProgress.on("change", render);
+    render(progress());
+
+    // Ruler + card focus follow the strip's scroll (swipe, wheel, drag, snap).
+    const strip = stripRef.current;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        render(progress());
+        ticking = false;
+      });
+    };
+    strip?.addEventListener("scroll", onScroll, { passive: true });
+
+    // Desktop mouse: click-and-drag to scroll horizontally (touch uses native swipe).
+    let dragging = false;
+    let startX = 0;
+    let startLeft = 0;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!strip || e.pointerType !== "mouse") return;
+      if (strip.scrollWidth - strip.clientWidth <= 0) return;
+      dragging = true;
+      startX = e.clientX;
+      startLeft = strip.scrollLeft;
+      strip.classList.add("is-dragging");
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragging || !strip) return;
+      strip.scrollLeft = startLeft - (e.clientX - startX);
+    };
+    const onPointerUp = () => {
+      if (!strip) return;
+      dragging = false;
+      strip.classList.remove("is-dragging");
+    };
+    strip?.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+
+    // Ruler acts as a draggable scrubber: pressing/dragging along the track
+    // (mouse or touch) maps the pointer's X to a target scroll position, which
+    // the strip eases toward each frame — so a press glides rather than jumps.
+    const track = trackRef.current;
+    let scrubbing = false;
+    let scrubTarget = 0;
+    let scrubRaf = 0;
+    const maxScroll = () => (strip ? strip.scrollWidth - strip.clientWidth : 0);
+    const stepScrub = () => {
+      if (!strip) return;
+      const cur = strip.scrollLeft;
+      const diff = scrubTarget - cur;
+      if (Math.abs(diff) < 0.5) {
+        strip.scrollLeft = scrubTarget;
+        scrubRaf = 0;
+        if (!scrubbing) strip.classList.remove("is-snap-off");
+        return;
+      }
+      strip.scrollLeft = cur + diff * 0.22;
+      scrubRaf = requestAnimationFrame(stepScrub);
+    };
+    const ensureScrub = () => {
+      if (!scrubRaf && strip) {
+        strip.classList.add("is-snap-off");
+        scrubRaf = requestAnimationFrame(stepScrub);
+      }
+    };
+    const scrubTo = (clientX: number) => {
+      if (!strip || !track) return;
+      const r = track.getBoundingClientRect();
+      const frac = Math.max(0, Math.min(1, (clientX - r.left) / (r.width || 1)));
+      scrubTarget = frac * maxScroll();
+      ensureScrub();
+    };
+    // Nearest card's centred scroll position — used to settle after a scrub.
+    const nearestCardScroll = () => {
+      const cards = cardRefs.current.filter(Boolean) as HTMLElement[];
+      if (!strip || !cards.length) return strip ? strip.scrollLeft : 0;
+      const cur = strip.scrollLeft;
+      let best = Infinity;
+      let target = cur;
+      for (const el of cards) {
+        const p = el.offsetLeft + el.offsetWidth / 2 - strip.clientWidth / 2;
+        if (Math.abs(p - cur) < best) {
+          best = Math.abs(p - cur);
+          target = p;
+        }
+      }
+      return Math.max(0, Math.min(maxScroll(), target));
+    };
+    const onTrackDown = (e: PointerEvent) => {
+      if (!strip || maxScroll() <= 0) return;
+      scrubbing = true;
+      track?.classList.add("is-scrubbing");
+      scrubTo(e.clientX);
+      e.preventDefault();
+    };
+    const onTrackMove = (e: PointerEvent) => {
+      if (scrubbing) scrubTo(e.clientX);
+    };
+    const onTrackUp = () => {
+      if (!scrubbing) return;
+      scrubbing = false;
+      track?.classList.remove("is-scrubbing");
+      scrubTarget = nearestCardScroll(); // ease onto the nearest card
+      ensureScrub();
+    };
+    track?.addEventListener("pointerdown", onTrackDown);
+    window.addEventListener("pointermove", onTrackMove);
+    window.addEventListener("pointerup", onTrackUp);
+
+    // First-time hint: once the strip scrolls into view, glide it toward the
+    // next card and back so the user sees the cards/ruler can be moved. Skipped
+    // if the user has already interacted, or under reduced-motion.
+    let hinted = false;
+    let engaged = false;
+    let hintTimer = 0;
+    const markEngaged = () => {
+      engaged = true;
+    };
+    // Only horizontal wheel intent counts — vertical page-scroll over the strip
+    // shouldn't suppress the hint.
+    const onWheelEngage = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) engaged = true;
+    };
+    strip?.addEventListener("pointerdown", markEngaged, { passive: true });
+    strip?.addEventListener("wheel", onWheelEngage, { passive: true });
+    track?.addEventListener("pointerdown", markEngaged, { passive: true });
+
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    const hintNudge = () => {
+      if (!strip || engaged) return;
+      const max = strip.scrollWidth - strip.clientWidth;
+      if (max <= 0) return;
+      const cards = cardRefs.current.filter(Boolean) as HTMLElement[];
+      const step =
+        cards.length > 1
+          ? cards[1].offsetLeft - cards[0].offsetLeft
+          : strip.clientWidth * 0.5;
+      const amp = Math.min(max, step * 0.55);
+      strip.classList.add("is-snap-off");
+      const t0 = performance.now();
+      const dur = 1150;
+      const frame = (now: number) => {
+        if (!strip || engaged) {
+          strip?.classList.remove("is-snap-off");
+          return;
+        }
+        const p = Math.min(1, (now - t0) / dur);
+        strip.scrollLeft = amp * Math.sin(p * Math.PI); // 0 → amp → 0
+        if (p < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          strip.scrollLeft = 0;
+          strip.classList.remove("is-snap-off");
+        }
+      };
+      requestAnimationFrame(frame);
+    };
+
+    let io: IntersectionObserver | null = null;
+    if (strip && !prefersReduced && "IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting && e.intersectionRatio >= 0.5 && !hinted && !engaged) {
+              hinted = true;
+              hintTimer = window.setTimeout(hintNudge, 450);
+            }
+          }
+        },
+        { threshold: [0.5] },
+      );
+      io.observe(strip);
+    }
 
     let raf = 0;
     const onResize = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         build();
-        render(scrollYProgress.get());
+        render(progress());
       });
     };
     window.addEventListener("resize", onResize);
     return () => {
-      unsub();
+      strip?.removeEventListener("scroll", onScroll);
+      strip?.removeEventListener("pointerdown", onPointerDown);
+      track?.removeEventListener("pointerdown", onTrackDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointermove", onTrackMove);
+      window.removeEventListener("pointerup", onTrackUp);
+      strip?.removeEventListener("pointerdown", markEngaged);
+      strip?.removeEventListener("wheel", onWheelEngage);
+      track?.removeEventListener("pointerdown", markEngaged);
       window.removeEventListener("resize", onResize);
+      io?.disconnect();
+      clearTimeout(hintTimer);
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(scrubRaf);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Prev/next arrows: step to the adjacent card from whichever card is nearest
+  // right now, so they always land on a snap point (even mid-scrub).
+  const scrollByStep = (dir: number) => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const cards = cardRefs.current.filter(Boolean) as HTMLElement[];
+    if (!cards.length) return;
+    const centered = cards.map(
+      (el) => el.offsetLeft + el.offsetWidth / 2 - strip.clientWidth / 2,
+    );
+    const cur = strip.scrollLeft;
+    let idx = 0;
+    let best = Infinity;
+    centered.forEach((p, i) => {
+      if (Math.abs(p - cur) < best) {
+        best = Math.abs(p - cur);
+        idx = i;
+      }
+    });
+    const next = Math.max(0, Math.min(cards.length - 1, idx + dir));
+    const max = strip.scrollWidth - strip.clientWidth;
+    strip.scrollTo({
+      left: Math.max(0, Math.min(max, centered[next])),
+      behavior: "smooth",
+    });
+  };
 
   return (
     <section
-      ref={sectionRef}
       className="warm-journey relative bg-sand"
       aria-label="Parcursul unui proiect"
     >
@@ -274,7 +485,23 @@ export function WarmJourney() {
           </h2>
         </div>
 
-        <div ref={viewportRef} className="warm-journey__viewport">
+        <div className="warm-journey__viewport">
+          <button
+            type="button"
+            className="warm-journey__nav warm-journey__nav--prev"
+            aria-label="Pasul anterior"
+            onClick={() => scrollByStep(-1)}
+          >
+            <ChevronLeft strokeWidth={1.75} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="warm-journey__nav warm-journey__nav--next"
+            aria-label="Pasul următor"
+            onClick={() => scrollByStep(1)}
+          >
+            <ChevronRight strokeWidth={1.75} aria-hidden="true" />
+          </button>
           <div ref={stripRef} className="warm-journey__cards">
             {milestones.map((m, i) => (
               <article
@@ -295,9 +522,9 @@ export function WarmJourney() {
               </article>
             ))}
           </div>
-
-          <div ref={trackRef} className="warm-journey__track" aria-hidden="true" />
         </div>
+
+        <div ref={trackRef} className="warm-journey__track" aria-hidden="true" />
       </div>
     </section>
   );

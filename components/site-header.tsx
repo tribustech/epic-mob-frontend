@@ -31,6 +31,7 @@ export function SiteHeader() {
   const isWarm =
     pathname === "/" ||
     pathname.startsWith("/portfolio") ||
+    pathname.startsWith("/materiale") ||
     pathname === "/contact";
   const reduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
