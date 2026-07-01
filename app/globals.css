@@ -3632,171 +3632,97 @@ select {
   height: auto;
 }
 
-/* ── Home teaser (pinned scrollytelling) ── */
+/* ── Home teaser — material cards strip (all breakpoints) ── */
 .warm-materials {
-  position: relative;
-  height: 420vh;
-  background: var(--sand);
-  --mat-accent: var(--terracotta);
+  /* gutter that matches .section-shell padding at each breakpoint */
+  --shell-gutter: 1.5rem;
 }
 
-.warm-materials__sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-
-.warm-materials__wash {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    90% 70% at 78% 30%,
-    color-mix(in srgb, var(--mat-accent) 14%, transparent),
-    transparent 62%
-  );
-  transition: background 0.6s ease;
-}
-
-.warm-materials__inner {
-  position: relative;
-  width: 100%;
-}
-
-.warm-materials__head {
-  max-width: 40rem;
-}
-
-.warm-materials__stage {
-  margin-top: 2rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  align-items: center;
-}
-
-@media (min-width: 900px) {
-  .warm-materials__stage {
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: 3.5rem;
-    margin-top: 2.5rem;
+@media (min-width: 640px) {
+  .warm-materials {
+    --shell-gutter: 2rem;
   }
 }
 
-.warm-materials__slab {
-  position: relative;
-  aspect-ratio: 3 / 2;
-  border-radius: 1.75rem;
-  overflow: hidden;
-  box-shadow: var(--shadow-warm);
+@media (min-width: 1024px) {
+  .warm-materials {
+    --shell-gutter: 2.5rem;
+  }
 }
 
-.warm-materials__slab-img {
-  position: absolute;
-  inset: 0;
-  transition: opacity 0.6s ease;
-}
-
-.warm-materials__copy {
-  display: flex;
-  flex-direction: column;
-}
-
-.warm-materials__count {
-  font-weight: 700;
-  font-size: 1.05rem;
-  letter-spacing: 0.05em;
-  transition: color 0.4s ease;
-}
-
-.warm-materials__count-total {
-  color: var(--mocha-52);
-}
-
-.warm-materials__name {
-  margin-top: 0.75rem;
-  font-size: clamp(2rem, 4.5vw, 3.25rem);
-  line-height: 1.04;
+.warm-materials__title {
+  margin-top: 0.85rem;
+  max-width: 34rem;
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  line-height: 1.12;
   color: var(--espresso);
 }
 
-.warm-materials__tagline {
-  margin-top: 0.6rem;
-  font-size: 1.1rem;
-  color: var(--mocha-72);
-}
-
-.warm-materials__pros {
-  list-style: none;
-  margin: 1.5rem 0 0;
-  padding: 0;
+.warm-materials__strip {
+  margin-top: 2.25rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  gap: 1.25rem;
+  overflow-x: auto;
+  /* proximity (not mandatory): keeps the leading gutter at rest instead of
+     yanking the first card flush to the edge */
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  /* first card aligns to the content gutter, then the strip bleeds to the edges */
+  padding-inline: max(
+    var(--shell-gutter),
+    calc((100vw - 80rem) / 2 + var(--shell-gutter))
+  );
+  /* snap targets sit at the same gutter so every card lines up with the first */
+  scroll-padding-inline: max(
+    var(--shell-gutter),
+    calc((100vw - 80rem) / 2 + var(--shell-gutter))
+  );
+  padding-block: 0.75rem 1rem;
 }
 
-.warm-materials__pros li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  color: var(--espresso);
-  font-weight: 500;
+.warm-materials__strip::-webkit-scrollbar {
+  display: none;
 }
 
-.warm-materials__pro-mark {
-  flex-shrink: 0;
-  width: 1.15rem;
-  height: 1.15rem;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  margin-top: 0.15rem;
+/* Programmatic nudge: turn snapping off so the glide isn't fought by snap. */
+.warm-materials__strip.is-snap-off {
+  scroll-snap-type: none;
 }
 
-.warm-materials__rail {
-  display: flex;
-  gap: 0.4rem;
-  margin-top: 2rem;
+.warm-materials__item {
+  scroll-snap-align: start;
+  display: flex; /* stretch the card to the tallest — equal heights */
+  flex: 0 0 82%;
+  max-width: 22rem;
 }
 
-.warm-materials__rail-seg {
-  height: 0.28rem;
-  flex: 1;
-  border-radius: 999px;
-  background: var(--line-strong);
-  transition: background 0.4s ease;
+.warm-materials__item > .material-card {
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 640px) {
+  .warm-materials__item {
+    flex-basis: 46%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .warm-materials__item {
+    flex-basis: 31%;
+  }
+}
+
+@media (min-width: 1280px) {
+  .warm-materials__item {
+    /* deliberately > 25% so the 4 cards always overflow a touch — keeps a peek
+       of the next card and gives the scroll-into-view nudge room to move */
+    flex-basis: 27%;
+    max-width: 24rem;
+  }
 }
 
 .warm-materials__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
-  align-self: flex-start;
-  font-weight: 700;
-  color: var(--espresso);
-  border-bottom: 2px solid var(--mat-accent);
-  padding-bottom: 0.2rem;
-  transition: gap 0.25s ease;
-}
-
-.warm-materials__cta:hover {
-  gap: 0.85rem;
-}
-
-/* Reduced-motion fallback grid */
-.warm-materials-static__card {
-  display: block;
-}
-
-.warm-materials-static__img {
-  position: relative;
-  display: block;
-  aspect-ratio: 3 / 2;
-  border-radius: 1.25rem;
-  overflow: hidden;
-  box-shadow: var(--shadow-warm);
+  margin-top: 1.75rem;
 }
