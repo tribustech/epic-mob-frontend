@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
@@ -16,7 +17,12 @@ const bodyFont = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Epic Mob Atelier",
+  metadataBase: new URL("https://epicmob.ro"),
+  title: {
+    default: "Epic Mob Atelier — Mobilier la comanda",
+    // Child pages set just their descriptive part; the brand is appended here.
+    template: "%s | Epic Mob",
+  },
   description:
     "Mobilier premium la comanda, consultanta si executie cap-coada pentru proiecte rezidentiale.",
 };
@@ -35,6 +41,7 @@ export default function RootLayout({
         <SiteHeader />
         <div className="relative">{children}</div>
         <SiteFooter />
+        <Analytics />
       </body>
     </html>
   );
