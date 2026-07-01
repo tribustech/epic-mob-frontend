@@ -15,7 +15,7 @@ export function ProjectIndex() {
               data-home-reveal="text"
               className="display-font mt-4 max-w-4xl text-[clamp(3rem,8vw,8rem)] leading-[0.9] tracking-[-0.06em]"
             >
-              Selectie de proiecte si detalii.
+              Selecție de proiecte și detalii.
             </h2>
           </div>
           <Link

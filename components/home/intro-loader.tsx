@@ -156,7 +156,7 @@ export function IntroLoader() {
         className="absolute bottom-8 left-8 z-20 max-w-sm text-sm uppercase tracking-[0.28em] text-[color-mix(in_srgb,var(--home-ivory)_68%,transparent)]"
         data-loader-content
       >
-        Mobila la comanda
+        Mobilă la comandă
       </div>
       <div
         data-loader-curtain="left"

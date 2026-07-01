@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>EpicMob — Portofoliu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="_shared.css" />
+<style>
+  /* Hero */
+  .portfolio-hero{
+    min-height:80vh;display:flex;align-items:flex-end;
+    padding:140px 0 80px;
+    border-bottom:1px solid var(--ivory-12);
+    background:
+      radial-gradient(circle at 78% 20%, var(--ember-soft), transparent 42%),
+      linear-gradient(135deg,#070707 0%,#15130f 56%,#1f1208 100%);
+    position:relative;overflow:hidden;
+  }
+  .portfolio-hero::before{
+    content:"";position:absolute;inset:0;
+    background-image:linear-gradient(var(--ivory-12) 1px,transparent 1px),
+                     linear-gradient(90deg,var(--ivory-12) 1px,transparent 1px);
+    background-size:80px 80px;opacity:0.35;
+    mask-image:linear-gradient(180deg,black,transparent 75%);
+  }
+  .portfolio-hero .shell{position:relative;z-index:2;}
+  .portfolio-hero .meta{
+    display:flex;align-items:center;gap:14px;
+    font-size:12px;letter-spacing:0.4em;text-transform:uppercase;color:var(--ember);font-weight:800;
+    margin-bottom:24px;
+  }
+  .portfolio-hero .meta .rule{display:block;width:40px;height:1px;background:var(--ember);}
+  .portfolio-hero h1{
+    font-family:var(--display);font-weight:500;
+    font-size:clamp(56px,8vw,128px);line-height:0.96;letter-spacing:-0.02em;
+    margin:0 0 36px;max-width:14ch;
+  }
+  .portfolio-hero h1 em{font-style:italic;color:var(--ember);font-weight:500;}
+  .portfolio-hero .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:48px;
+    margin-top:60px;padding-top:40px;border-top:1px solid var(--ivory-12);
+    max-width:880px;
+  }
+  .portfolio-hero .stat .num{
+    font-family:var(--display);font-size:56px;font-weight:500;color:var(--ivory);line-height:1;
+  }
+  .portfolio-hero .stat .num em{font-style:italic;color:var(--ember);}
+  .portfolio-hero .stat .label{
+    margin-top:14px;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--ivory-48);font-weight:700;
+  }
+
+  /* Filter strip */
+  .filters{
+    position:sticky;top:120px;z-index:30;
+    background:rgba(7,7,7,0.92);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--ivory-12);
+    padding:18px 0;
+  }
+  .filters .row{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;}
+  .filters .group{display:flex;gap:6px;align-items:center;}
+  .filters .group .label{
+    font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--ivory-48);font-weight:800;margin-right:14px;
+  }
+  .chip{
+    border:1px solid var(--ivory-24);color:var(--ivory-72);
+    padding:9px 18px;border-radius:999px;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;
+    cursor:pointer;background:transparent;transition:border-color 0.3s ease,color 0.3s ease,background 0.3s ease;
+  }
+  .chip.active{border-color:var(--ember);color:var(--ember);background:var(--ember-soft);}
+  .chip:hover{border-color:var(--ember);color:var(--ember);}
+  .filters .count{font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:var(--ivory-48);font-weight:700;}
+
+  /* Project scenes */
+  .scene{
+    padding:140px 0;border-bottom:1px solid var(--ivory-12);position:relative;
+  }
+  .scene-grid{
+    display:grid;gap:80px;align-items:center;
+    grid-template-columns:1.15fr 1fr;
+  }
+  .scene.reverse .scene-grid{grid-template-columns:1fr 1.15fr;}
+  .scene.reverse .scene-text{order:-1;}
+  .scene.reverse .scene-image{order:1;}
+
+  .scene-image{
+    position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;
+    background:linear-gradient(135deg,var(--ash),var(--charcoal));
+    box-shadow:var(--shadow-card);
+  }
+  .scene-image .ph{
+    position:absolute;inset:0;display:grid;place-items:center;
+    color:var(--ivory-48);font-size:11px;letter-spacing:0.32em;text-transform:uppercase;font-weight:800;
+    text-align:center;padding:24px;
+  }
+  .scene-image .ph::before{
+    content:"";position:absolute;inset:24px;border:1px solid var(--ivory-12);
+  }
+  .scene-image .number{
+    position:absolute;left:0;bottom:0;
+    font-family:var(--display);font-style:italic;font-size:200px;line-height:0.85;color:rgba(214,108,0,0.18);font-weight:500;
+    transform:translate(-12%,18%);pointer-events:none;
+  }
+  .scene-image .badge{
+    position:absolute;top:24px;left:24px;
+    background:rgba(237,231,222,0.92);color:#1a1a1a;
+    font-size:10px;letter-spacing:0.24em;font-weight:800;padding:7px 14px;border-radius:999px;text-transform:uppercase;
+  }
+
+  .scene-text .index{
+    font-family:var(--display);font-style:italic;font-size:18px;color:var(--ember);font-weight:500;letter-spacing:0.04em;
+    margin-bottom:22px;
+  }
+  .scene-text h2{
+    font-family:var(--display);font-weight:500;
+    font-size:clamp(40px,4.5vw,64px);line-height:1.02;letter-spacing:-0.015em;
+    margin:0 0 24px;
+  }
+  .scene-text h2 em{font-style:italic;color:var(--ember);font-weight:500;}
+  .scene-text .lede{font-size:17px;line-height:1.8;color:var(--ivory-72);max-width:46ch;margin:0 0 28px;}
+  .scene-text .body{font-size:15px;line-height:1.85;color:var(--ivory-72);max-width:48ch;margin:0 0 36px;}
+  .scene-text .body em{color:var(--ember);font-style:italic;font-weight:500;}
+
+  .scene-text .specs{
+    list-style:none;padding:0;margin:32px 0 36px;
+    display:grid;grid-template-columns:repeat(2,1fr);gap:24px 36px;
+    border-top:1px solid var(--ivory-12);padding-top:32px;max-width:520px;
+  }
+  .scene-text .specs li{font-size:13px;color:var(--ivory-72);line-height:1.5;}
+  .scene-text .specs li b{display:block;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:var(--ivory-48);font-weight:800;margin-bottom:6px;}
+
+  .scene-cta{display:inline-flex;align-items:center;gap:10px;color:var(--ember);font-size:12px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase;border-bottom:1px solid var(--ember);padding-bottom:6px;}
+  .scene-cta:hover{color:var(--ivory);border-color:var(--ivory);}
+
+  .gallery-strip{
+    margin-top:32px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:520px;
+  }
+  .gallery-strip .thumb{
+    aspect-ratio:1;background:linear-gradient(135deg,var(--ash),var(--charcoal));
+    border-radius:3px;position:relative;
+    border:1px solid var(--ivory-12);
+  }
+  .gallery-strip .thumb::after{
+    content:attr(data-l);position:absolute;left:8px;bottom:6px;
+    font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ivory-48);font-weight:800;
+  }
+
+  /* Group dividers */
+  .group-divider{
+    padding:80px 0 0;border-bottom:0;
+    text-align:center;
+  }
+  .group-divider .line{
+    display:flex;align-items:center;gap:24px;justify-content:center;color:var(--ember);
+    font-size:12px;letter-spacing:0.4em;text-transform:uppercase;font-weight:800;
+  }
+  .group-divider .line::before,.group-divider .line::after{
+    content:"";flex:0 0 80px;height:1px;background:var(--ember);
+  }
+  .group-divider h3{
+    font-family:var(--display);font-weight:500;font-size:clamp(48px,6vw,88px);line-height:1;
+    margin:24px 0 0;letter-spacing:-0.02em;
+  }
+  .group-divider h3 em{font-style:italic;color:var(--ember);font-weight:500;}
+  .group-divider .desc{margin:24px auto 0;max-width:560px;color:var(--ivory-72);font-size:15px;line-height:1.8;}
+
+  /* Final CTA */
+  .pf-final{
+    padding:160px 0;text-align:center;
+    background:
+      radial-gradient(circle at 30% 70%,rgba(214,108,0,0.22),transparent 45%),
+      radial-gradient(circle at 80% 30%,rgba(214,108,0,0.12),transparent 50%),
+      var(--stage);
+  }
+  .pf-final h2{font-family:var(--display);font-weight:500;font-size:clamp(40px,5vw,80px);line-height:1.05;margin:24px auto 22px;max-width:720px;letter-spacing:-0.01em;}
+  .pf-final h2 em{color:var(--ember);font-style:italic;font-weight:500;}
+  .pf-final p{max-width:520px;margin:0 auto;color:var(--ivory-72);font-size:16px;line-height:1.8;}
+  .pf-final .ctas{margin-top:42px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;}
+
+  @media (max-width:980px){
+    .scene-grid, .scene.reverse .scene-grid{grid-template-columns:1fr;gap:48px;}
+    .scene.reverse .scene-text{order:0;}
+    .scene.reverse .scene-image{order:0;}
+    .portfolio-hero .stats{grid-template-columns:repeat(2,1fr);gap:32px;}
+    .scene{padding:90px 0;}
+    .scene-text .specs{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  <span><b>Cinematic v2</b> · Portofoliu</span>
+  <nav>
+    <a href="migration-preview.html">Acasa</a>
+    <a href="portfolio-preview.html" class="active">Portofoliu</a>
+    <a href="contact-preview.html">Contact</a>
+  </nav>
+</div>
+
+<header class="site-header">
+  <div class="logo">epic<span>mob</span></div>
+  <nav class="nav">
+    <a href="migration-preview.html">Acasa</a>
+    <a href="portfolio-preview.html" class="active">Portofoliu</a>
+    <a href="contact-preview.html">Contact</a>
+    <a href="#" class="cta">Cere oferta</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="portfolio-hero">
+  <div class="shell">
+    <div class="meta"><span class="rule"></span>2019 — 2026 · 84 proiecte</div>
+    <h1>Lucrari care<br/><em>traiesc</em> deja.</h1>
+    <p style="max-width:560px;color:var(--ivory-72);font-size:18px;line-height:1.8;margin:0;">
+      Fotografii reale, fara randari. Fiecare proiect e o discutie despre cum se foloseste casa,
+      ce contrazice planul si ce ramane peste 10 ani.
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="num">84</div><div class="label">Proiecte<br/>finalizate</div></div>
+      <div class="stat"><div class="num">7<em>+</em></div><div class="label">Ani de<br/>atelier</div></div>
+      <div class="stat"><div class="num">100%</div><div class="label">Feronerie<br/>Blum</div></div>
+      <div class="stat"><div class="num">9 spt</div><div class="label">Predare<br/>medie</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<div class="filters">
+  <div class="shell">
+    <div class="row">
+      <div class="group">
+        <span class="label">Camere</span>
+        <button class="chip active">Toate</button>
+        <button class="chip">Bucatarie</button>
+        <button class="chip">Dressing</button>
+        <button class="chip">Baie</button>
+        <button class="chip">Detaliu</button>
+      </div>
+      <span class="count">11 / 84 afisate</span>
+    </div>
+  </div>
+</div>
+
+<!-- GROUP: BUCATARII -->
+<section class="group-divider">
+  <div class="shell">
+    <div class="line">Capitolul 01</div>
+    <h3>Bucatarii care <em>tin casa</em>.</h3>
+    <p class="desc">Patru proiecte unde bucataria a devenit punctul de greutate al locuintei. Fiecare cu o decizie incomoda care a schimbat directia.</p>
+  </div>
+</section>
+
+<!-- 01 — Kensington -->
+<section class="scene">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Bucatarie · 2025</span>
+        <div class="ph">kitchen-ornate-navy-full.jpg</div>
+        <span class="number">01</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 01 din 11</div>
+        <h2>Kensington <em>navy.</em></h2>
+        <p class="lede">Bucatarie cu front sculptat in MDF vopsit, profilatura clasica si insula in stil englez, predata in 9 saptamani.</p>
+        <p class="body">Familia voia sa pastreze structura veche a apartamentului — calorifere de fonta, pardoseala originala — dar avea nevoie de o bucatarie functionala pentru gatit zilnic. Am pus accentul pe profilatura clasica si <em>manere de alama</em> turnate manual, dar am ascuns electrocasnicele intr-o coloana de servire si am dublat capacitatea de stocare cu un dulap mascat in coridor.</p>
+        <ul class="specs">
+          <li><b>Material</b>MDF vopsit RAL custom</li>
+          <li><b>Feronerie</b>Blum Movento + Aventos</li>
+          <li><b>Suprafata</b>14 m² + insula 2.4m</li>
+          <li><b>Predat</b>Septembrie 2025</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 — Olivia -->
+<section class="scene reverse">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Bucatarie · 2025</span>
+        <div class="ph">kitchen-white-modern.jpg</div>
+        <span class="number">02</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 02 din 11</div>
+        <h2>Olivia, <em>complet alb.</em></h2>
+        <p class="lede">Bucatarie L cu fronturi infoliate mate, blat porcelanat si iluminare cu senzor pe toate corpurile superioare.</p>
+        <p class="body">Brief simplu pe hartie, complicat pe santier: clientul voia <em>linii curate, fara manere</em>, dar pastra o nisa de instalatii care iesea 11cm in spatele frigiderului. Am proiectat un corp tehnic mascat, am compensat 11cm prin grosimea blatului si am rezolvat ventilatia hotei cu canal lateral. Vizual, pare ca toate corpurile sunt egale.</p>
+        <ul class="specs">
+          <li><b>Material</b>MDF infoliat mat</li>
+          <li><b>Blat</b>Porcelanat 12mm</li>
+          <li><b>Iluminare</b>Senzor + RGB cald</li>
+          <li><b>Predat</b>Iunie 2025</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 — Vatra Luminoasa -->
+<section class="scene">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Bucatarie · 2024</span>
+        <div class="ph">kitchen-ornate-navy-overview.jpg</div>
+        <span class="number">03</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 03 din 11</div>
+        <h2>Vatra <em>Luminoasa.</em></h2>
+        <p class="lede">Open-space cu bucatarie + zona de masa, integrare a unei sobe de teracota originale din 1962.</p>
+        <p class="body">Apartamentul avea o soba de teracota pe care familia nu voia sa o piarda. Am desenat bucataria <em>in jurul ei</em>, nu impotriva ei: corpurile inalte se opresc cu 40cm inainte de soba, iar materialul a fost ales sa raspunda la albul-bej al teracotei vechi. Sertarele Blum suporta greutatea unui set de tigai de fonta fara sa cedeze.</p>
+        <ul class="specs">
+          <li><b>Material</b>MDF vopsit + PAL</li>
+          <li><b>Pastrat</b>Soba teracota 1962</li>
+          <li><b>Suprafata</b>22 m² open-space</li>
+          <li><b>Predat</b>Noiembrie 2024</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 — Aviatorilor -->
+<section class="scene reverse">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Bucatarie · 2024</span>
+        <div class="ph">kitchen-navy-sink-wide.jpg</div>
+        <span class="number">04</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 04 din 11</div>
+        <h2>Aviatorilor, <em>navy &amp; alama.</em></h2>
+        <p class="lede">Bucatarie cu zona de chiuveta in nisa, masca pentru hota integrata si dulapuri de coltar inalte.</p>
+        <p class="body">Caracteristic acestui proiect: <em>nu am vandut clientului niciun corp inutil</em>. Am respins doua dulapuri din primul randament si am redesenat zona de gatit ca sa ramana spatiu pentru o masa de servire de 4 persoane. Manerele de alama au fost recuperate de la un proiect anterior si refinisate manual.</p>
+        <ul class="specs">
+          <li><b>Material</b>MDF vopsit navy</li>
+          <li><b>Manere</b>Alama refinisata</li>
+          <li><b>Suprafata</b>11 m²</li>
+          <li><b>Predat</b>Mai 2024</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GROUP: DRESSING -->
+<section class="group-divider">
+  <div class="shell">
+    <div class="line">Capitolul 02</div>
+    <h3>Dressinguri si <em>spatii de stocare</em>.</h3>
+    <p class="desc">Cand totul trebuie sa incapa fara sa para incarcat. Trei proiecte unde geometria a fost mai grea decat estetica.</p>
+  </div>
+</section>
+
+<!-- 05 — Dressing oglinda -->
+<section class="scene">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Dressing · 2025</span>
+        <div class="ph">dressing-mirror-wardrobe.jpg</div>
+        <span class="number">05</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 05 din 11</div>
+        <h2>Dressing <em>cu oglinzi.</em></h2>
+        <p class="lede">Dressing pe doua nivele intr-un dormitor de 3.6m, cu oglinda integrata pe usa centrala si iluminare LED pe sertare.</p>
+        <p class="body">Spatiul real era de 3.6m liniari, dar tavanul avea o grinda decorativa care intra 18cm in volum. Am oprit corpul exact sub grinda si am compensat cu un raft tehnic pe latura. Oglinda <em>pivotanta</em> permite vedere completa fara sa scoata clientul din volum.</p>
+        <ul class="specs">
+          <li><b>Material</b>PAL + MDF infoliat</li>
+          <li><b>Oglinda</b>Pivotanta cu balama-piano</li>
+          <li><b>Suprafata</b>3.6 m liniari</li>
+          <li><b>Predat</b>August 2025</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 — Coltar -->
+<section class="scene reverse">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Dressing · 2024</span>
+        <div class="ph">kitchen-ornate-navy-shelves.jpg</div>
+        <span class="number">06</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 06 din 11</div>
+        <h2>Coltar de <em>colectionar.</em></h2>
+        <p class="lede">Vitrine cu corpuri superioare in dressing-bibliotca pentru un colectionar de carti rare si obiecte de portelan.</p>
+        <p class="body">Brief atipic: clientul nu voia haine la vedere, ci <em>obiecte de colectie cu lumina punctuala</em>. Am livrat un coltar in trei volume: doua cu vitrine si LED nou pe fiecare polita, plus un nucleu inchis pentru haine. Sticla este antireflex, montata mecanic fara silicon vizibil.</p>
+        <ul class="specs">
+          <li><b>Material</b>MDF vopsit + sticla</li>
+          <li><b>Iluminare</b>LED 3000K, telecomanda</li>
+          <li><b>Suprafata</b>4.2 m liniari</li>
+          <li><b>Predat</b>Decembrie 2024</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GROUP: DETALII -->
+<section class="group-divider">
+  <div class="shell">
+    <div class="line">Capitolul 03</div>
+    <h3>Detalii care <em>fac diferenta</em>.</h3>
+    <p class="desc">Cantitati mici, decizii lungi. Ce tine timp dupa ce restul s-a uitat.</p>
+  </div>
+</section>
+
+<!-- 07 — Detaliu maner -->
+<section class="scene">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Detaliu · 2025</span>
+        <div class="ph">detail-gold-handle.jpg</div>
+        <span class="number">07</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 07 din 11</div>
+        <h2>Maner <em>turnat manual.</em></h2>
+        <p class="lede">Manere de alama brunata, turnate intr-un atelier din Brasov, finisate cu lac mat care nu ingalbeneste.</p>
+        <p class="body">Sapte luni de cautari dupa furnizorul potrivit. Mainile clientului sunt mainile care deschid cele mai des un corp — am refuzat doua finisaje care lasau urme dupa o saptamana. <em>Standardul nostru</em>: dupa 5 ani, sa fie la fel.</p>
+        <ul class="specs">
+          <li><b>Material</b>Alama 70% + zinc</li>
+          <li><b>Furnizor</b>Atelier Brasov</li>
+          <li><b>Finisaj</b>Lac mat anti-amprenta</li>
+          <li><b>Stoc</b>Permanent disponibil</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 — Front sculptat -->
+<section class="scene reverse">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Detaliu · 2024</span>
+        <div class="ph">kitchen-ornate-cabinets-close.jpg</div>
+        <span class="number">08</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 08 din 11</div>
+        <h2>Front <em>sculptat MDF.</em></h2>
+        <p class="lede">Profilatura cu trei nivele si lambriu in MDF vopsit RAL custom, executata pe CNC-ul atelierului.</p>
+        <p class="body">Profilatura clasica are doua probleme reale: <em>se sparge la montaj</em> si se ingalbeneste la 4-5 ani. Solutia noastra: vopsire in trei pasi cu grunduire intre, astfel incat lemnul nu mai respira pigmentul. Frontul a stat 18 luni la atelier ca proba, fara modificari de culoare.</p>
+        <ul class="specs">
+          <li><b>Material</b>MDF 19mm</li>
+          <li><b>Vopsea</b>RAL custom 3-pas</li>
+          <li><b>Productie</b>CNC propriu</li>
+          <li><b>Garantie</b>10 ani fara ingalbenire</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 — Chiuveta -->
+<section class="scene">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Detaliu · 2024</span>
+        <div class="ph">kitchen-navy-sink-detail.jpg</div>
+        <span class="number">09</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 09 din 11</div>
+        <h2>Chiuveta <em>integrata.</em></h2>
+        <p class="lede">Chiuveta din inox masiv montata sub blat porcelanat, cu sifon mascat si baterie cu pull-down.</p>
+        <p class="body">Punctul slab al unei bucatarii premium e <em>marginea chiuvetei</em>. Am livrat o solutie under-mount cu garnitura silicon de tip stomatologic — invizibila, nu prinde mizerie, suporta 80°C. Sifonul este redirectat lateral ca sa eliberam <em>20cm sub chiuveta</em> pentru un sertar de filtre.</p>
+        <ul class="specs">
+          <li><b>Chiuveta</b>Inox 18/10 masiv</li>
+          <li><b>Blat</b>Porcelanat 12mm</li>
+          <li><b>Garnitura</b>Silicon stomatologic</li>
+          <li><b>Baterie</b>Pull-down magnetic</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 — Vitrina -->
+<section class="scene reverse">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Detaliu · 2024</span>
+        <div class="ph">kitchen-ornate-navy-upper.jpg</div>
+        <span class="number">10</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 10 din 11</div>
+        <h2>Corpuri <em>cu vitrina.</em></h2>
+        <p class="lede">Corpuri superioare cu vitrine de sticla, lambriu lemn pe spate si LED frontal mascat in profil.</p>
+        <p class="body">Vitrinele clasice au o problema: <em>se vad cablurile LED</em>. Am profilat un canal de 4mm in marginea de sus a corpului, am ascuns LED-ul si am redirectat cablul prin balama. Lumea vede sticla, lemnul si obiectele, nu mecanismul.</p>
+        <ul class="specs">
+          <li><b>Material</b>MDF vopsit + furnir nuc</li>
+          <li><b>Sticla</b>Antireflex 6mm</li>
+          <li><b>LED</b>Mascat in canal 4mm</li>
+          <li><b>Predat</b>Februarie 2024</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 — Usa clasica -->
+<section class="scene">
+  <div class="shell">
+    <div class="scene-grid">
+      <div class="scene-image">
+        <span class="badge">Detaliu · 2023</span>
+        <div class="ph">detail-blue-door-handle.jpg</div>
+        <span class="number">11</span>
+      </div>
+      <div class="scene-text">
+        <div class="index">Proiect / 11 din 11</div>
+        <h2>Usa <em>clasica refacuta.</em></h2>
+        <p class="lede">Recuperarea unei usi originale din 1934, cu maner decorativ refinisat si vopsire cu pigment sintetic.</p>
+        <p class="body">Clientul a vrut <em>sa nu cumpere o usa noua</em>. Am demontat usa, am detasat manerul, l-am trimis la cromare si am vopsit usa cu un pigment albastru-pruna care reproduce nuanta originala vazuta in fotografii alb-negru ale apartamentului. Usa a fost remontata in 14 zile.</p>
+        <ul class="specs">
+          <li><b>Origine</b>1934, recuperata</li>
+          <li><b>Maner</b>Cromat refinisat</li>
+          <li><b>Vopsea</b>Pigment sintetic</li>
+          <li><b>Predat</b>Octombrie 2023</li>
+        </ul>
+        <a href="case-stub.html" class="scene-cta">Vezi studiul de caz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="pf-final">
+  <div class="shell">
+    <p class="eyebrow" style="margin-bottom:18px;">Restul portofoliului</p>
+    <h2>Cele 73 de proiecte<br/>care nu <em>au incaput</em> aici.</h2>
+    <p>Fiecare proiect are o poveste pe care o spunem doar in atelier. Programeaza o vizita si iti aratam fizic mostre, fronturi proba si feronerie.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="contact-preview.html">Programeaza vizita</a>
+      <a class="btn btn-secondary" href="#">Cere oferta →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="shell">
+    <div class="grid">
+      <div class="col brand">
+        <div class="logo">epic<span>mob</span></div>
+        <p>Atelier de mobilier premium la comanda. Consultanta, design si executie cap-coada.</p>
+      </div>
+      <div class="col"><h4>Navigatie</h4><a href="migration-preview.html">Acasa</a><a href="portfolio-preview.html">Portofoliu</a><a href="contact-preview.html">Contact</a></div>
+      <div class="col"><h4>Contact</h4><a href="#">+40 721 234 567</a><a href="#"><span class="__cf_email__" data-cfemail="f2919d9c86939186b297829b919f9d90dc809d">[email&#160;protected]</span></a><a href="#">WhatsApp</a></div>
+      <div class="col"><h4>Atelier</h4><p>Bucuresti, Romania<br/>Luni-Vineri 10:00–18:00</p></div>
+    </div>
+    <div class="legal"><span>© 2026 EpicMob</span><span>Cinematic v2 · Preview build</span></div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>

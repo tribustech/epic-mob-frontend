@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { materials } from "@/lib/site-data";
 import { SectionHeading } from "@/components/section-heading";
 
-const comparisonHeaders = ["Material", "Durabilitate", "Umiditate", "Finisaj", "Pret"];
+const comparisonHeaders = ["Material", "Durabilitate", "Umiditate", "Finisaj", "Preț"];
 
 export function MaterialsSection() {
   return (
@@ -13,8 +13,8 @@ export function MaterialsSection() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="Materiale"
-          title="Fiecare camera cere materialul potrivit."
-          description="Va ghidam spre alegerea corecta in functie de camera, buget si estetica dorita."
+          title="Fiecare cameră cere materialul potrivit."
+          description="Vă ghidăm spre alegerea corectă în funcție de cameră, buget și estetică dorită."
         />
 
         <motion.div

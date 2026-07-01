@@ -12,7 +12,7 @@ export function ImmersiveFinalCta() {
             data-home-reveal="text"
             className="display-font mt-5 max-w-5xl text-[clamp(3.5rem,9vw,9rem)] leading-[0.88] tracking-[-0.07em]"
           >
-            Hai sa construim ceva facut pentru tine.
+            Hai să construim ceva făcut pentru tine.
           </h2>
           <div className="mt-10 flex flex-wrap gap-8 text-xs font-bold uppercase tracking-[0.28em]">
             <Link
@@ -20,7 +20,7 @@ export function ImmersiveFinalCta() {
               href="/configurator"
               className="text-[var(--home-orange)]"
             >
-              Incepe proiectul
+              Începe proiectul
             </Link>
             <Link data-home-hover href="/contact">
               Contact
@@ -30,7 +30,7 @@ export function ImmersiveFinalCta() {
         <div className="relative h-[48vh] min-h-80 overflow-hidden rounded-[1.5rem]">
           <Image
             src="/portfolio/kitchen-navy-sink-wide.jpg"
-            alt="Bucatarie la comanda cu finisaje premium"
+            alt="Bucătărie la comandă cu finisaje premium"
             fill
             sizes="(max-width: 1024px) 100vw, 40vw"
             className="object-cover"

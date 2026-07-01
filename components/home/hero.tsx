@@ -69,7 +69,7 @@ export function Hero() {
         >
           <span className="h-px w-10 bg-gold" />
           <span className="text-[0.7rem] font-bold uppercase tracking-[0.4em] text-gold">
-            Mobilier premium la comanda
+            Mobilier premium la comandă
           </span>
         </motion.div>
 
@@ -79,7 +79,7 @@ export function Hero() {
           transition={{ delay: 0.4, duration: 0.9 }}
           className="display-font mt-8 max-w-[48rem] text-[3.2rem] leading-[1.05] text-white sm:text-[4.2rem] lg:text-[5.5rem]"
         >
-          Executie care se simte{" "}
+          Execuție care se simte{" "}
           <span className="text-gold">premium</span>{" "}
           din prima privire.
         </motion.h1>
@@ -90,7 +90,7 @@ export function Hero() {
           transition={{ delay: 0.7, duration: 0.8 }}
           className="mt-8 max-w-xl text-lg leading-8 text-white/70 sm:text-xl"
         >
-          Mobilier personalizat cu consultanta, design si montaj complet — de la prima discutie pana la ultimul detaliu.
+          Mobilier personalizat cu consultanță, design și montaj complet — de la prima discuție până la ultimul detaliu.
         </motion.p>
 
         <motion.div
@@ -103,7 +103,7 @@ export function Hero() {
             href="/configurator"
             className="group relative overflow-hidden rounded-full bg-gold px-8 py-4.5 text-sm font-bold uppercase tracking-[0.2em] text-navy transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(243,198,35,0.35)]"
           >
-            Incepe proiectul
+            Începe proiectul
           </Link>
           <Link
             href="/portfolio"

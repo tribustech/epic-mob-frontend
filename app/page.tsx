@@ -1,10 +1,5 @@
-import { HomeAnimationProvider } from "@/components/home/home-animation-provider";
-import { HomePageContent } from "@/components/home/home-page-content";
+import { WarmHome } from "@/components/home/warm/warm-home";
 
 export default function Home() {
-  return (
-    <HomeAnimationProvider>
-      <HomePageContent />
-    </HomeAnimationProvider>
-  );
+  return <WarmHome />;
 }
