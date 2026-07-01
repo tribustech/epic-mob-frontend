@@ -203,6 +203,51 @@ export const portfolioProjects: PortfolioProject[] = [
       alt: "Dressing pe două nivele cu oglindă pivotantă integrată",
     },
   },
+  {
+    slug: "bucatarie-cappuccino-piatra-neagra",
+    index: 4,
+    category: "bucatarie",
+    badge: "Apartament · 2025",
+    title: "Cappuccino <em>&amp; piatră neagră.</em>",
+    seoTitle:
+      "Bucătărie cappuccino lucioasă cu piatră neagră — proiect apartament la comandă",
+    seoDescription:
+      "Bucătărie în U din PAL lucios cappuccino, blat și spate cu aspect de piatră neagră, feronerie Blum și electrocasnice Beko integrate — plus dressing și mobilier de baie asortat.",
+    lede: "Amenajare completă de apartament: o bucătărie în U cu fronturi lucioase cappuccino și piatră neagră pe blat și spate, dressing cu oglindă și mobilier de baie crem, în aceeași notă caldă.",
+    body: "Clienții voiau o bucătărie <em>caldă, dar cu contrast</em> — nu încă o bucătărie albă. Am ales fronturi lucioase cappuccino, care prind lumina, și le-am pus lângă un blat și un spate cu aspect de piatră neagră pentru profunzime. Bucătăria în U valorifică fiecare colț: chiuveta neagră stă exact în unghi, mașina de spălat vase se ascunde integrată lângă cuptor, iar electrocasnicele Beko negre se topesc în fronturi. Mânerele bară negre, aplicate, dau ritmul întregii compoziții. Am dus aceeași notă în tot apartamentul — dressing alb cu oglindă în dormitor și mobilier de baie crem — ca totul să pară gândit împreună, nu adunat pe bucăți.",
+    specs: [
+      { label: "Corpuri", value: "PAL melaminat lucios cappuccino" },
+      { label: "Blat & spate", value: "Laminat aspect piatră neagră" },
+      { label: "Feronerie", value: "Blum + sertare metalice" },
+      { label: "Electrocasnice", value: "Beko integrate" },
+    ],
+    image: {
+      src: "/portfolio/cappuccino-kitchen-cover.webp",
+      alt: "Bucătărie în U cu fronturi lucioase cappuccino și blat din piatră neagră",
+    },
+    gallery: [
+      {
+        src: "/portfolio/cappuccino-kitchen-wide.webp",
+        alt: "Vedere de ansamblu a bucătăriei cappuccino cu spate din piatră neagră",
+      },
+      {
+        src: "/portfolio/cappuccino-kitchen-appliances.webp",
+        alt: "Zona de gătit cu cuptor Beko, sertare și mașină de spălat vase integrată",
+      },
+      {
+        src: "/portfolio/cappuccino-bathroom.webp",
+        alt: "Baie cu mobilier crem, dulap-oglindă cu LED și coloană suspendată",
+      },
+      {
+        src: "/portfolio/cappuccino-wardrobe.webp",
+        alt: "Dressing alb cu ușă-oglindă centrală în dormitor",
+      },
+      {
+        src: "/portfolio/cappuccino-bedroom.webp",
+        alt: "Dormitor cu pat alb lucios și dulap cu oglindă asortat",
+      },
+    ],
+  },
 ];
 
 // Ordered by index — the source for the bento gallery and case-study lookup.
