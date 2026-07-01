@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { buildQuoteSummary, parseQuoteAnswers } from "@/lib/quote-wizard";
 import { buildQuoteEmailHtml } from "@/lib/quote-email";
+import { isPostmarkConfigured, sendPostmarkEmail } from "@/lib/postmark";
 import { contactDetails } from "@/lib/site-data";
 
 export async function POST(request: Request) {
@@ -28,21 +28,16 @@ export async function POST(request: Request) {
     }
   }
 
-  // Email both the client and the business via Resend.
+  // Email both the client and the business via Postmark.
   let emailed = false;
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.QUOTE_FROM_EMAIL;
   const toEmail = process.env.QUOTE_TO_EMAIL;
 
-  if (apiKey && fromEmail) {
-    const resend = new Resend(apiKey);
-
+  if (isPostmarkConfigured()) {
     // Notify the business (always).
     try {
-      await resend.emails.send({
-        from: fromEmail,
+      await sendPostmarkEmail({
         to: toEmail || contactDetails.email,
-        ...(answers.contact.email ? { replyTo: answers.contact.email } : {}),
+        replyTo: answers.contact.email || undefined,
         subject: `Cerere noua — ${answers.contact.name}`,
         html: buildQuoteEmailHtml(
           answers,
@@ -57,8 +52,7 @@ export async function POST(request: Request) {
     // Confirm to the client only if they gave an email.
     if (answers.contact.email) {
       try {
-        await resend.emails.send({
-          from: fromEmail,
+        await sendPostmarkEmail({
           to: answers.contact.email,
           subject: "Am primit cererea ta — EpicMob",
           html: buildQuoteEmailHtml(
@@ -77,7 +71,7 @@ export async function POST(request: Request) {
   }
 
   const params = new URLSearchParams({
-    text: `Buna! Tocmai am trimis cererea prin configurator. Sunt ${answers.contact.name}.`,
+    text: `Buna! Tocmai v-am trimis o cerere pe site. Sunt ${answers.contact.name}.`,
   });
 
   return NextResponse.json({
