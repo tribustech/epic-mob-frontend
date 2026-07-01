@@ -19,7 +19,7 @@ function BrandWordmark() {
       <span className="site-brand__name">
         Epic<span>Mob</span>
       </span>
-      <span className="site-brand__tag">Mobila la comanda</span>
+      <span className="site-brand__tag">Mobilă la comandă</span>
     </span>
   );
 }
@@ -76,7 +76,7 @@ export function SiteHeader() {
   return (
     <>
       <header className={`site-header ${isWarm ? "site-header--warm" : ""}`}>
-        <Link href="/" className="site-header__logo" aria-label="EpicMob acasa">
+        <Link href="/" className="site-header__logo" aria-label="EpicMob acasă">
           {isWarm ? (
             <BrandWordmark />
           ) : (
@@ -90,7 +90,7 @@ export function SiteHeader() {
         </Link>
 
         <div className="site-header__right">
-          <nav className="site-header__nav" aria-label="Navigatie principala">
+          <nav className="site-header__nav" aria-label="Navigație principală">
             {navigation.map((item) => {
               const active = pathname === item.href;
 
@@ -120,7 +120,7 @@ export function SiteHeader() {
             onClick={toggleMenu}
             aria-expanded={menuOpen}
             aria-controls="site-menu"
-            aria-label={menuOpen ? "Inchide meniul" : "Deschide meniul"}
+            aria-label={menuOpen ? "Închide meniul" : "Deschide meniul"}
           >
             <span>{menuOpen ? "CLOSE" : "MENU"}</span>
             <span className="site-header__menu-lines" aria-hidden="true">
@@ -148,7 +148,7 @@ export function SiteHeader() {
               <Link
                 href="/"
                 className="site-menu__logo"
-                aria-label="EpicMob acasa"
+                aria-label="EpicMob acasă"
                 onClick={closeMenu}
               >
                 {isWarm ? (
@@ -168,7 +168,7 @@ export function SiteHeader() {
                 type="button"
                 className="site-menu__close"
                 onClick={closeMenu}
-                aria-label="Inchide meniul"
+                aria-label="Închide meniul"
               >
                 CLOSE
               </button>
@@ -177,7 +177,7 @@ export function SiteHeader() {
             <div className="site-menu__content">
               <motion.nav
                 className="site-menu__primary"
-                aria-label="Navigatie meniu"
+                aria-label="Navigație meniu"
                 initial="hidden"
                 animate="show"
                 exit="hidden"
@@ -258,7 +258,7 @@ export function SiteHeader() {
                 </div>
 
                 <div className="site-menu__panel">
-                  <p className="site-menu__eyebrow">Actiuni rapide</p>
+                  <p className="site-menu__eyebrow">Acțiuni rapide</p>
                   <div className="site-menu__secondary-links">
                     {menuSecondaryLinks.map((item) => (
                       <Link key={item.href} href={item.href} onClick={closeMenu}>
@@ -271,8 +271,8 @@ export function SiteHeader() {
                 <div className="site-menu__panel site-menu__panel--note">
                   <p className="site-menu__eyebrow">EpicMob Atelier</p>
                   <p>
-                    Mobilier premium la comanda, consultanta si executie
-                    cap-coada pentru proiecte rezidentiale.
+                    Mobilier premium la comandă, consultanță și execuție
+                    cap-coadă pentru proiecte rezidențiale.
                   </p>
                 </div>
               </motion.div>

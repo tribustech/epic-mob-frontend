@@ -1,39 +1,27 @@
+import type { Metadata } from "next";
 import { PortfolioHero } from "@/components/portfolio/portfolio-hero";
-import { PortfolioFilters } from "@/components/portfolio/portfolio-filters";
-import { PortfolioChapterDivider } from "@/components/portfolio/portfolio-chapter-divider";
-import { PortfolioScene } from "@/components/portfolio/portfolio-scene";
+import { PortfolioGrid } from "@/components/portfolio/portfolio-grid";
 import { PortfolioFinalCta } from "@/components/portfolio/portfolio-final-cta";
-import { portfolioChapters, portfolioStats } from "@/lib/portfolio-data";
 
-export default function PortfolioPage() {
-  const totalShown = portfolioChapters.reduce(
-    (n, chapter) => n + chapter.projects.length,
-    0
-  );
+export const metadata: Metadata = {
+  title: "Portofoliu — bucătării și mobilier la comandă",
+  description:
+    "Proiecte reale de bucătării, living și mobilier la comandă: MDF vopsit, PAL, feronerie Blum și montaj complet. Vezi lucrările Epic Mob pe camere.",
+  alternates: { canonical: "/portfolio" },
+};
+
+export default async function PortfolioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cat?: string }>;
+}) {
+  const { cat } = await searchParams;
 
   return (
-    <main className="bg-[var(--home-black)] text-[var(--home-ivory)]">
-      <PortfolioHero stats={portfolioStats} />
-      <PortfolioFilters
-        totalShown={totalShown}
-        totalProjects={portfolioStats.totalProjects}
-      />
-      {portfolioChapters.map((chapter) => (
-        <section key={chapter.id} aria-labelledby={`chapter-${chapter.id}`}>
-          <PortfolioChapterDivider chapter={chapter} />
-          {chapter.projects.map((project, i) => (
-            <PortfolioScene
-              key={project.slug}
-              project={project}
-              totalProjects={totalShown}
-              reverse={i % 2 === 1}
-            />
-          ))}
-        </section>
-      ))}
-      <PortfolioFinalCta
-        unshownCount={portfolioStats.totalProjects - totalShown}
-      />
+    <main className="bg-sand text-espresso">
+      <PortfolioHero />
+      <PortfolioGrid activeCat={cat} />
+      <PortfolioFinalCta />
     </main>
   );
 }

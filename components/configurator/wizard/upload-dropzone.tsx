@@ -43,13 +43,13 @@ function uploadFile(file: File, onProgress: (pct: number) => void): Promise<Quot
         try {
           resolve(JSON.parse(xhr.responseText) as QuoteFile);
         } catch {
-          reject(new Error("Raspuns invalid"));
+          reject(new Error("Răspuns invalid"));
         }
       } else {
-        reject(new Error("Incarcarea a esuat"));
+        reject(new Error("Încărcarea a eșuat"));
       }
     });
-    xhr.addEventListener("error", () => reject(new Error("Eroare de retea")));
+    xhr.addEventListener("error", () => reject(new Error("Eroare de rețea")));
     xhr.send(body);
   });
 }
@@ -142,14 +142,14 @@ export function UploadDropzone({ files, onChange }: UploadDropzoneProps) {
         }`}
       >
         <UploadCloud size={28} className="text-terracotta" strokeWidth={1.8} />
-        <p className="mt-3 font-semibold text-espresso">Trage fisierele aici</p>
-        <p className="mt-1 text-sm text-espresso/55">Poze, planuri, randari — orice ne ajuta.</p>
+        <p className="mt-3 font-semibold text-espresso">Trage fișierele aici</p>
+        <p className="mt-1 text-sm text-espresso/55">Poze, planuri, randări — orice ne ajută.</p>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           className="btn-warm btn-warm--ghost mt-5"
         >
-          Alege fisiere
+          Alege fișiere
         </button>
         <input
           ref={inputRef}
@@ -195,14 +195,14 @@ export function UploadDropzone({ files, onChange }: UploadDropzoneProps) {
                     />
                   </div>
                 ) : (
-                  <p className="text-xs text-espresso/50">{formatSize(item.size)} · incarcat</p>
+                  <p className="text-xs text-espresso/50">{formatSize(item.size)} · încărcat</p>
                 )}
               </div>
 
               <button
                 type="button"
                 onClick={() => removeItem(item.id)}
-                aria-label="Sterge fisierul"
+                aria-label="Șterge fișierul"
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-espresso/50 transition hover:bg-espresso/5 hover:text-espresso"
               >
                 <X size={16} />

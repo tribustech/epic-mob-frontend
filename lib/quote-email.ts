@@ -17,7 +17,7 @@ import {
   type QuoteAnswers,
 } from "@/lib/quote-wizard";
 
-const CONSULT = "Ne consultam impreuna";
+const CONSULT = "Ne consultăm împreună";
 
 function escapeHtml(value: string): string {
   return value
@@ -41,9 +41,9 @@ function row(label: string, value: string): string {
 export function buildQuoteEmailHtml(answers: QuoteAnswers, heading: string, intro: string): string {
   const rows = [
     row("Tip imobil", single(propertyTypes, answers.propertyType)),
-    row("Starea spatiului", single(spaceStates, answers.spaceState)),
+    row("Starea spațiului", single(spaceStates, answers.spaceState)),
     row("Camere", labelsFor(roomOptions, answers.rooms) || CONSULT),
-    row("Schite / masuratori", single(plansOptions, answers.plansStatus)),
+    row("Schițe / măsurători", single(plansOptions, answers.plansStatus)),
     row("Stil", single(styleOptions, answers.style)),
   ];
 
@@ -60,7 +60,7 @@ export function buildQuoteEmailHtml(answers: QuoteAnswers, heading: string, intr
     row("Telefon", answers.contact.phone),
     row("Email", answers.contact.email),
     row(
-      "Preferinta contact",
+      "Preferință contact",
       labelFor(contactPreferenceOptions, answers.contact.preference) || "oricare",
     ),
   );
@@ -72,7 +72,7 @@ export function buildQuoteEmailHtml(answers: QuoteAnswers, heading: string, intr
 
   const files =
     answers.files.length > 0
-      ? `<p style="margin:24px 0 8px;color:#8a7f74;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Fisiere atasate</p>
+      ? `<p style="margin:24px 0 8px;color:#8a7f74;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Fișiere atașate</p>
          <ul style="margin:0;padding-left:18px;color:#2A2420;font-size:14px;">
            ${answers.files
              .map(

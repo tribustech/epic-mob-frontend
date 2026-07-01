@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { QuoteWizard } from "@/components/configurator/wizard/quote-wizard";
 
 export const metadata: Metadata = {
-  title: "Cere oferta — EpicMob",
+  title: "Cere ofertă — EpicMob",
   description:
-    "Raspunde la cateva intrebari simple si iti pregatim o oferta personalizata pentru mobilierul tau.",
+    "Răspunde la câteva întrebări simple și îți pregătim o ofertă personalizată pentru mobilierul tău.",
 };
 
 export default function ConfiguratorPage() {

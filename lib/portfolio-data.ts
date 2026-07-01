@@ -1,4 +1,25 @@
-export type ProjectCategory = "bucatarie" | "dressing" | "baie" | "detaliu";
+export type ProjectCategory =
+  | "bucatarie"
+  | "baie"
+  | "living"
+  | "dormitor"
+  | "birou"
+  | "comercial";
+
+// Filter taxonomy — mirrors the homepage room tiles (lib/site-data roomCategories)
+// so a `/portfolio?cat=<room>` deep-link from the homepage always resolves.
+export const portfolioRooms: { value: ProjectCategory; label: string }[] = [
+  { value: "bucatarie", label: "Bucătărie" },
+  { value: "baie", label: "Baie" },
+  { value: "living", label: "Living" },
+  { value: "dormitor", label: "Dormitor" },
+  { value: "birou", label: "Birou" },
+  { value: "comercial", label: "Comercial" },
+];
+
+export const roomLabel: Record<ProjectCategory, string> = Object.fromEntries(
+  portfolioRooms.map((r) => [r.value, r.label])
+) as Record<ProjectCategory, string>;
 
 export type PortfolioProject = {
   slug: string;
@@ -10,14 +31,12 @@ export type PortfolioProject = {
   body: string;
   specs: { label: string; value: string }[];
   image: { src: string; alt: string };
-};
-
-export type PortfolioChapter = {
-  id: "bucatarii" | "dressinguri" | "detalii";
-  number: string;
-  title: string;
-  description: string;
-  projects: PortfolioProject[];
+  // Optional extra photos shown as a gallery on the case-study page.
+  gallery?: { src: string; alt: string }[];
+  // Optional SEO overrides. When absent, a keyword-aware default is derived from
+  // the room + project name (see generateMetadata in app/portfolio/[slug]).
+  seoTitle?: string;
+  seoDescription?: string;
 };
 
 export const portfolioStats = {
@@ -27,241 +46,166 @@ export const portfolioStats = {
   averageDeliveryWeeks: 9,
 };
 
-export const portfolioChapters: PortfolioChapter[] = [
+// Real projects only. `image` is the cover; `gallery` holds the rest of the
+// shoot. Copy on the consolidated navy kitchen is placeholder — refine freely.
+export const portfolioProjects: PortfolioProject[] = [
   {
-    id: "bucatarii",
-    number: "01",
-    title: "Bucatarii care <em>tin casa</em>.",
-    description:
-      "Patru proiecte unde bucataria a devenit punctul de greutate al locuintei. Fiecare cu o decizie incomoda care a schimbat directia.",
-    projects: [
+    slug: "bucatarie-nuc-gola",
+    index: 0,
+    category: "bucatarie",
+    badge: "Bucătărie · 2025",
+    title: "Nuc <em>&amp; lumină.</em>",
+    seoTitle:
+      "Bucătărie nuc Carini cu profil Gola, MDF vopsit — proiect la comandă",
+    seoDescription:
+      "Bucătărie în L la comandă: baze albe mate din MDF vopsit, corpuri nuc Carini, profil Gola negru, feronerie Blum cu sertare metalice și blat Kronospan.",
+    lede: "Bucătărie în L, complet fără mânere, care pune alb mat lângă nuc Carini, cu profil Gola negru continuu și microciment gri pe perete.",
+    body: "Provocarea reală a fost <em>echilibrul dintre cald și tehnic</em>: clienții voiau lemn la vedere, dar și linii curate, fără mânere. Am ținut bazele în alb mat cu profil <em>Gola negru</em>, am ridicat corpurile superioare în nuc Carini pentru căldură și am tras un cornier negru continuu care leagă blatul de fronturi. Electrocasnicele negre se pierd într-o coloană, iar chiuveta și bateria negre închid paleta. Pentru că bucătăria se deschide direct spre zona de masă, fiecare îmbinare se vede din living — așa că aici nu există muchie neterminată.",
+    specs: [
+      { label: "Corpuri", value: "MDF vopsit + PAL Nuc Carini" },
+      { label: "Feronerie", value: "Blum + sertare metalice" },
+      { label: "Blat", value: "Kronospan" },
+      { label: "Mâner", value: "Profil Gola, fără mâner" },
+    ],
+    image: {
+      src: "/portfolio/kitchen-nuc-gola-front.png",
+      alt: "Bucătărie în L cu baze albe mate și corpuri nuc Carini, profil Gola negru",
+    },
+    gallery: [
       {
-        slug: "kensington-navy",
-        index: 1,
-        category: "bucatarie",
-        badge: "Bucatarie · 2025",
-        title: "Kensington <em>navy.</em>",
-        lede: "Bucatarie cu front sculptat in MDF vopsit, profilatura clasica si insula in stil englez, predata in 9 saptamani.",
-        body: "Familia voia sa pastreze structura veche a apartamentului — calorifere de fonta, pardoseala originala — dar avea nevoie de o bucatarie functionala pentru gatit zilnic. Am pus accentul pe profilatura clasica si <em>manere de alama</em> turnate manual, dar am ascuns electrocasnicele intr-o coloana de servire si am dublat capacitatea de stocare cu un dulap mascat in coridor.",
-        specs: [
-          { label: "Material", value: "MDF vopsit RAL custom" },
-          { label: "Feronerie", value: "Blum Movento + Aventos" },
-          { label: "Suprafata", value: "14 m² + insula 2.4m" },
-          { label: "Predat", value: "Septembrie 2025" },
-        ],
-        image: {
-          src: "/portfolio/kitchen-ornate-navy-full.jpg",
-          alt: "Bucatarie Kensington navy cu front sculptat si insula",
-        },
+        src: "/portfolio/kitchen-nuc-gola-angle.png",
+        alt: "Vedere de ansamblu a bucătăriei deschisă spre zona de masă",
       },
       {
-        slug: "olivia-complet-alb",
-        index: 2,
-        category: "bucatarie",
-        badge: "Bucatarie · 2025",
-        title: "Olivia, <em>complet alb.</em>",
-        lede: "Bucatarie L cu fronturi infoliate mate, blat porcelanat si iluminare cu senzor pe toate corpurile superioare.",
-        body: "Brief simplu pe hartie, complicat pe santier: clientul voia <em>linii curate, fara manere</em>, dar pastra o nisa de instalatii care iesea 11cm in spatele frigiderului. Am proiectat un corp tehnic mascat, am compensat 11cm prin grosimea blatului si am rezolvat ventilatia hotei cu canal lateral. Vizual, pare ca toate corpurile sunt egale.",
-        specs: [
-          { label: "Material", value: "MDF infoliat mat" },
-          { label: "Blat", value: "Porcelanat 12mm" },
-          { label: "Iluminare", value: "Senzor + RGB cald" },
-          { label: "Predat", value: "Iunie 2025" },
-        ],
-        image: {
-          src: "/portfolio/kitchen-white-modern.jpg",
-          alt: "Bucatarie Olivia in alb cu blat porcelanat si linii curate",
-        },
+        src: "/portfolio/kitchen-nuc-gola-corner.png",
+        alt: "Colțul în L cu chiuvetă neagră și corpuri superioare din nuc",
       },
       {
-        slug: "vatra-luminoasa",
-        index: 3,
-        category: "bucatarie",
-        badge: "Bucatarie · 2024",
-        title: "Vatra <em>Luminoasa.</em>",
-        lede: "Open-space cu bucatarie + zona de masa, integrare a unei sobe de teracota originale din 1962.",
-        body: "Apartamentul avea o soba de teracota pe care familia nu voia sa o piarda. Am desenat bucataria <em>in jurul ei</em>, nu impotriva ei: corpurile inalte se opresc cu 40cm inainte de soba, iar materialul a fost ales sa raspunda la albul-bej al teracotei vechi. Sertarele Blum suporta greutatea unui set de tigai de fonta fara sa cedeze.",
-        specs: [
-          { label: "Material", value: "MDF vopsit + PAL" },
-          { label: "Pastrat", value: "Soba teracota 1962" },
-          { label: "Suprafata", value: "22 m² open-space" },
-          { label: "Predat", value: "Noiembrie 2024" },
-        ],
-        image: {
-          src: "/portfolio/kitchen-ornate-navy-overview.jpg",
-          alt: "Open-space Vatra Luminoasa cu soba de teracota integrata",
-        },
+        src: "/portfolio/kitchen-nuc-gola-sink.png",
+        alt: "Zona chiuvetei cu baterie neagră și espressor integrat",
       },
       {
-        slug: "aviatorilor-navy-alama",
-        index: 4,
-        category: "bucatarie",
-        badge: "Bucatarie · 2024",
-        title: "Aviatorilor, <em>navy &amp; alama.</em>",
-        lede: "Bucatarie cu zona de chiuveta in nisa, masca pentru hota integrata si dulapuri de coltar inalte.",
-        body: "Caracteristic acestui proiect: <em>nu am vandut clientului niciun corp inutil</em>. Am respins doua dulapuri din primul randament si am redesenat zona de gatit ca sa ramana spatiu pentru o masa de servire de 4 persoane. Manerele de alama au fost recuperate de la un proiect anterior si refinisate manual.",
-        specs: [
-          { label: "Material", value: "MDF vopsit navy" },
-          { label: "Manere", value: "Alama refinisata" },
-          { label: "Suprafata", value: "11 m²" },
-          { label: "Predat", value: "Mai 2024" },
-        ],
-        image: {
-          src: "/portfolio/kitchen-navy-sink-wide.jpg",
-          alt: "Bucatarie Aviatorilor cu chiuveta in nisa si manere de alama",
-        },
+        src: "/portfolio/kitchen-nuc-gola-dining.png",
+        alt: "Bucătăria văzută din zona de masă cu masă ceramică neagră",
       },
     ],
   },
   {
-    id: "dressinguri",
-    number: "02",
-    title: "Dressinguri si <em>spatii de stocare</em>.",
-    description:
-      "Cand totul trebuie sa incapa fara sa para incarcat. Trei proiecte unde geometria a fost mai grea decat estetica.",
-    projects: [
+    slug: "bucatarie-mdf-vopsit-frezat",
+    index: 1,
+    category: "bucatarie",
+    badge: "Bucătărie · La comandă",
+    title: "Bucătărie <em>de artist.</em>",
+    seoTitle:
+      "Bucătărie MDF vopsit și frezat, fronturi personalizate — proiect la comandă",
+    seoDescription:
+      "Bucătărie cu fronturi din MDF vopsit și frezat pe CNC, cu motive decorative desenate împreună cu clientul, un artist. Execuție la comandă cu feronerie Blum.",
+    lede: "Bucătărie cu fronturi din MDF vopsit și frezat, cu elemente decorative desenate împreună cu clientul — un artist care a vrut ca bucătăria să poarte semnătura lui.",
+    body: "Clientul este artist, așa că proiectul nu a pornit dintr-un catalog, ci din mâna lui: am desenat <em>împreună</em> motivele frezate din fronturi, le-am testat pe probe la scara 1:1 și le-am reluat până când desenul a curs corect pe toată suprafața. Fronturile sunt din MDF vopsit, frezate pe CNC după geometria agreată cu el, iar restul bucătăriei — corpuri, blat, feronerie — a fost ținut deliberat sobru, ca <em>decorul să rămână vedeta</em>.",
+    specs: [
+      { label: "Material", value: "MDF vopsit + frezat CNC" },
+      { label: "Fronturi", value: "Tipar personalizat, desen propriu" },
+      { label: "Colaborare", value: "Cu clientul (artist)" },
+      { label: "Feronerie", value: "Blum" },
+    ],
+    image: {
+      src: "/portfolio/00-kitchen-ornate-navy-full.jpg",
+      alt: "Bucătărie cu fronturi din MDF vopsit și frezat, motive decorative personalizate",
+    },
+    gallery: [
       {
-        slug: "dressing-cu-oglinzi",
-        index: 5,
-        category: "dressing",
-        badge: "Dressing · 2025",
-        title: "Dressing <em>cu oglinzi.</em>",
-        lede: "Dressing pe doua nivele intr-un dormitor de 3.6m, cu oglinda integrata pe usa centrala si iluminare LED pe sertare.",
-        body: "Spatiul real era de 3.6m liniari, dar tavanul avea o grinda decorativa care intra 18cm in volum. Am oprit corpul exact sub grinda si am compensat cu un raft tehnic pe latura. Oglinda <em>pivotanta</em> permite vedere completa fara sa scoata clientul din volum.",
-        specs: [
-          { label: "Material", value: "PAL + MDF infoliat" },
-          { label: "Oglinda", value: "Pivotanta cu balama-piano" },
-          { label: "Suprafata", value: "3.6 m liniari" },
-          { label: "Predat", value: "August 2025" },
-        ],
-        image: {
-          src: "/portfolio/dressing-mirror-wardrobe.jpg",
-          alt: "Dressing pe doua nivele cu oglinda pivotanta integrata",
-        },
+        src: "/portfolio/00-kitchen-ornate-navy-overview.jpg",
+        alt: "Bucătărie navy — vedere de ansamblu",
       },
       {
-        slug: "coltar-de-colectionar",
-        index: 6,
-        category: "dressing",
-        badge: "Dressing · 2024",
-        title: "Coltar de <em>colectionar.</em>",
-        lede: "Vitrine cu corpuri superioare in dressing-bibliotca pentru un colectionar de carti rare si obiecte de portelan.",
-        body: "Brief atipic: clientul nu voia haine la vedere, ci <em>obiecte de colectie cu lumina punctuala</em>. Am livrat un coltar in trei volume: doua cu vitrine si LED nou pe fiecare polita, plus un nucleu inchis pentru haine. Sticla este antireflex, montata mecanic fara silicon vizibil.",
-        specs: [
-          { label: "Material", value: "MDF vopsit + sticla" },
-          { label: "Iluminare", value: "LED 3000K, telecomanda" },
-          { label: "Suprafata", value: "4.2 m liniari" },
-          { label: "Predat", value: "Decembrie 2024" },
-        ],
-        image: {
-          src: "/portfolio/kitchen-ornate-navy-shelves.jpg",
-          alt: "Coltar de colectionar cu vitrine iluminate punctual",
-        },
+        src: "/portfolio/00-kitchen-ornate-navy-upper.jpg",
+        alt: "Corpuri superioare cu vitrină și LED mascat",
+      },
+      {
+        src: "/portfolio/00-kitchen-ornate-navy-shelves.jpg",
+        alt: "Corpuri superioare cu rafturi și vitrine iluminate",
+      },
+      {
+        src: "/portfolio/00-kitchen-ornate-cabinets-close.jpg",
+        alt: "Detaliu front sculptat în MDF vopsit cu profilatură clasică",
+      },
+      {
+        src: "/portfolio/00-kitchen-navy-sink-detail.jpg",
+        alt: "Chiuvetă inox integrată sub blat porcelanat",
+      },
+      {
+        src: "/portfolio/kitchen-navy-sink-wide.jpg",
+        alt: "Zona chiuvetei cu baterie premium și nișă",
+      },
+      {
+        src: "/portfolio/00-kitchen-white-modern.jpg",
+        alt: "Bucătărie modernă cu linii curate și blat porcelanat",
+      },
+      {
+        src: "/portfolio/00-detail-gold-handle.jpg",
+        alt: "Detaliu mâner de alamă turnat manual",
+      },
+      {
+        src: "/portfolio/00-detail-blue-door-handle.jpg",
+        alt: "Detaliu mâner decorativ pe ușă clasică",
       },
     ],
   },
   {
-    id: "detalii",
-    number: "03",
-    title: "Detalii care <em>fac diferenta</em>.",
-    description:
-      "Cantitati mici, decizii lungi. Ce tine timp dupa ce restul s-a uitat.",
-    projects: [
+    slug: "living-mdf-vopsit-ardezie",
+    index: 2,
+    category: "living",
+    badge: "Living · La comandă",
+    title: "Living <em>pe ardezie.</em>",
+    seoTitle:
+      "Mobilier living MDF vopsit cu perete TV din ardezie flexibilă — la comandă",
+    seoDescription:
+      "Living cu mobilier MDF vopsit, perete TV placat cu ardezie flexibilă pe cadru de lemn care ascunde firele și apropie televizorul de perete, și dulap cu geamuri fumurii. Feronerie Blum.",
+    lede: "Living cu mobilier din MDF vopsit, un perete TV îmbrăcat în ardezie flexibilă care ascunde firele și apropie televizorul de perete, și un dulap cu geamuri fumurii.",
+    body: "Provocarea a fost <em>peretele de televizor</em>: clientul voia ecranul cât mai aproape de perete, dar fără niciun fir la vedere. Am ridicat un cadru de lemn și l-am îmbrăcat în <em>ardezie flexibilă</em>, lăsând în spate un gol tehnic pentru cabluri — așa televizorul stă lipit de suprafață, iar firele dispar complet. Lângă el am pus un <em>dulap cu geamuri fumurii</em>, care lasă conținutul să se întrevadă fără să-l expună, iar restul mobilierului este în MDF vopsit, pe feronerie Blum.",
+    specs: [
+      { label: "Material", value: "MDF vopsit" },
+      { label: "Perete TV", value: "Ardezie flexibilă pe cadru de lemn" },
+      { label: "Dulap", value: "Geamuri fumurii" },
+      { label: "Feronerie", value: "Blum" },
+    ],
+    image: {
+      src: "/portfolio/schite/living_randare1.jpg",
+      alt: "Living cu mobilier MDF vopsit și perete TV placat cu ardezie flexibilă",
+    },
+    gallery: [
       {
-        slug: "maner-turnat-manual",
-        index: 7,
-        category: "detaliu",
-        badge: "Detaliu · 2025",
-        title: "Maner <em>turnat manual.</em>",
-        lede: "Manere de alama brunata, turnate intr-un atelier din Brasov, finisate cu lac mat care nu ingalbeneste.",
-        body: "Sapte luni de cautari dupa furnizorul potrivit. Mainile clientului sunt mainile care deschid cele mai des un corp — am refuzat doua finisaje care lasau urme dupa o saptamana. <em>Standardul nostru</em>: dupa 5 ani, sa fie la fel.",
-        specs: [
-          { label: "Material", value: "Alama 70% + zinc" },
-          { label: "Furnizor", value: "Atelier Brasov" },
-          { label: "Finisaj", value: "Lac mat anti-amprenta" },
-          { label: "Stoc", value: "Permanent disponibil" },
-        ],
-        image: {
-          src: "/portfolio/detail-gold-handle.jpg",
-          alt: "Maner de alama turnat manual cu finisaj mat",
-        },
+        src: "/portfolio/schite/living_randare2.jpg",
+        alt: "Perete TV din ardezie flexibilă cu dulap cu geamuri fumurii alături",
       },
       {
-        slug: "front-sculptat-mdf",
-        index: 8,
-        category: "detaliu",
-        badge: "Detaliu · 2024",
-        title: "Front <em>sculptat MDF.</em>",
-        lede: "Profilatura cu trei nivele si lambriu in MDF vopsit RAL custom, executata pe CNC-ul atelierului.",
-        body: "Profilatura clasica are doua probleme reale: <em>se sparge la montaj</em> si se ingalbeneste la 4-5 ani. Solutia noastra: vopsire in trei pasi cu grunduire intre, astfel incat lemnul nu mai respira pigmentul. Frontul a stat 18 luni la atelier ca proba, fara modificari de culoare.",
-        specs: [
-          { label: "Material", value: "MDF 19mm" },
-          { label: "Vopsea", value: "RAL custom 3-pas" },
-          { label: "Productie", value: "CNC propriu" },
-          { label: "Garantie", value: "10 ani fara ingalbenire" },
-        ],
-        image: {
-          src: "/portfolio/kitchen-ornate-cabinets-close.jpg",
-          alt: "Front sculptat in MDF cu profilatura clasica vopsita",
-        },
-      },
-      {
-        slug: "chiuveta-integrata",
-        index: 9,
-        category: "detaliu",
-        badge: "Detaliu · 2024",
-        title: "Chiuveta <em>integrata.</em>",
-        lede: "Chiuveta din inox masiv montata sub blat porcelanat, cu sifon mascat si baterie cu pull-down.",
-        body: "Punctul slab al unei bucatarii premium e <em>marginea chiuvetei</em>. Am livrat o solutie under-mount cu garnitura silicon de tip stomatologic — invizibila, nu prinde mizerie, suporta 80°C. Sifonul este redirectat lateral ca sa eliberam <em>20cm sub chiuveta</em> pentru un sertar de filtre.",
-        specs: [
-          { label: "Chiuveta", value: "Inox 18/10 masiv" },
-          { label: "Blat", value: "Porcelanat 12mm" },
-          { label: "Garnitura", value: "Silicon stomatologic" },
-          { label: "Baterie", value: "Pull-down magnetic" },
-        ],
-        image: {
-          src: "/portfolio/kitchen-navy-sink-detail.jpg",
-          alt: "Chiuveta inox integrata sub blat porcelanat",
-        },
-      },
-      {
-        slug: "corpuri-cu-vitrina",
-        index: 10,
-        category: "detaliu",
-        badge: "Detaliu · 2024",
-        title: "Corpuri <em>cu vitrina.</em>",
-        lede: "Corpuri superioare cu vitrine de sticla, lambriu lemn pe spate si LED frontal mascat in profil.",
-        body: "Vitrinele clasice au o problema: <em>se vad cablurile LED</em>. Am profilat un canal de 4mm in marginea de sus a corpului, am ascuns LED-ul si am redirectat cablul prin balama. Lumea vede sticla, lemnul si obiectele, nu mecanismul.",
-        specs: [
-          { label: "Material", value: "MDF vopsit + furnir nuc" },
-          { label: "Sticla", value: "Antireflex 6mm" },
-          { label: "LED", value: "Mascat in canal 4mm" },
-          { label: "Predat", value: "Februarie 2024" },
-        ],
-        image: {
-          src: "/portfolio/kitchen-ornate-navy-upper.jpg",
-          alt: "Corpuri superioare cu vitrina si LED mascat",
-        },
-      },
-      {
-        slug: "usa-clasica-refacuta",
-        index: 11,
-        category: "detaliu",
-        badge: "Detaliu · 2023",
-        title: "Usa <em>clasica refacuta.</em>",
-        lede: "Recuperarea unei usi originale din 1934, cu maner decorativ refinisat si vopsire cu pigment sintetic.",
-        body: "Clientul a vrut <em>sa nu cumpere o usa noua</em>. Am demontat usa, am detasat manerul, l-am trimis la cromare si am vopsit usa cu un pigment albastru-pruna care reproduce nuanta originala vazuta in fotografii alb-negru ale apartamentului. Usa a fost remontata in 14 zile.",
-        specs: [
-          { label: "Origine", value: "1934, recuperata" },
-          { label: "Maner", value: "Cromat refinisat" },
-          { label: "Vopsea", value: "Pigment sintetic" },
-          { label: "Predat", value: "Octombrie 2023" },
-        ],
-        image: {
-          src: "/portfolio/detail-blue-door-handle.jpg",
-          alt: "Usa clasica din 1934 refacuta cu maner cromat",
-        },
+        src: "/portfolio/schite/living.png",
+        alt: "Desen tehnic al peretelui TV cu poziționarea LED-urilor și a corpurilor",
       },
     ],
+  },
+  {
+    slug: "dressing-cu-oglinzi",
+    index: 3,
+    category: "dormitor",
+    badge: "Dressing · 2025",
+    title: "Dressing <em>cu oglinzi.</em>",
+    lede: "Dressing pe două nivele într-un dormitor de 3.6m, cu oglindă integrată pe ușa centrală și iluminare LED pe sertare.",
+    body: "Spațiul real era de 3.6m liniari, dar tavanul avea o grindă decorativă care intra 18cm în volum. Am oprit corpul exact sub grindă și am compensat cu un raft tehnic pe latură. Oglinda <em>pivotantă</em> permite vedere completă fără să scoată clientul din volum.",
+    specs: [
+      { label: "Material", value: "PAL + MDF infoliat" },
+      { label: "Oglindă", value: "Pivotantă cu balama-piano" },
+      { label: "Suprafață", value: "3.6 m liniari" },
+      { label: "Predat", value: "August 2025" },
+    ],
+    image: {
+      src: "/portfolio/dressing-mirror-wardrobe.jpg",
+      alt: "Dressing pe două nivele cu oglindă pivotantă integrată",
+    },
   },
 ];
+
+// Ordered by index — the source for the bento gallery and case-study lookup.
+export const allPortfolioProjects: PortfolioProject[] = [...portfolioProjects].sort(
+  (a, b) => a.index - b.index
+);

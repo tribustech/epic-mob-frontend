@@ -1,34 +1,35 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
+import { contactDetails } from "@/lib/site-data";
 
-type PortfolioFinalCtaProps = {
-  unshownCount: number;
-};
-
-export function PortfolioFinalCta({ unshownCount }: PortfolioFinalCtaProps) {
+export function PortfolioFinalCta() {
   return (
-    <section className="portfolio-final">
-      <div className="portfolio-shell">
-        <p className="eyebrow portfolio-final__eyebrow">Restul portofoliului</p>
-        <h2 className="portfolio-final__title">
-          Cele {unshownCount} de proiecte
-          <br />
-          care nu <em>au incaput</em> aici.
+    <section className="bg-espresso">
+      <div className="section-shell py-24 text-center sm:py-28">
+        <p className="eyebrow-warm">Restul portofoliului</p>
+        <h2 className="display-font mx-auto mt-5 max-w-3xl text-[clamp(2.5rem,5vw,4rem)] leading-[1.05] text-cream">
+          Fiecare proiect are o poveste pe care o spunem în atelier.
         </h2>
-        <p className="portfolio-final__lede">
-          Fiecare proiect are o poveste pe care o spunem doar in atelier.
-          Programeaza o vizita si iti aratam fizic mostre, fronturi proba si
-          feronerie.
+        <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-cream/70">
+          Programează o vizită și îți arătăm fizic mostre, fronturi probă și
+          feronerie Blum — sau trimite-ne camerele și îți pregătim o ofertă,
+          fără obligații.
         </p>
-        <div className="portfolio-final__ctas">
-          <Link href="/contact" className="portfolio-btn portfolio-btn--primary">
-            Programeaza vizita
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          <Link href="/contact" className="btn-warm btn-warm--primary">
+            Cere o ofertă
+            <ArrowRight size={18} strokeWidth={2} />
           </Link>
-          <Link
-            href="/configurator"
-            className="portfolio-btn portfolio-btn--secondary"
+          <a
+            href={contactDetails.whatsapp}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-warm btn-warm--whatsapp"
           >
-            Cere oferta →
-          </Link>
+            <WhatsAppIcon size={18} />
+            Scrie-ne pe WhatsApp
+          </a>
         </div>
       </div>
     </section>

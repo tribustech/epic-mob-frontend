@@ -13,7 +13,7 @@ export function PortfolioPreview() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeading
             eyebrow="Portofoliu"
-            title="Proiecte reale, nu randari."
+            title="Proiecte reale, nu randări."
           />
           <Link
             href="/portfolio"

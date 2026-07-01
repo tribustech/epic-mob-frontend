@@ -179,7 +179,7 @@ export function QuoteWizard() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(answers),
       });
-      if (!response.ok) throw new Error("Cererea nu a putut fi trimisa. Verifica datele de contact.");
+      if (!response.ok) throw new Error("Cererea nu a putut fi trimisă. Verifică datele de contact.");
       const data = (await response.json()) as SubmitResult;
       submittedRef.current = true;
       trackEvent("wizard_submitted", { emailed: data.emailed });
@@ -198,7 +198,7 @@ export function QuoteWizard() {
         /* ignore */
       }
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "A aparut o problema.");
+      setError(submitError instanceof Error ? submitError.message : "A apărut o problemă.");
     } finally {
       setSubmitting(false);
     }
@@ -226,13 +226,13 @@ export function QuoteWizard() {
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
           {stepId === "propertyType" ? (
-            <WizardStep eyebrow="Sa incepem" question="Unde doresti lucrarea?">
+            <WizardStep eyebrow="Să începem" question="Unde dorești lucrarea?">
               <SingleGrid options={propertyTypes} value={answers.propertyType} onPick={(id) => pickAndAdvance({ type: "set", key: "propertyType", value: id })} />
             </WizardStep>
           ) : null}
 
           {stepId === "spaceState" ? (
-            <WizardStep eyebrow="Spatiul" question="Cum se prezinta spatiul?">
+            <WizardStep eyebrow="Spațiul" question="Cum se prezintă spațiul?">
               <SingleGrid options={spaceStates} value={answers.spaceState} onPick={(id) => pickAndAdvance({ type: "set", key: "spaceState", value: id })} />
             </WizardStep>
           ) : null}
@@ -240,8 +240,8 @@ export function QuoteWizard() {
           {stepId === "rooms" ? (
             <WizardStep
               eyebrow="Camere"
-              question="Ce vrei sa mobilam?"
-              description="Poti alege mai multe."
+              question="Ce vrei să mobilăm?"
+              description="Poți alege mai multe."
               footer={<ContinueButton onClick={next} />}
             >
               <MultiGrid
@@ -255,13 +255,13 @@ export function QuoteWizard() {
           {stepId === "plans" ? (
             <WizardStep
               eyebrow="Detalii"
-              question="Ai schite, planuri sau poze?"
+              question="Ai schițe, planuri sau poze?"
               footer={<ContinueButton onClick={next} />}
             >
               <SingleGrid options={plansOptions} value={answers.plansStatus} onPick={(id) => dispatch({ type: "set", key: "plansStatus", value: id })} />
               <div className="mt-8">
                 <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/45">
-                  Incarca fisiere (optional)
+                  Încarcă fișiere (opțional)
                 </p>
                 <UploadDropzone files={answers.files} onChange={(files) => dispatch({ type: "setFiles", value: files })} />
               </div>
@@ -269,16 +269,16 @@ export function QuoteWizard() {
           ) : null}
 
           {stepId === "style" ? (
-            <WizardStep eyebrow="Stil" question="Ce stil te reprezinta?">
+            <WizardStep eyebrow="Stil" question="Ce stil te reprezintă?">
               <SingleGrid options={styleOptions} value={answers.style} onPick={(id) => pickAndAdvance({ type: "set", key: "style", value: id })} />
             </WizardStep>
           ) : null}
 
           {stepId === "details" ? (
             <WizardStep
-              eyebrow="Optional"
-              question="Stii deja materialele?"
-              description="Sari peste linistit — te ghidam noi la consultatie."
+              eyebrow="Opțional"
+              question="Știi deja materialele?"
+              description="Sari peste liniștit — te ghidăm noi la consultație."
               footer={
                 <div className="flex items-center justify-between gap-3">
                   <ContinueButton onClick={next} />
@@ -297,7 +297,7 @@ export function QuoteWizard() {
           ) : null}
 
           {stepId === "timeline" ? (
-            <WizardStep eyebrow="Termen" question="Cand ai nevoie de proiect?">
+            <WizardStep eyebrow="Termen" question="Când ai nevoie de proiect?">
               <SingleGrid options={timelineOptions} value={answers.timeline} onPick={(id) => pickAndAdvance({ type: "set", key: "timeline", value: id })} />
             </WizardStep>
           ) : null}
@@ -353,7 +353,7 @@ function OptionGroup({ label, options, values, onToggle, single }: { label: stri
 function ContinueButton({ onClick }: { onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="btn-warm btn-warm--primary">
-      Continua
+      Continuă
       <ArrowRight size={18} strokeWidth={2} />
     </button>
   );
@@ -395,10 +395,10 @@ function ContactStep({ answers, dispatch, onContinue }: { answers: QuoteAnswers;
 
   function handleContinue() {
     const nextErrors: ContactErrors = {};
-    if (!c.name.trim()) nextErrors.name = "Spune-ne cum te cheama.";
-    if (!c.phone.trim()) nextErrors.phone = "Avem nevoie de un numar de telefon.";
+    if (!c.name.trim()) nextErrors.name = "Spune-ne cum te cheamă.";
+    if (!c.phone.trim()) nextErrors.phone = "Avem nevoie de un număr de telefon.";
     if (c.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email.trim())) {
-      nextErrors.email = "Adresa de email nu pare corecta.";
+      nextErrors.email = "Adresa de email nu pare corectă.";
     }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length === 0) onContinue();
@@ -407,8 +407,8 @@ function ContactStep({ answers, dispatch, onContinue }: { answers: QuoteAnswers;
   return (
     <WizardStep
       eyebrow="Ultimul pas"
-      question="Cum te contactam?"
-      description="Ai nevoie doar de nume si telefon. Emailul e optional."
+      question="Cum te contactăm?"
+      description="Ai nevoie doar de nume și telefon. Emailul e opțional."
       footer={
         <button type="button" onClick={handleContinue} className="btn-warm btn-warm--primary">
           Vezi rezumatul
@@ -420,11 +420,11 @@ function ContactStep({ answers, dispatch, onContinue }: { answers: QuoteAnswers;
         <Field label="Nume complet" value={c.name} onChange={(value) => setField("name", value)} placeholder="Ex: Andrei Popescu" error={errors.name} />
         <Field label="Telefon" type="tel" value={c.phone} onChange={(value) => setField("phone", value)} placeholder="Ex: 07xx xxx xxx" error={errors.phone} />
         <div className="sm:col-span-2">
-          <Field label="Email (optional)" type="email" value={c.email} onChange={(value) => setField("email", value)} placeholder="nume@exemplu.ro" error={errors.email} />
+          <Field label="Email (opțional)" type="email" value={c.email} onChange={(value) => setField("email", value)} placeholder="nume@exemplu.ro" error={errors.email} />
         </div>
       </div>
       <div className="mt-8">
-        <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/45">Cum preferi sa te contactam?</p>
+        <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/45">Cum preferi să te contactăm?</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {contactPreferenceOptions.map((option) => (
             <AnswerCard key={option.id} option={option} selected={c.preference === option.id} onSelect={(id) => dispatch({ type: "setContact", key: "preference", value: id as ContactPreference })} />
@@ -443,22 +443,22 @@ function SuccessScreen({ result, name }: { result: SubmitResult; name: string })
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-terracotta/12">
         <ArrowRight size={26} className="text-terracotta" />
       </div>
-      <p className="eyebrow-warm mt-8">Cerere trimisa</p>
+      <p className="eyebrow-warm mt-8">Cerere trimisă</p>
       <h2 className="display-font mt-4 text-[clamp(2rem,4.5vw,3.2rem)] leading-[1.08] text-espresso">
-        Multumim{name ? `, ${name}` : ""}!
+        Mulțumim{name ? `, ${name}` : ""}!
       </h2>
       <p className="mx-auto mt-5 max-w-lg text-lg leading-8 text-espresso/60">
         {result.emailed
-          ? "Ti-am trimis rezumatul pe email si echipa noastra revine in cel mai scurt timp."
-          : "Am primit cererea ta si revenim in cel mai scurt timp."}
+          ? "Ți-am trimis rezumatul pe email și echipa noastră revine în cel mai scurt timp."
+          : "Am primit cererea ta și revenim în cel mai scurt timp."}
       </p>
       <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
         <a href={result.whatsAppUrl} target="_blank" rel="noreferrer" className="btn-warm btn-warm--primary">
-          Continua pe WhatsApp
+          Continuă pe WhatsApp
           <ArrowRight size={18} strokeWidth={2} />
         </a>
         <a href={`tel:${contactDetails.phone.replace(/\s/g, "")}`} className="btn-warm btn-warm--ghost">
-          Suna-ne
+          Sună-ne
         </a>
       </div>
     </div>

@@ -1913,6 +1913,8 @@ select {
   --terracotta: #C06A3E;
   --terracotta-deep: #A5542F;
   --olive: #7C7A54;
+  --whatsapp: #25D366;
+  --whatsapp-deep: #1DA851;
   --line: rgba(42, 36, 32, 0.10);
   --line-strong: rgba(42, 36, 32, 0.18);
   --shadow-warm: 0 1.25rem 3.5rem rgba(78, 55, 34, 0.16);
@@ -2187,8 +2189,8 @@ select {
   width: 3rem;
   height: 3rem;
   border-radius: 999px;
-  background: rgba(124, 122, 84, 0.14);
-  color: var(--olive);
+  background: var(--whatsapp);
+  color: #fff;
 }
 
 /* ── Buttons ── */
@@ -2241,6 +2243,19 @@ select {
 .btn-warm--ghost-invert:hover {
   border-color: var(--cream);
   transform: translateY(-2px);
+}
+
+/* WhatsApp CTA — official brand green. */
+.btn-warm--whatsapp {
+  background: #25d366;
+  color: #ffffff;
+  box-shadow: 0 0.75rem 1.5rem rgba(37, 211, 102, 0.28);
+}
+
+.btn-warm--whatsapp:hover {
+  background: #1ebe5b;
+  transform: translateY(-2px);
+  box-shadow: 0 1rem 2rem rgba(30, 190, 91, 0.34);
 }
 
 /* Terracotta text link (wins over base `a { color: inherit }`). */
@@ -2611,12 +2626,11 @@ select {
   margin-top: 1.25rem;
 }
 
-/* ── "Parcursul unui proiect" — timeline drawn on scroll ── */
+/* ── "Parcursul unui proiect" — dropship-style timeline track (SVG) ── */
 .warm-journey {
   height: 300vh;
 }
 
-/* Desktop: pin the viewport and centre the arc within it. */
 .warm-journey__inner {
   position: sticky;
   top: 0;
@@ -2627,7 +2641,7 @@ select {
   overflow: hidden;
 }
 
-.warm-journey__desktop {
+.warm-journey__viewport {
   position: relative;
   width: 100%;
   margin-top: 2.5rem;
@@ -2635,29 +2649,28 @@ select {
 }
 
 @media (min-width: 640px) {
-  .warm-journey__desktop {
-    margin-top: 4rem;
+  .warm-journey__viewport {
+    margin-top: 3.5rem;
   }
 }
 
-.warm-journey__mobile {
-  display: none;
+/* Horizontal strip of milestone cards; translated imperatively on scroll. */
+.warm-journey__cards {
+  display: flex;
+  width: max-content;
+  align-items: flex-start;
+  will-change: transform;
 }
 
-.warm-journey__strip {
-  min-height: 300px;
-}
-
-.warm-journey__item {
-  position: absolute;
-  width: 26ch;
-  max-width: 78vw;
-  padding-top: 1.75rem;
+.warm-journey__card {
+  flex: none;
+  width: min(74vw, 22rem);
+  padding: 0 1.25rem;
   text-align: center;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  will-change: transform, opacity;
 }
 
 .warm-journey__icon {
@@ -2677,6 +2690,15 @@ select {
   height: 1.75rem;
 }
 
+.warm-journey__year {
+  margin-top: 1rem;
+  font-family: var(--font-display, inherit);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: color-mix(in srgb, var(--terracotta) 62%, var(--sand));
+}
+
 .warm-journey__desc {
   max-width: 30ch;
   font-size: 1rem;
@@ -2684,127 +2706,15 @@ select {
   color: color-mix(in srgb, var(--espresso) 60%, transparent);
 }
 
-.warm-journey__year {
-  font-family: var(--font-display, inherit);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
-  color: color-mix(in srgb, var(--terracotta) 60%, var(--sand));
-}
-
-/* Mobile left-rail vertical timeline (drawn on scroll) — the connector line,
-   its terracotta fill, ruler ticks and travelling dot, all on the left rail. */
-.warm-journey__mline {
-  position: absolute;
-  top: 1.75rem;
-  left: 2.1rem;
-  height: calc(100% - 3.5rem);
-  width: 2px;
-  transform: translateX(-50%);
-  background: var(--line-strong);
-  border-radius: 999px;
-  z-index: 0;
-}
-
-.warm-journey__mfill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  border-radius: 999px;
-  background: var(--terracotta);
-}
-
-.warm-journey__mtick {
-  position: absolute;
-  left: 50%;
-  width: 0.7rem;
-  height: 2px;
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
-  background: var(--line-strong);
-}
-
-.warm-journey__mtick--on {
-  background: var(--terracotta);
-}
-
-.warm-journey__mdot {
-  position: absolute;
-  left: 50%;
-  width: 0.95rem;
-  height: 0.95rem;
-  border-radius: 999px;
-  background: var(--terracotta);
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 0.35rem color-mix(in srgb, var(--terracotta) 16%, transparent);
-}
-
-/* Left-rail item: icon on the rail, text to the right (never crosses line). */
-.warm-journey__mitem {
+/* The SVG track is injected here; overflow visible so the arc + ticks show. */
+.warm-journey__track {
   position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: flex-start;
-  gap: 1.1rem;
   width: 100%;
-  text-align: left;
+  margin-top: 2.5rem;
+  overflow: visible;
 }
 
-.warm-journey__mitem .warm-journey__icon {
-  flex: none;
-  width: 3.5rem;
-  height: 3.5rem;
-}
-
-.warm-journey__mitem .warm-journey__icon svg {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.warm-journey__mbody {
-  padding-top: 0.2rem;
-}
-
-.warm-journey__mnum {
-  display: block;
-  font-family: var(--font-display, inherit);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: color-mix(in srgb, var(--terracotta) 72%, var(--espresso));
-}
-
-.warm-journey__mbody .warm-journey__desc {
-  max-width: 34ch;
-}
-
-/* Mobile: the horizontal arc is unusable on a narrow viewport, so unpin and
-   run the left-rail draw-on-scroll timeline instead. */
-@media (max-width: 639px) {
-  .warm-journey {
-    height: auto;
-  }
-  .warm-journey__inner {
-    position: static;
-    height: auto;
-    overflow: visible;
-    padding-block: 3rem;
-  }
-  .warm-journey__desktop {
-    display: none;
-  }
-  .warm-journey__mobile {
-    display: flex;
-    position: relative;
-    flex-direction: column;
-    gap: 2.25rem;
-    margin-top: 2.5rem;
-    padding-left: 0.35rem;
-  }
-}
-
-/* Reduced motion / no-JS: show the timeline, filled and static. */
+/* Reduced motion / no-JS: unpin and stack the cards, hide the animated track. */
 @media (prefers-reduced-motion: reduce) {
   .warm-journey {
     height: auto;
@@ -2813,26 +2723,22 @@ select {
     position: static;
     height: auto;
     overflow: visible;
-    padding-block: 4rem;
+    padding-block: 3.5rem;
   }
-  .warm-journey__desktop {
-    display: none;
-  }
-  .warm-journey__mobile {
-    display: flex;
-    position: relative;
+  .warm-journey__cards {
+    width: 100%;
     flex-direction: column;
-    gap: 2.5rem;
-    margin-top: 2.5rem;
-    padding-left: 0.35rem;
+    align-items: center;
+    gap: 3rem;
+    transform: none !important;
   }
-  .warm-journey__mfill {
-    height: 100% !important;
-  }
-  .warm-journey__mtick--on {
+  .warm-journey__card {
+    width: 100%;
+    max-width: 34ch;
+    transform: none !important;
     opacity: 1 !important;
   }
-  .warm-journey__mdot {
+  .warm-journey__track {
     display: none;
   }
 }
@@ -2973,13 +2879,13 @@ select {
 }
 
 .contact-row--accent {
-  background: color-mix(in srgb, var(--terracotta) 10%, var(--cream));
-  border-color: color-mix(in srgb, var(--terracotta) 24%, transparent);
+  background: color-mix(in srgb, var(--whatsapp) 10%, var(--cream));
+  border-color: color-mix(in srgb, var(--whatsapp) 24%, transparent);
 }
 
 .contact-row--accent .contact-row__icon {
-  background: var(--terracotta);
-  color: var(--cream);
+  background: var(--whatsapp);
+  color: #fff;
 }
 
 /* ── Mobile sticky action bar ── */
@@ -3032,11 +2938,11 @@ select {
 
 .contact-actionbar__cta {
   flex: 1;
-  background: var(--terracotta);
-  color: var(--cream);
-  box-shadow: 0 0.5rem 1.25rem rgba(192, 106, 62, 0.3);
+  background: var(--whatsapp);
+  color: #fff;
+  box-shadow: 0 0.5rem 1.25rem rgba(37, 211, 102, 0.3);
 }
 
 .contact-actionbar__cta:active {
-  background: var(--terracotta-deep);
+  background: var(--whatsapp-deep);
 }

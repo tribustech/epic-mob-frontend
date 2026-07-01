@@ -1,23 +1,22 @@
 export const navigation = [
-  { href: "/", label: "Acasa", icon: "House" as const, color: "#007AFF" },
+  { href: "/", label: "Acasă", icon: "House" as const, color: "#007AFF" },
   { href: "/portfolio", label: "Portofoliu", icon: "Briefcase" as const, color: "#FF9500" },
-  { href: "/despre", label: "Despre", icon: "Users" as const, color: "#34C759" },
   { href: "/contact", label: "Contact", icon: "Mail" as const, color: "#FF3B30" },
 ];
 
 export const contactDetails = {
-  phone: "+40 721 234 567",
+  phone: "+40 750 402 027",
   email: "contact@epicmob.ro",
-  whatsapp: "https://wa.me/40721234567",
+  whatsapp: "https://wa.me/40750402027",
 };
 
 export const headerCta = {
   href: "/configurator",
-  label: "Cere oferta",
+  label: "Cere ofertă",
 };
 
 export const menuSecondaryLinks = [
-  { href: "/configurator", label: "Cere oferta" },
+  { href: "/configurator", label: "Cere ofertă" },
   { href: "/portfolio", label: "Portofoliu" },
   { href: "/contact", label: "Contact" },
 ];
@@ -29,88 +28,88 @@ export const heroImages = [
   "/portfolio/schite/bucatarie_randare2.png",
   "/portfolio/schite/baie_randare1.jpg",
   "/portfolio/schite/baie_randare2.jpg",
-  "/portfolio/kitchen-ornate-navy-full.jpg",
-  "/portfolio/kitchen-white-modern.jpg",
-  "/portfolio/kitchen-ornate-navy-overview.jpg",
+  "/portfolio/00-kitchen-ornate-navy-full.jpg",
+  "/portfolio/00-kitchen-white-modern.jpg",
+  "/portfolio/00-kitchen-ornate-navy-overview.jpg",
   "/portfolio/kitchen-navy-sink-wide.jpg",
 ];
 
 export const trustSignals = [
   "Feronerie Blum",
-  "Contract & Factura",
+  "Contract & Factură",
   "Montaj Inclus",
-  "Consultanta Gratuita",
+  "Consultanță Gratuită",
 ];
 
 export const trustHighlights = [
   {
     icon: "consultanta",
-    title: "Consultanta inclusa",
+    title: "Consultanță inclusă",
     description:
-      "Pornim proiectul impreuna, chiar daca nu ai inca toate raspunsurile.",
+      "Pornim proiectul împreună, chiar dacă nu ai încă toate răspunsurile.",
   },
   {
     icon: "design",
     title: "Design interior integrat",
     description:
-      "Materialele, culorile si volumele raman intr-un singur limbaj.",
+      "Materialele, culorile și volumele rămân într-un singur limbaj.",
   },
   {
     icon: "blum",
     title: "Feronerie Blum",
     description:
-      "Standard de incredere pentru fiecare sertar si balama.",
+      "Standard de încredere pentru fiecare sertar și balama.",
   },
   {
     icon: "contract",
-    title: "Contract si factura",
-    description: "Colaborare asumata, nu doar promisiuni.",
+    title: "Contract și factură",
+    description: "Colaborare asumată, nu doar promisiuni.",
   },
   {
     icon: "montaj",
     title: "Montaj complet",
     description:
-      "Inclusiv electrocasnice si adaptari de instalatii.",
+      "Inclusiv electrocasnice și adaptări de instalații.",
   },
 ];
 
 export const materials = [
   {
     name: "PAL",
-    image: "/portfolio/detail-blue-door-handle.jpg",
+    image: "/portfolio/00-detail-blue-door-handle.jpg",
     bullets: [
-      "Ideal pentru dressinguri si corpuri interioare",
-      "Varietate mare de culori si texturi",
-      "Raport calitate-pret excelent",
+      "Ideal pentru dressinguri și corpuri interioare",
+      "Varietate mare de culori și texturi",
+      "Raport calitate-preț excelent",
     ],
-    durability: "Buna",
-    moisture: "Moderata",
+    durability: "Bună",
+    moisture: "Moderată",
     finish: "Texturat / Neted",
     price: "Accesibil",
   },
   {
     name: "MDF Vopsit",
-    image: "/portfolio/kitchen-ornate-cabinets-close.jpg",
+    image: "/portfolio/00-kitchen-ornate-cabinets-close.jpg",
     bullets: [
-      "Recomandat pentru bucatarii si bai",
+      "Recomandat pentru bucătării și băi",
       "Rezistent la umiditate",
       "Finisaj neted, culori personalizate",
     ],
-    durability: "Foarte buna",
-    moisture: "Ridicata",
+    durability: "Foarte bună",
+    moisture: "Ridicată",
     finish: "Neted / Lucios / Mat",
     price: "Premium",
   },
   {
     name: "MDF Infoliat / Laminat",
-    image: "/portfolio/kitchen-ornate-navy-upper.jpg",
+    image: "/portfolio/00-kitchen-ornate-navy-upper.jpg",
     bullets: [
-      "Alternativa eleganta la vopsit",
+      "Alternativă elegantă la vopsit",
       "Texturi lemn sau finisaje mate",
-      "Durabilitate ridicata la uzura",
+      "Durabilitate ridicată la uzură",
     ],
-    durability: "Foarte buna",
-    moisture: "Buna",
+    durability: "Foarte bună",
+    moisture: "Bună",
     finish: "Texturat / Mat",
     price: "Mediu-Premium",
   },
@@ -118,27 +117,27 @@ export const materials = [
 
 export const servicePillars = [
   {
-    title: "Consultanta si structurare de brief",
+    title: "Consultanță și structurare de brief",
     description:
-      "Preluam proiectul fie dintr-un punct foarte clar, fie dintr-un stadiu incipient si punem ordine in camere, nevoi si limitari tehnice.",
+      "Preluăm proiectul fie dintr-un punct foarte clar, fie dintr-un stadiu incipient și punem ordine în camere, nevoi și limitări tehnice.",
   },
   {
-    title: "Design interior si selectie de materiale",
+    title: "Design interior și selecție de materiale",
     description:
-      "Discutam stilul, materialele, directia cromatica si zonele unde MDF-ul sau PAL-ul sunt mai potrivite.",
+      "Discutăm stilul, materialele, direcția cromatică și zonele unde MDF-ul sau PAL-ul sunt mai potrivite.",
   },
   {
-    title: "Productie, montaj si integrare electrocasnice",
+    title: "Producție, montaj și integrare electrocasnice",
     description:
-      "Executia include feronerie Blum, atentia la detalii si montajul electrocasnicelor, plus adaptari de instalatii.",
+      "Execuția include feronerie Blum, atenția la detalii și montajul electrocasnicelor, plus adaptări de instalații.",
   },
 ];
 
 export const portfolioProjects = [
   {
-    title: "Bucatarie sculptata in contraste calde",
-    space: "Bucatarie",
-    image: "/portfolio/kitchen-ornate-navy-full.jpg",
+    title: "Bucătărie sculptată în contraste calde",
+    space: "Bucătărie",
+    image: "/portfolio/00-kitchen-ornate-navy-full.jpg",
     tall: true,
   },
   {
@@ -148,56 +147,56 @@ export const portfolioProjects = [
     tall: false,
   },
   {
-    title: "Bucatarie moderna alba",
-    space: "Bucatarie",
-    image: "/portfolio/kitchen-white-modern.jpg",
+    title: "Bucătărie modernă albă",
+    space: "Bucătărie",
+    image: "/portfolio/00-kitchen-white-modern.jpg",
     tall: false,
   },
   {
     title: "Fronturi ornamentale MDF vopsit",
     space: "Detaliu",
-    image: "/portfolio/kitchen-ornate-cabinets-close.jpg",
+    image: "/portfolio/00-kitchen-ornate-cabinets-close.jpg",
     tall: true,
   },
   {
-    title: "Detaliu maner auriu",
+    title: "Detaliu mâner auriu",
     space: "Detaliu",
-    image: "/portfolio/detail-gold-handle.jpg",
+    image: "/portfolio/00-detail-gold-handle.jpg",
     tall: false,
   },
   {
-    title: "Chiuveta si baterie premium",
+    title: "Chiuvetă și baterie premium",
     space: "Detaliu",
-    image: "/portfolio/kitchen-navy-sink-detail.jpg",
+    image: "/portfolio/00-kitchen-navy-sink-detail.jpg",
     tall: false,
   },
   {
-    title: "Bucatarie navy — vedere de ansamblu",
-    space: "Bucatarie",
-    image: "/portfolio/kitchen-ornate-navy-overview.jpg",
+    title: "Bucătărie navy — vedere de ansamblu",
+    space: "Bucătărie",
+    image: "/portfolio/00-kitchen-ornate-navy-overview.jpg",
     tall: true,
   },
   {
-    title: "Corpuri superioare cu vitrina",
-    space: "Bucatarie",
-    image: "/portfolio/kitchen-ornate-navy-shelves.jpg",
+    title: "Corpuri superioare cu vitrină",
+    space: "Bucătărie",
+    image: "/portfolio/00-kitchen-ornate-navy-shelves.jpg",
     tall: false,
   },
   {
-    title: "Usa clasica cu maner decorativ",
+    title: "Ușă clasică cu mâner decorativ",
     space: "Detaliu",
-    image: "/portfolio/detail-blue-door-handle.jpg",
+    image: "/portfolio/00-detail-blue-door-handle.jpg",
     tall: true,
   },
   {
     title: "Corpuri superioare close-up",
-    space: "Bucatarie",
-    image: "/portfolio/kitchen-ornate-navy-upper.jpg",
+    space: "Bucătărie",
+    image: "/portfolio/00-kitchen-ornate-navy-upper.jpg",
     tall: false,
   },
   {
-    title: "Bucatarie navy — zona chiuveta",
-    space: "Bucatarie",
+    title: "Bucătărie navy — zona chiuvetă",
+    space: "Bucătărie",
     image: "/portfolio/kitchen-navy-sink-wide.jpg",
     tall: false,
   },
@@ -205,32 +204,32 @@ export const portfolioProjects = [
 
 export const processSteps = [
   {
-    title: "Consultanta",
+    title: "Consultanță",
     description:
-      "Preluam camerele, stilul dorit si evaluam ce este deja decis.",
+      "Preluăm camerele, stilul dorit și evaluăm ce este deja decis.",
     image: "/portfolio/schite/bucatarie_shita_mana.jpg",
-    imageAlt: "Schita de bucatarie desenata de mana",
+    imageAlt: "Schiță de bucătărie desenată de mână",
   },
   {
     title: "Design",
     description:
-      "Clarificam directia cromatica, volumele si materialele.",
+      "Clarificăm direcția cromatică, volumele și materialele.",
     image: "/portfolio/schite/bucatarie.png",
-    imageAlt: "Randare digitala a unei bucatarii",
+    imageAlt: "Randare digitală a unei bucătării",
   },
   {
-    title: "Selectie materiale",
+    title: "Selecție materiale",
     description:
-      "Alegem impreuna PAL, MDF vopsit sau infoliat pentru fiecare zona.",
+      "Alegem împreună PAL, MDF vopsit sau infoliat pentru fiecare zonă.",
     image: "/portfolio/schite/paletar.png",
-    imageAlt: "Paletar cu mostre de materiale si finisaje",
+    imageAlt: "Paletar cu mostre de materiale și finisaje",
   },
   {
-    title: "Oferta si contract",
+    title: "Ofertă și contract",
     description:
-      "Prezentam oferta detaliata si semnam contractul.",
+      "Prezentăm oferta detaliată și semnăm contractul.",
     image: "/portfolio/schite/contract.png",
-    imageAlt: "Ilustratie cu un contract si strangere de mana",
+    imageAlt: "Ilustrație cu un contract și strângere de mână",
   },
   // {
   //   title: "Productie",
@@ -240,9 +239,9 @@ export const processSteps = [
   {
     title: "Montaj & Predare",
     description:
-      "Montaj complet, inclusiv electrocasnice si adaptari de instalatii.",
+      "Montaj complet, inclusiv electrocasnice și adaptări de instalații.",
     image: "/portfolio/schite/bucatarie_randare1.jpg",
-    imageAlt: "Randare finala a unei bucatarii montate",
+    imageAlt: "Randare finală a unei bucătării montate",
   },
 ];
 
@@ -275,19 +274,31 @@ export const processStepThemes = [
 ] as const;
 
 export const basicQuestions = [
-  "Camerele pe care vrei sa le mobilezi",
-  "Randari, schite sau masuratori existente",
-  "Linkuri Pinterest si imagini de inspiratie",
-  "Directie de culori si stil",
+  "Camerele pe care vrei să le mobilezi",
+  "Randări, schițe sau măsurători existente",
+  "Linkuri Pinterest și imagini de inspirație",
+  "Direcție de culori și stil",
   "Electrocasnice deja alese",
-  "Deadline si detalii generale",
+  "Deadline și detalii generale",
 ];
 
 export const advancedSignals = [
-  "Camere si corpuri de mobilier pe fiecare zona",
-  "Materiale: PAL, MDF vopsit si combinatii viitoare",
+  "Camere și corpuri de mobilier pe fiecare zonă",
+  "Materiale: PAL, MDF vopsit și combinații viitoare",
   "Branduri de finisaj: Egger, AGT, MDF vopsit",
-  "Iluminare: buton, senzor, telecomanda, alb cald, alb rece, RGB",
-  "Observatii despre electrocasnice, dimensiuni si referinte",
-  "Lead complet pentru discutie rapida si precisa",
+  "Iluminare: buton, senzor, telecomandă, alb cald, alb rece, RGB",
+  "Observații despre electrocasnice, dimensiuni și referințe",
+  "Lead complet pentru discuție rapidă și precisă",
 ];
+
+// ── Warm "decor-store" homepage (Crafto direction) ──
+// Featured category tiles = room types. `icon` maps to a lucide-react
+// icon in components/home/warm/warm-categories.tsx.
+export const roomCategories = [
+  { label: "Bucătărie", icon: "kitchen", count: "24 proiecte", href: "/portfolio?cat=bucatarie" },
+  { label: "Baie", icon: "bath", count: "12 proiecte", href: "/portfolio?cat=baie" },
+  { label: "Living", icon: "living", count: "18 proiecte", href: "/portfolio?cat=living" },
+  { label: "Dormitor", icon: "bedroom", count: "15 proiecte", href: "/portfolio?cat=dormitor" },
+  { label: "Birou", icon: "office", count: "9 proiecte", href: "/portfolio?cat=birou" },
+  { label: "Comercial", icon: "commercial", count: "7 proiecte", href: "/portfolio?cat=comercial" },
+] as const;

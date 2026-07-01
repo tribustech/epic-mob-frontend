@@ -20,7 +20,7 @@ import {
   type QuoteAnswers,
 } from "@/lib/quote-wizard";
 
-const CONSULT = "Ne consultam impreuna";
+const CONSULT = "Ne consultăm împreună";
 
 function single(options: AnswerOption[], id: string): string {
   return id && id !== NU_STIU ? labelFor(options, id) || CONSULT : CONSULT;
@@ -44,9 +44,9 @@ type SummaryStepProps = {
 export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: SummaryStepProps) {
   const rows: Row[] = [
     { label: "Tip imobil", value: single(propertyTypes, answers.propertyType), step: 0 },
-    { label: "Starea spatiului", value: single(spaceStates, answers.spaceState), step: 1 },
+    { label: "Starea spațiului", value: single(spaceStates, answers.spaceState), step: 1 },
     { label: "Camere", value: multi(roomOptions, answers.rooms), step: 2 },
-    { label: "Schite / masuratori", value: single(plansOptions, answers.plansStatus), step: 3 },
+    { label: "Schițe / măsurători", value: single(plansOptions, answers.plansStatus), step: 3 },
     { label: "Stil", value: single(styleOptions, answers.style), step: 4 },
   ];
 
@@ -63,8 +63,8 @@ export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: Su
 
   if (answers.files.length > 0) {
     rows.push({
-      label: "Fisiere",
-      value: `${answers.files.length} atasate`,
+      label: "Fișiere",
+      value: `${answers.files.length} atașate`,
       step: 3,
     });
   }
@@ -83,10 +83,10 @@ export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: Su
     <div className="flex flex-col">
       <p className="eyebrow-warm">Aproape gata</p>
       <h2 className="display-font mt-4 text-[clamp(1.9rem,4vw,3rem)] leading-[1.08] text-espresso">
-        Hai sa verificam impreuna.
+        Hai să verificăm împreună.
       </h2>
       <p className="mt-4 max-w-xl text-lg leading-8 text-espresso/60">
-        Poti edita orice raspuns inainte de a trimite. Iti trimitem rezumatul si pe email.
+        Poți edita orice răspuns înainte de a trimite. Îți trimitem rezumatul și pe email.
       </p>
 
       <dl className="mt-9 divide-y divide-espresso/10 overflow-hidden rounded-2xl border border-espresso/10 bg-cream">
@@ -99,7 +99,7 @@ export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: Su
             <button
               type="button"
               onClick={() => onEdit(row.step)}
-              aria-label={`Editeaza ${row.label}`}
+              aria-label={`Editează ${row.label}`}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-espresso/40 transition hover:bg-sand hover:text-terracotta"
             >
               <Pencil size={15} />
@@ -115,7 +115,7 @@ export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: Su
       <WizardFooterBar>
         <div className="flex items-center justify-end gap-4 sm:justify-between">
           <p className="hidden text-sm text-espresso/55 sm:block">
-            Fara obligatii. Raspundem in cel mai scurt timp.
+            Fără obligații. Răspundem în cel mai scurt timp.
           </p>
           <button
             type="button"

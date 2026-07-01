@@ -38,10 +38,10 @@ export async function POST(request: Request) {
       await sendPostmarkEmail({
         to: toEmail || contactDetails.email,
         replyTo: answers.contact.email || undefined,
-        subject: `Cerere noua — ${answers.contact.name}`,
+        subject: `Cerere nouă — ${answers.contact.name}`,
         html: buildQuoteEmailHtml(
           answers,
-          "Cerere noua de oferta",
+          "Cerere nouă de ofertă",
           `${answers.contact.name} a trimis o cerere prin configurator.`,
         ),
       });
@@ -57,8 +57,8 @@ export async function POST(request: Request) {
           subject: "Am primit cererea ta — EpicMob",
           html: buildQuoteEmailHtml(
             answers,
-            "Multumim pentru cerere!",
-            "Am primit detaliile de mai jos si revenim in cel mai scurt timp. Iata rezumatul proiectului tau.",
+            "Mulțumim pentru cerere!",
+            "Am primit detaliile de mai jos și revenim în cel mai scurt timp. Iată rezumatul proiectului tău.",
           ),
         });
         emailed = true;
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
   }
 
   const params = new URLSearchParams({
-    text: `Buna! Tocmai v-am trimis o cerere pe site. Sunt ${answers.contact.name}.`,
+    text: `Bună! Tocmai v-am trimis o cerere pe site. Sunt ${answers.contact.name}.`,
   });
 
   return NextResponse.json({

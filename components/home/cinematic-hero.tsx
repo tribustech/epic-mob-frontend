@@ -16,20 +16,20 @@ interface CinematicSlide {
 const cinematicSlides: CinematicSlide[] = [
   {
     id: "navy-kitchen",
-    title: "Bucatarie sculptata in contraste calde",
-    detail: "MDF vopsit, vitrine si detalii care raman coerente pana la montaj.",
-    image: "/portfolio/kitchen-ornate-navy-full.jpg",
+    title: "Bucătărie sculptată în contraste calde",
+    detail: "MDF vopsit, vitrine și detalii care rămân coerente până la montaj.",
+    image: "/portfolio/00-kitchen-ornate-navy-full.jpg",
   },
   {
     id: "white-kitchen",
     title: "Volume clare pentru camere luminoase",
-    detail: "Randari, selectie de materiale si executie puse in acelasi ritm.",
-    image: "/portfolio/kitchen-white-modern.jpg",
+    detail: "Randări, selecție de materiale și execuție puse în același ritm.",
+    image: "/portfolio/00-kitchen-white-modern.jpg",
   },
   {
     id: "wardrobe",
-    title: "Depozitare gandita sa ramana eleganta",
-    detail: "Oglinzi, proportii si feronerie bune incep din faza de directie.",
+    title: "Depozitare gândită să rămână elegantă",
+    detail: "Oglinzi, proporții și feronerie bune încep din faza de direcție.",
     image: "/portfolio/dressing-mirror-wardrobe.jpg",
   },
 ];
@@ -61,7 +61,7 @@ export function CinematicHero() {
   const activeSlide = cinematicSlides[activeIndex];
 
   return (
-    <section className="home-cinematic" aria-label="Epic Mob acasa">
+    <section className="home-cinematic" aria-label="Epic Mob acasă">
       <div className="home-cinematic__media" aria-hidden="true">
         {cinematicSlides.map((slide, index) => (
           <div
@@ -90,17 +90,17 @@ export function CinematicHero() {
 
       <div className="home-shell home-cinematic__content">
         <div className="home-cinematic__copy">
-          <p className="home-kicker">Mobilier premium la comanda</p>
+          <p className="home-kicker">Mobilier premium la comandă</p>
           <h1 className="display-font home-cinematic__title">
-            Mobilier gandit sa arate bine din prima directie pana la ultimul detaliu.
+            Mobilier gândit să arate bine din prima direcție până la ultimul detaliu.
           </h1>
           <p className="home-cinematic__lede">
-            Lucram cu tine pe stil, randari, materiale si executie ca fiecare camera
-            sa ramana coerenta cand trece din idee in productie.
+            Lucrăm cu tine pe stil, randări, materiale și execuție ca fiecare cameră
+            să rămână coerentă când trece din idee în producție.
           </p>
           <div className="home-cinematic__actions">
             <Link href="/configurator" className="home-cinematic__primary-cta">
-              Cere oferta
+              Cere ofertă
             </Link>
             <Link href="/portfolio" className="home-cinematic__secondary-cta">
               Vezi portofoliul

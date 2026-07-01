@@ -17,11 +17,11 @@ export function ConfiguratorPreview() {
           <p className="eyebrow">Configurator</p>
           <h2 className="display-font mt-5 text-4xl leading-tight text-white sm:text-5xl lg:text-6xl">
             Trimite-ne un brief{" "}
-            <span className="text-gold">in 2 minute.</span>
+            <span className="text-gold">în 2 minute.</span>
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-white/55">
-            Nu ai nevoie de toate raspunsurile. Configuratorul nostru te ghideaza
-            pas cu pas sa ne trimiti exact cat stii despre proiectul tau.
+            Nu ai nevoie de toate răspunsurile. Configuratorul nostru te ghidează
+            pas cu pas să ne trimiți exact cât știi despre proiectul tău.
           </p>
 
           {/* Stylized form preview */}
@@ -32,9 +32,9 @@ export function ConfiguratorPreview() {
             >
               <div className="space-y-4">
                 {[
-                  "Camerele pe care vrei sa le mobilezi...",
-                  "Directie de culori si stil...",
-                  "Deadline si detalii...",
+                  "Camerele pe care vrei să le mobilezi...",
+                  "Direcție de culori și stil...",
+                  "Deadline și detalii...",
                 ].map((placeholder) => (
                   <div
                     key={placeholder}

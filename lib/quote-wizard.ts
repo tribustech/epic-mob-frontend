@@ -59,50 +59,50 @@ export const emptyAnswers: QuoteAnswers = {
 
 const nuStiuOption: AnswerOption = {
   id: NU_STIU,
-  label: "Nu stiu inca",
+  label: "Nu știu încă",
   icon: "help.svg",
-  hint: "Nicio problema — te ghidam noi.",
+  hint: "Nicio problemă — te ghidăm noi.",
 };
 
 export const propertyTypes: AnswerOption[] = [
   { id: "apartament", label: "Apartament", icon: "apartment.svg" },
-  { id: "casa", label: "Casa", icon: "house.svg" },
-  { id: "birouri", label: "Spatiu birouri", icon: "office.svg" },
+  { id: "casa", label: "Casă", icon: "house.svg" },
+  { id: "birouri", label: "Spațiu birouri", icon: "office.svg" },
   { id: "comercial", label: "Centru comercial", icon: "mall.svg" },
   { id: "altceva", label: "Altceva", icon: "other.svg" },
 ];
 
 export const spaceStates: AnswerOption[] = [
-  { id: "gol", label: "Gol / nou", icon: "empty-room.svg", hint: "Spatiu liber, gata de mobilat." },
+  { id: "gol", label: "Gol / nou", icon: "empty-room.svg", hint: "Spațiu liber, gata de mobilat." },
   {
     id: "mobilat",
     label: "Mobilat",
     icon: "old-furniture.svg",
-    hint: "Trebuie evacuata mobila veche.",
+    hint: "Trebuie evacuată mobila veche.",
   },
-  { id: "santier", label: "In constructie", icon: "construction.svg", hint: "Inca in santier." },
+  { id: "santier", label: "În construcție", icon: "construction.svg", hint: "Încă în șantier." },
   nuStiuOption,
 ];
 
 export const roomOptions: AnswerOption[] = [
-  { id: "bucatarie", label: "Bucatarie", icon: "kitchen.svg" },
+  { id: "bucatarie", label: "Bucătărie", icon: "kitchen.svg" },
   { id: "dressing", label: "Dressing", icon: "wardrobe.svg" },
   { id: "living", label: "Living", icon: "living.svg" },
   { id: "dormitor", label: "Dormitor", icon: "bedroom.svg" },
   { id: "baie", label: "Baie", icon: "bathroom.svg" },
   { id: "birou", label: "Birou", icon: "desk.svg" },
   { id: "hol", label: "Hol", icon: "hallway.svg" },
-  { id: "toata-casa", label: "Toata casa", icon: "whole-home.svg" },
-  { id: "ajutati-ma", label: "Ajutati-ma sa aleg", icon: "help.svg" },
+  { id: "toata-casa", label: "Toată casa", icon: "whole-home.svg" },
+  { id: "ajutati-ma", label: "Ajutați-mă să aleg", icon: "help.svg" },
 ];
 
 /** Rooms that clear any other selection when picked. */
 export const exclusiveRoomIds = ["toata-casa", "ajutati-ma"];
 
 export const plansOptions: AnswerOption[] = [
-  { id: "randari", label: "Da, randari de la designer", icon: "blueprint.svg" },
+  { id: "randari", label: "Da, randări de la designer", icon: "blueprint.svg" },
   { id: "aproximativ", label: "Dimensiuni aproximative", icon: "ruler.svg" },
-  { id: "fara", label: "Nu, avem nevoie de masuratori", icon: "measure.svg" },
+  { id: "fara", label: "Nu, avem nevoie de măsurători", icon: "measure.svg" },
 ];
 
 export const styleOptions: AnswerOption[] = [
@@ -110,7 +110,7 @@ export const styleOptions: AnswerOption[] = [
   { id: "cald", label: "Cald & natural", icon: "style-warm.svg" },
   { id: "clasic", label: "Clasic elegant", icon: "style-classic.svg" },
   { id: "industrial", label: "Industrial", icon: "style-industrial.svg" },
-  { id: NU_STIU, label: "Nu stiu, aratati-mi idei", icon: "help.svg" },
+  { id: NU_STIU, label: "Nu știu, arătați-mi idei", icon: "help.svg" },
 ];
 
 export const materialOptions: AnswerOption[] = [
@@ -128,18 +128,18 @@ export const finishOptions: AnswerOption[] = [
 ];
 
 export const lightingOptions: AnswerOption[] = [
-  { id: "fara", label: "Fara LED", icon: "light-off.svg" },
+  { id: "fara", label: "Fără LED", icon: "light-off.svg" },
   { id: "cald", label: "Alb cald", icon: "light-warm.svg" },
   { id: "rece", label: "Alb rece", icon: "light-cool.svg" },
   { id: "senzor", label: "Cu senzor", icon: "light-sensor.svg" },
-  { id: "rgb", label: "Colorata", icon: "light-rgb.svg" },
+  { id: "rgb", label: "Colorată", icon: "light-rgb.svg" },
 ];
 
 export const timelineOptions: AnswerOption[] = [
-  { id: "urgent", label: "Cat mai repede", icon: "clock-fast.svg" },
+  { id: "urgent", label: "Cât mai repede", icon: "clock-fast.svg" },
   { id: "1-3", label: "1 – 3 luni", icon: "calendar.svg" },
   { id: "3-6", label: "3 – 6 luni", icon: "calendar-long.svg" },
-  { id: "info", label: "Doar ma informez", icon: "info.svg" },
+  { id: "info", label: "Doar mă informez", icon: "info.svg" },
 ];
 
 export const contactPreferenceOptions: AnswerOption[] = [
@@ -184,7 +184,7 @@ export function labelsFor(options: AnswerOption[], ids: string[]): string {
   return labels.length > 0 ? labels.join(", ") : "";
 }
 
-const NE_CONSULTAM = "Ne consultam impreuna";
+const NE_CONSULTAM = "Ne consultăm împreună";
 
 function orConsult(value: string): string {
   return value && value !== NU_STIU ? value : NE_CONSULTAM;
@@ -199,9 +199,9 @@ export function isValidEmail(email: string): boolean {
 export function buildQuoteSummary(answers: QuoteAnswers): string {
   const lines: string[] = [
     `Tip imobil: ${orConsult(labelFor(propertyTypes, answers.propertyType))}`,
-    `Starea spatiului: ${orConsult(labelFor(spaceStates, answers.spaceState))}`,
+    `Starea spațiului: ${orConsult(labelFor(spaceStates, answers.spaceState))}`,
     `Camere: ${orConsult(labelsFor(roomOptions, answers.rooms))}`,
-    `Schite / masuratori: ${orConsult(labelFor(plansOptions, answers.plansStatus))}`,
+    `Schițe / măsurători: ${orConsult(labelFor(plansOptions, answers.plansStatus))}`,
     `Stil: ${orConsult(labelFor(styleOptions, answers.style))}`,
   ];
 
@@ -215,7 +215,7 @@ export function buildQuoteSummary(answers: QuoteAnswers): string {
   lines.push(`Termen: ${orConsult(labelFor(timelineOptions, answers.timeline))}`);
 
   if (answers.files.length > 0) {
-    lines.push(`Fisiere (${answers.files.length}):`);
+    lines.push(`Fișiere (${answers.files.length}):`);
     for (const file of answers.files) {
       lines.push(`  - ${file.name}: ${file.url}`);
     }
@@ -226,7 +226,7 @@ export function buildQuoteSummary(answers: QuoteAnswers): string {
     `Nume: ${answers.contact.name}`,
     `Telefon: ${answers.contact.phone}`,
     `Email: ${answers.contact.email}`,
-    `Preferinta contact: ${labelFor(contactPreferenceOptions, answers.contact.preference) || "oricare"}`,
+    `Preferință contact: ${labelFor(contactPreferenceOptions, answers.contact.preference) || "oricare"}`,
   );
 
   if (answers.contact.message) {

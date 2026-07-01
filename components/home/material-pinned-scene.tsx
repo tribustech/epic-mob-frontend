@@ -17,19 +17,19 @@ const renderSlides: RenderSlide[] = [
   {
     id: "baie",
     title: "Baie",
-    detail: "Mobilier integrat pentru zone curate si rezistente.",
+    detail: "Mobilier integrat pentru zone curate și rezistente.",
     image: "/portfolio/schite/baie_randare1.jpg",
   },
   {
     id: "bucatarie",
-    title: "Bucatarie",
-    detail: "Fronturi, blat si integrare gandite inainte de productie.",
+    title: "Bucătărie",
+    detail: "Fronturi, blat și integrare gândite înainte de producție.",
     image: "/portfolio/schite/bucatarie_randare1.jpg",
   },
   {
     id: "living",
     title: "Living",
-    detail: "Volume, riflaje si depozitare puse in proportie.",
+    detail: "Volume, riflaje și depozitare puse în proporție.",
     image: "/portfolio/schite/living_randare1.jpg",
   },
 ];
@@ -58,7 +58,7 @@ export function MaterialPinnedScene() {
     <section
       id="render-showcase"
       className="render-showcase"
-      aria-label="Randari interioare"
+      aria-label="Randări interioare"
     >
       <div className="render-showcase__slides" aria-hidden="true">
         {renderSlides.map((slide, index) => {
@@ -104,15 +104,15 @@ export function MaterialPinnedScene() {
       <div className="render-showcase__shade" />
 
       <div className="home-shell render-showcase__content">
-        <p className="home-kicker">Randari interioare</p>
+        <p className="home-kicker">Randări interioare</p>
         <h2 className="display-font render-showcase__title">
-          Vezi camera inainte sa intre in productie.
+          Vezi camera înainte să intre în producție.
         </h2>
         <div className="render-showcase__meta" aria-live="polite">
           <span className="render-showcase__room">{activeSlide.title}</span>
           <span className="render-showcase__detail">{activeSlide.detail}</span>
         </div>
-        <div className="render-showcase__progress" aria-label="Randare activa">
+        <div className="render-showcase__progress" aria-label="Randare activă">
           {renderSlides.map((slide, index) => (
             <button
               key={slide.id}
@@ -120,7 +120,7 @@ export function MaterialPinnedScene() {
               className={`render-showcase__dot ${
                 index === activeIndex ? "render-showcase__dot--active" : ""
               }`}
-              aria-label={`Afiseaza ${slide.title}`}
+              aria-label={`Afișează ${slide.title}`}
               aria-pressed={index === activeIndex}
               onClick={() => setActiveIndex(index)}
             />

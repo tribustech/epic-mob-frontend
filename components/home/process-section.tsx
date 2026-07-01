@@ -38,7 +38,7 @@ export function ProcessSection() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="Proces"
-          title="6 pasi catre mobilierul perfect."
+          title="6 pași către mobilierul perfect."
           centered
         />
 

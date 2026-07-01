@@ -26,8 +26,8 @@ function WarmFooter({ hasMobileBar }: { hasMobileBar: boolean }) {
         <div>
           <p className="display-font text-4xl text-espresso">Epic Mob</p>
           <p className="mt-4 max-w-md text-sm leading-7 text-espresso/60">
-            Mobilier la comanda pentru interioare in care detaliul conteaza,
-            cu consultanta, design si executie asumata prin contract si factura.
+            Mobilier la comandă pentru interioare în care detaliul contează,
+            cu consultanță, design și execuție asumată prin contract și factură.
           </p>
         </div>
         <div>

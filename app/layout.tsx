@@ -19,12 +19,12 @@ const bodyFont = Manrope({
 export const metadata: Metadata = {
   metadataBase: new URL("https://epicmob.ro"),
   title: {
-    default: "Epic Mob Atelier — Mobilier la comanda",
+    default: "Epic Mob Atelier — Mobilier la comandă",
     // Child pages set just their descriptive part; the brand is appended here.
     template: "%s | Epic Mob",
   },
   description:
-    "Mobilier premium la comanda, consultanta si executie cap-coada pentru proiecte rezidentiale.",
+    "Mobilier premium la comandă, consultanță și execuție cap-coadă pentru proiecte rezidențiale.",
 };
 
 export default function RootLayout({

@@ -19,10 +19,10 @@ import {
 import { contactDetails } from "@/lib/site-data";
 
 const helpfulPoints = [
-  "Ai deja randari, schite sau masuratori?",
-  "Ce camere vrei sa mobilezi si in ce termen?",
-  "Ai un stil, materiale sau culori in minte?",
-  "Ai ales electrocasnicele sau le integram noi?",
+  "Ai deja randări, schițe sau măsurători?",
+  "Ce camere vrei să mobilezi și în ce termen?",
+  "Ai un stil, materiale sau culori în minte?",
+  "Ai ales electrocasnicele sau le integrăm noi?",
 ];
 
 type Status = "idle" | "sending" | "success" | "error";
@@ -42,11 +42,11 @@ export function ContactView() {
     if (status === "sending") return;
 
     if (!name.trim() || !phone.trim()) {
-      setError("Completeaza numele si un numar de telefon.");
+      setError("Completează numele și un număr de telefon.");
       return;
     }
     if (email.trim() && !isValidEmail(email)) {
-      setError("Adresa de email nu pare valida.");
+      setError("Adresa de email nu pare validă.");
       return;
     }
 
@@ -78,7 +78,7 @@ export function ContactView() {
     } catch {
       setStatus("error");
       setError(
-        "Ceva nu a mers. Incearca din nou sau scrie-ne direct pe WhatsApp.",
+        "Ceva nu a mers. Încearcă din nou sau scrie-ne direct pe WhatsApp.",
       );
     }
   }
@@ -89,11 +89,11 @@ export function ContactView() {
       <header className="max-w-2xl">
         <p className="eyebrow-warm">Contact</p>
         <h1 className="display-font mt-4 text-[clamp(2.4rem,8vw,4rem)] leading-[1.05] text-espresso">
-          Sa vorbim despre casa ta.
+          Să vorbim despre casa ta.
         </h1>
         <p className="mt-5 text-lg leading-8 text-[var(--mocha-72)]">
-          Scrie-ne cateva randuri despre proiect sau suna-ne direct. Iti
-          raspundem rapid si te ghidam de la prima idee pana la montaj.
+          Scrie-ne câteva rânduri despre proiect sau sună-ne direct. Îți
+          răspundem rapid și te ghidăm de la prima idee până la montaj.
         </p>
       </header>
 
@@ -109,8 +109,8 @@ export function ContactView() {
                 Mesajul a plecat!
               </h2>
               <p className="mt-3 max-w-sm text-base leading-7 text-[var(--mocha-72)]">
-                Multumim, {name.split(" ")[0] || "draga"}. Am primit detaliile si
-                revenim in cel mai scurt timp.
+                Mulțumim, {name.split(" ")[0] || "dragă"}. Am primit detaliile și
+                revenim în cel mai scurt timp.
               </p>
               {whatsAppUrl ? (
                 <a
@@ -120,7 +120,7 @@ export function ContactView() {
                   className="btn-warm btn-warm--primary mt-8"
                 >
                   <MessageCircle size={18} strokeWidth={2} />
-                  Continua pe WhatsApp
+                  Continuă pe WhatsApp
                 </a>
               ) : null}
             </div>
@@ -130,7 +130,7 @@ export function ContactView() {
                 Trimite-ne un mesaj
               </h2>
               <p className="mt-1.5 text-sm text-[var(--mocha-52)]">
-                Campurile marcate cu * sunt obligatorii.
+                Câmpurile marcate cu * sunt obligatorii.
               </p>
 
               <div className="mt-7 grid gap-5">
@@ -143,7 +143,7 @@ export function ContactView() {
                     className="contact-input"
                     type="text"
                     autoComplete="name"
-                    placeholder="Cum te cheama?"
+                    placeholder="Cum te cheamă?"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     required
@@ -177,7 +177,7 @@ export function ContactView() {
                       type="email"
                       autoComplete="email"
                       inputMode="email"
-                      placeholder="optional"
+                      placeholder="opțional"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                     />
@@ -185,7 +185,7 @@ export function ContactView() {
                 </div>
 
                 <div className="contact-field">
-                  <span className="contact-label">Cum te contactam?</span>
+                  <span className="contact-label">Cum te contactăm?</span>
                   <div className="mt-1 flex flex-wrap gap-2.5">
                     {contactPreferenceOptions.map((option) => {
                       const active = preference === option.id;
@@ -218,7 +218,7 @@ export function ContactView() {
                     id="contact-message"
                     className="contact-input contact-textarea"
                     rows={4}
-                    placeholder="Spune-ne pe scurt ce ai in minte — camere, stil, termen…"
+                    placeholder="Spune-ne pe scurt ce ai în minte — camere, stil, termen…"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                   />
@@ -262,7 +262,7 @@ export function ContactView() {
                   <Phone size={20} strokeWidth={2} />
                 </span>
                 <span className="contact-row__body">
-                  <span className="contact-row__label">Suna-ne</span>
+                  <span className="contact-row__label">Sună-ne</span>
                   <span className="contact-row__value">
                     {contactDetails.phone}
                   </span>
@@ -293,7 +293,7 @@ export function ContactView() {
                 </span>
                 <span className="contact-row__body">
                   <span className="contact-row__label">WhatsApp</span>
-                  <span className="contact-row__value">Raspuns rapid</span>
+                  <span className="contact-row__value">Răspuns rapid</span>
                 </span>
                 <ArrowRight
                   size={18}
@@ -305,7 +305,7 @@ export function ContactView() {
           </section>
 
           <section className="warm-card p-6 sm:p-8">
-            <p className="eyebrow-warm">Ce ajuta sa stim</p>
+            <p className="eyebrow-warm">Ce ajută să știm</p>
             <ul className="mt-5 grid gap-3.5">
               {helpfulPoints.map((point) => (
                 <li
@@ -325,14 +325,14 @@ export function ContactView() {
               href="/configurator"
               className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-terracotta"
             >
-              Prefer sa raspund pas cu pas
+              Prefer să răspund pas cu pas
               <ArrowRight size={16} strokeWidth={2} />
             </Link>
           </section>
 
           <p className="flex items-center gap-2 px-1 text-sm text-[var(--mocha-52)]">
             <Clock size={16} strokeWidth={2} />
-            Raspundem de obicei in aceeasi zi lucratoare.
+            Răspundem de obicei în aceeași zi lucrătoare.
           </p>
         </aside>
       </div>
@@ -344,7 +344,7 @@ export function ContactView() {
           href={`tel:${contactDetails.phone}`}
         >
           <Phone size={18} strokeWidth={2} />
-          Suna
+          Sună
         </a>
         <a
           className="contact-actionbar__cta"
