@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, SwatchBook } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { contactDetails } from "@/lib/site-data";
 
@@ -11,6 +11,11 @@ export function WarmTabbar() {
       <Link href="/portfolio" className="warm-tabbar__side">
         <LayoutGrid size={20} strokeWidth={1.7} />
         <span>Portofoliu</span>
+      </Link>
+
+      <Link href="/materiale" className="warm-tabbar__side">
+        <SwatchBook size={20} strokeWidth={1.7} />
+        <span>Materiale</span>
       </Link>
 
       <Link href="/contact" className="warm-tabbar__cta">
