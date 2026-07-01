@@ -24,6 +24,8 @@ export type QuoteContact = {
   phone: string;
   email: string;
   preference: ContactPreference | "";
+  /** Free-text note (used by the standalone contact form). */
+  message?: string;
 };
 
 export type QuoteAnswers = {
@@ -227,6 +229,10 @@ export function buildQuoteSummary(answers: QuoteAnswers): string {
     `Preferinta contact: ${labelFor(contactPreferenceOptions, answers.contact.preference) || "oricare"}`,
   );
 
+  if (answers.contact.message) {
+    lines.push("", `Mesaj: ${answers.contact.message}`);
+  }
+
   return lines.join("\n");
 }
 
@@ -264,6 +270,7 @@ export function buildQuoteRecord(answers: QuoteAnswers): Record<string, string |
     name: answers.contact.name,
     phone: answers.contact.phone,
     email: answers.contact.email,
+    message: answers.contact.message ?? "",
     contactPreference: labelFor(contactPreferenceOptions, answers.contact.preference),
     filesCount: answers.files.length,
     fileUrls: answers.files.map((file) => file.url).join(", "),
@@ -327,6 +334,7 @@ export function parseQuoteAnswers(payload: unknown): QuoteAnswers | null {
       name: toStringSafe(contactRaw.name),
       phone: toStringSafe(contactRaw.phone),
       email: toStringSafe(contactRaw.email),
+      message: toStringSafe(contactRaw.message),
       preference:
         preference === "whatsapp" || preference === "telefon" || preference === "email"
           ? preference

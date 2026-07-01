@@ -13,8 +13,25 @@ import {
 
 const menuEase = [0.22, 1, 0.36, 1] as const;
 
+function BrandWordmark() {
+  return (
+    <span className="site-brand">
+      <span className="site-brand__name">
+        Epic<span>Mob</span>
+      </span>
+      <span className="site-brand__tag">Mobila la comanda</span>
+    </span>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
+  // Warm palette applies to the homepage, the portfolio (list + case study),
+  // and the contact page.
+  const isWarm =
+    pathname === "/" ||
+    pathname.startsWith("/portfolio") ||
+    pathname === "/contact";
   const reduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -58,14 +75,18 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="site-header">
+      <header className={`site-header ${isWarm ? "site-header--warm" : ""}`}>
         <Link href="/" className="site-header__logo" aria-label="EpicMob acasa">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/portfolio/epicmob-logo-transparent.png"
-            alt="EpicMob"
-            className="site-header__logo-image"
-          />
+          {isWarm ? (
+            <BrandWordmark />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/portfolio/epicmob-logo-transparent.png"
+              alt="EpicMob"
+              className="site-header__logo-image"
+            />
+          )}
         </Link>
 
         <div className="site-header__right">
@@ -114,7 +135,7 @@ export function SiteHeader() {
         {menuOpen ? (
           <motion.div
             id="site-menu"
-            className="site-menu"
+            className={`site-menu ${isWarm ? "site-menu--warm" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-label="Meniu principal"
@@ -130,12 +151,16 @@ export function SiteHeader() {
                 aria-label="EpicMob acasa"
                 onClick={closeMenu}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/portfolio/epicmob-logo-transparent.png"
-                  alt="EpicMob"
-                  className="site-menu__logo-image"
-                />
+                {isWarm ? (
+                  <BrandWordmark />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src="/portfolio/epicmob-logo-transparent.png"
+                    alt="EpicMob"
+                    className="site-menu__logo-image"
+                  />
+                )}
               </Link>
 
               <button

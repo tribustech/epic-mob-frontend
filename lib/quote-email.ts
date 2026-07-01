@@ -65,6 +65,11 @@ export function buildQuoteEmailHtml(answers: QuoteAnswers, heading: string, intr
     ),
   );
 
+  const message = answers.contact.message
+    ? `<p style="margin:24px 0 8px;color:#8a7f74;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Mesaj</p>
+       <div style="padding:16px 18px;background:#F5F0E8;border-radius:12px;color:#2A2420;font-size:15px;line-height:1.6;">${escapeHtml(answers.contact.message).replace(/\n/g, "<br>")}</div>`
+    : "";
+
   const files =
     answers.files.length > 0
       ? `<p style="margin:24px 0 8px;color:#8a7f74;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Fisiere atasate</p>
@@ -91,6 +96,7 @@ export function buildQuoteEmailHtml(answers: QuoteAnswers, heading: string, intr
         <tr><td style="padding:28px 32px;">
           <p style="margin:0 0 20px;color:#8a7f74;font-size:15px;line-height:1.6;">${escapeHtml(intro)}</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows.join("")}</table>
+          ${message}
           ${files}
         </td></tr>
         <tr><td style="padding:20px 32px;background:#F5F0E8;color:#8a7f74;font-size:12px;">

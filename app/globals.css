@@ -2611,7 +2611,39 @@ select {
   margin-top: 1.25rem;
 }
 
-/* ── "Parcursul unui proiect" — pinned arc timeline (drawn on scroll) ── */
+/* ── "Parcursul unui proiect" — timeline drawn on scroll ── */
+.warm-journey {
+  height: 300vh;
+}
+
+/* Desktop: pin the viewport and centre the arc within it. */
+.warm-journey__inner {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.warm-journey__desktop {
+  position: relative;
+  width: 100%;
+  margin-top: 2.5rem;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .warm-journey__desktop {
+    margin-top: 4rem;
+  }
+}
+
+.warm-journey__mobile {
+  display: none;
+}
+
 .warm-journey__strip {
   min-height: 300px;
 }
@@ -2660,116 +2692,351 @@ select {
   color: color-mix(in srgb, var(--terracotta) 60%, var(--sand));
 }
 
-.warm-journey__track {
-  position: relative;
-  width: 100%;
-  height: 2px;
-  border-radius: 999px;
+/* Mobile left-rail vertical timeline (drawn on scroll) — the connector line,
+   its terracotta fill, ruler ticks and travelling dot, all on the left rail. */
+.warm-journey__mline {
+  position: absolute;
+  top: 1.75rem;
+  left: 2.1rem;
+  height: calc(100% - 3.5rem);
+  width: 2px;
+  transform: translateX(-50%);
   background: var(--line-strong);
+  border-radius: 999px;
+  z-index: 0;
 }
 
-.warm-journey__track-fill {
+.warm-journey__mfill {
   position: absolute;
-  left: 0;
   top: 0;
-  height: 100%;
+  left: 0;
+  width: 100%;
   border-radius: 999px;
   background: var(--terracotta);
 }
 
-.warm-journey__dot {
+.warm-journey__mtick {
   position: absolute;
-  top: 50%;
-  width: 0.9rem;
-  height: 0.9rem;
+  left: 50%;
+  width: 0.7rem;
+  height: 2px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+
+.warm-journey__mtick--on {
+  background: var(--terracotta);
+}
+
+.warm-journey__mdot {
+  position: absolute;
+  left: 50%;
+  width: 0.95rem;
+  height: 0.95rem;
   border-radius: 999px;
   background: var(--terracotta);
   transform: translate(-50%, -50%);
   box-shadow: 0 0 0 0.35rem color-mix(in srgb, var(--terracotta) 16%, transparent);
 }
 
+/* Left-rail item: icon on the rail, text to the right (never crosses line). */
+.warm-journey__mitem {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+  width: 100%;
+  text-align: left;
+}
+
+.warm-journey__mitem .warm-journey__icon {
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.warm-journey__mitem .warm-journey__icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.warm-journey__mbody {
+  padding-top: 0.2rem;
+}
+
+.warm-journey__mnum {
+  display: block;
+  font-family: var(--font-display, inherit);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--terracotta) 72%, var(--espresso));
+}
+
+.warm-journey__mbody .warm-journey__desc {
+  max-width: 34ch;
+}
+
 /* Mobile: the horizontal arc is unusable on a narrow viewport, so unpin and
-   render a clean vertical timeline (no scroll-jacking). */
+   run the left-rail draw-on-scroll timeline instead. */
 @media (max-width: 639px) {
   .warm-journey {
-    height: auto !important;
+    height: auto;
   }
-  .warm-journey .sticky {
+  .warm-journey__inner {
     position: static;
     height: auto;
     overflow: visible;
-    padding-block: 3.5rem;
+    padding-block: 3rem;
   }
-  .warm-journey__strip {
-    position: relative;
-    width: 100% !important;
-    min-height: 0;
-    aspect-ratio: auto !important;
-    transform: none !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2.75rem;
-    padding-block: 1rem;
-  }
-  /* Vertical connector behind the icons */
-  .warm-journey__strip::before {
-    content: "";
-    position: absolute;
-    top: 2.5rem;
-    bottom: 2.5rem;
-    left: 50%;
-    width: 2px;
-    transform: translateX(-50%);
-    background: var(--line-strong);
-  }
-  .warm-journey__svg {
+  .warm-journey__desktop {
     display: none;
   }
-  .warm-journey__item {
-    position: static;
-    left: auto !important;
-    top: auto !important;
-    transform: none;
-    width: 100%;
-    max-width: 32ch;
-    padding-top: 0;
-  }
-  .warm-journey__icon {
+  .warm-journey__mobile {
+    display: flex;
     position: relative;
-    z-index: 1;
+    flex-direction: column;
+    gap: 2.25rem;
+    margin-top: 2.5rem;
+    padding-left: 0.35rem;
   }
 }
 
-/* No scroll-jacking for reduced-motion / no-JS: unpin, hide the arc, stack. */
+/* Reduced motion / no-JS: show the timeline, filled and static. */
 @media (prefers-reduced-motion: reduce) {
   .warm-journey {
-    height: auto !important;
+    height: auto;
   }
-  .warm-journey .sticky {
+  .warm-journey__inner {
     position: static;
     height: auto;
+    overflow: visible;
     padding-block: 4rem;
   }
-  .warm-journey__strip {
-    width: 100% !important;
-    aspect-ratio: auto !important;
-    transform: none !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3rem;
-  }
-  .warm-journey__svg {
+  .warm-journey__desktop {
     display: none;
   }
-  .warm-journey__item {
-    position: static;
-    left: auto !important;
-    top: auto !important;
-    transform: none;
-    width: 100%;
-    max-width: 34ch;
-    padding-top: 0;
+  .warm-journey__mobile {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    gap: 2.5rem;
+    margin-top: 2.5rem;
+    padding-left: 0.35rem;
   }
+  .warm-journey__mfill {
+    height: 100% !important;
+  }
+  .warm-journey__mtick--on {
+    opacity: 1 !important;
+  }
+  .warm-journey__mdot {
+    display: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Warm contact page — scoped under .contact-warm
+   ══════════════════════════════════════════════════════════════ */
+
+.contact-warm {
+  background: var(--sand);
+  color: var(--espresso);
+  min-height: calc(100svh - var(--site-header-height));
+}
+
+/* ── Form fields ── */
+.contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contact-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mocha-72);
+}
+
+.contact-input {
+  width: 100%;
+  padding: 0.85rem 1.05rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--line-strong);
+  background: #ffffff;
+  color: var(--espresso);
+  font-size: 1rem;
+  line-height: 1.4;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.contact-input::placeholder {
+  color: var(--mocha-52);
+}
+
+.contact-input:focus {
+  outline: none;
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--terracotta) 18%, transparent);
+}
+
+.contact-textarea {
+  resize: vertical;
+  min-height: 7rem;
+}
+
+/* ── Preference chips ── */
+.contact-pref {
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--mocha-72);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.contact-pref:hover {
+  border-color: var(--espresso);
+}
+
+.contact-pref--active {
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+  color: var(--cream);
+}
+
+/* ── Direct-contact rows ── */
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 1.1rem;
+  border: 1px solid var(--line);
+  background: var(--sand);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.contact-row:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-warm);
+}
+
+.contact-row__icon {
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--clay);
+  color: var(--terracotta);
+}
+
+.contact-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.contact-row__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mocha-52);
+}
+
+.contact-row__value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--espresso);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contact-row__go {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--terracotta);
+}
+
+.contact-row--accent {
+  background: color-mix(in srgb, var(--terracotta) 10%, var(--cream));
+  border-color: color-mix(in srgb, var(--terracotta) 24%, transparent);
+}
+
+.contact-row--accent .contact-row__icon {
+  background: var(--terracotta);
+  color: var(--cream);
+}
+
+/* ── Mobile sticky action bar ── */
+.contact-actionbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  padding-bottom: calc(0.7rem + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--cream) 92%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -0.5rem 1.5rem rgba(78, 55, 34, 0.12);
+}
+
+@media (max-width: 1023px) {
+  .contact-actionbar {
+    display: flex;
+  }
+}
+
+.contact-actionbar__ghost,
+.contact-actionbar__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 3rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.contact-actionbar__ghost {
+  flex: 0 0 auto;
+  padding: 0 1.4rem;
+  border: 1px solid var(--line-strong);
+  color: var(--espresso);
+}
+
+.contact-actionbar__ghost:active {
+  background: var(--clay);
+}
+
+.contact-actionbar__cta {
+  flex: 1;
+  background: var(--terracotta);
+  color: var(--cream);
+  box-shadow: 0 0.5rem 1.25rem rgba(192, 106, 62, 0.3);
+}
+
+.contact-actionbar__cta:active {
+  background: var(--terracotta-deep);
 }
