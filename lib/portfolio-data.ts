@@ -248,6 +248,204 @@ export const portfolioProjects: PortfolioProject[] = [
       },
     ],
   },
+  {
+    slug: "bucatarie-alba-marmura",
+    index: 5,
+    category: "bucatarie",
+    badge: "Bucătărie · 2026",
+    title: "Alb <em>&amp; marmură.</em>",
+    seoTitle:
+      "Bucătărie albă cu spate din marmură Calacatta — proiect la comandă",
+    seoDescription:
+      "Bucătărie dreaptă cu fronturi albe mate, spate și pardoseală cu aspect de marmură Calacatta, iluminat LED sub corpuri și electrocasnice negre încastrate.",
+    lede: "Bucătărie dreaptă în alb mat, cu spate și pardoseală din marmură Calacatta care aduce toată nervura în încăpere, iluminat LED sub corpuri și electrocasnice negre integrate.",
+    body: "Clienții voiau o bucătărie <em>luminoasă, dar cu caracter</em> — nu una plată. Am ținut fronturile în alb, fără accente care să concureze, și am lăsat <em>marmura Calacatta</em> să fie vedeta: aceeași nervură caldă urcă de pe pardoseală pe spatele de lucru, așa că bucătăria pare tăiată dintr-o singură bucată de piatră. Banda LED de sub corpurile superioare spală venele marmurei și le scoate în evidență seara, iar plita, cuptorul și hota se retrag în negru ca linia albă să rămână continuă.",
+    specs: [
+      { label: "Fronturi", value: "Alb mat" },
+      { label: "Spate & pardoseală", value: "Aspect marmură Calacatta" },
+      { label: "Iluminat", value: "Bandă LED sub corpuri" },
+      { label: "Electrocasnice", value: "Plită & cuptor negre, încastrate" },
+    ],
+    image: {
+      src: "/portfolio/white-marble-kitchen-cover.webp",
+      alt: "Bucătărie dreaptă albă cu spate din marmură Calacatta și electrocasnice negre încastrate",
+    },
+    gallery: [
+      {
+        src: "/portfolio/white-marble-kitchen-wide.webp",
+        alt: "Bucătăria albă văzută din zona de masă, cu blat alb continuu",
+      },
+    ],
+  },
+  {
+    slug: "bucatarie-shaker-alba-blat-negru",
+    index: 6,
+    category: "bucatarie",
+    badge: "Bucătărie · 2026",
+    title: "Shaker <em>alb, blat negru.</em>",
+    seoTitle:
+      "Bucătărie în L cu fronturi shaker albe și blat negru — proiect la comandă",
+    seoDescription:
+      "Bucătărie în L cu fronturi shaker albe, blat negru, faianță metrou, coloană de cuptor și microunde încastrate și frigider inox, potrivită în jurul centralei de perete.",
+    lede: "Bucătărie în L cu fronturi shaker albe și blat negru, faianță metrou pe spate, coloană de cuptor și microunde și frigider inox — totul potrivit în jurul centralei de pe perete.",
+    body: "Aici provocarea a fost <em>să încadrăm o bucătărie completă într-un spațiu real de bloc</em>, cu centrala termică pe perete și o fereastră care mânca din blat. Am mers pe fronturi <em>shaker albe</em>, calde și clasice, cu blat negru pentru contrast și faianță metrou pe spate. Colțul în L strânge tot ce trebuie: coloana cu cuptor și microunde încastrate lângă frigiderul inox, chiuveta și plita pe blatul negru continuu, iar corpurile ajung fix sub centrală, fără spații pierdute.",
+    specs: [
+      { label: "Fronturi", value: "Shaker alb" },
+      { label: "Blat & spate", value: "Blat negru + faianță metrou" },
+      { label: "Configurație", value: "Bucătărie în L" },
+      { label: "Electrocasnice", value: "Cuptor & microunde încastrate, frigider inox" },
+    ],
+    image: {
+      src: "/portfolio/shaker-white-kitchen-cover.webp",
+      alt: "Bucătărie în L cu fronturi shaker albe, blat negru și faianță metrou, coloană cuptor și frigider inox",
+    },
+    gallery: [
+      {
+        src: "/portfolio/shaker-white-kitchen-hob.webp",
+        alt: "Zona plitei și a chiuvetei pe blat negru, lângă centrala de perete",
+      },
+      {
+        src: "/portfolio/shaker-white-kitchen-wide.webp",
+        alt: "Vedere de ansamblu a bucătăriei shaker în L cu coloana de electrocasnice",
+      },
+      {
+        src: "/portfolio/shaker-white-kitchen-column.webp",
+        alt: "Coloana cu cuptor și microunde încastrate lângă frigiderul inox",
+      },
+      {
+        src: "/portfolio/shaker-white-kitchen-door.webp",
+        alt: "Bucătăria văzută dinspre ușa cu geam mat, cu blat negru continuu",
+      },
+    ],
+  },
+  {
+    slug: "bucatarie-stejar-garsoniera",
+    index: 7,
+    category: "bucatarie",
+    badge: "Bucătărie · 2026",
+    title: "Stejar <em>pentru garsonieră.</em>",
+    seoTitle:
+      "Bucătărie compactă decor stejar pentru garsonieră — proiect la comandă",
+    seoDescription:
+      "Bucătărie dreaptă compactă în decor stejar deschis, cu spate din faianță maro, plită pe gaz, cuptor încastrat și coloană înaltă de depozitare — gândită pentru o garsonieră.",
+    lede: "Bucătărie dreaptă compactă în decor stejar deschis, cu spate din faianță maro, plită pe gaz și cuptor încastrat și o coloană înaltă de depozitare — gândită pentru o garsonieră.",
+    body: "Pentru o garsonieră, bucătăria trebuie <em>să încapă tot pe un singur perete</em> și să nu încarce camera. Am ales un decor <em>stejar deschis</em>, cald și tolerant la uz zilnic, pe un front simplu cu mânere-bară. Pe lângă plită și cuptor am ridicat o coloană înaltă care preia frigiderul și cămara într-un singur volum, așa că restul peretelui rămâne liber, iar spațiul de locuit respiră.",
+    specs: [
+      { label: "Corpuri", value: "PAL decor stejar deschis" },
+      { label: "Spate", value: "Faianță maro" },
+      { label: "Configurație", value: "Bucătărie dreaptă + coloană" },
+      { label: "Electrocasnice", value: "Plită gaz + cuptor încastrat" },
+    ],
+    image: {
+      src: "/portfolio/oak-studio-kitchen-cover.webp",
+      alt: "Bucătărie dreaptă în decor stejar deschis cu spate maro și coloană de depozitare, pentru garsonieră",
+    },
+    gallery: [
+      {
+        src: "/portfolio/oak-studio-kitchen-wide.webp",
+        alt: "Bucătăria stejar văzută în camera de zi, cu coloana înaltă alături",
+      },
+    ],
+  },
+  {
+    slug: "baie-faianta-lemn",
+    index: 8,
+    category: "baie",
+    badge: "Baie · 2026",
+    title: "Baie <em>caldă, în lemn.</em>",
+    seoTitle:
+      "Mobilier de baie alb lucios pe faianță aspect lemn — proiect la comandă",
+    seoDescription:
+      "Baie mică cu faianță aspect lemn, mobilier alb lucios, bază de lavoar pe rotile cu blat integrat și dulap-oglindă cu iluminat LED.",
+    lede: "Baie mică îmbrăcată în faianță cu aspect de lemn, cu mobilier alb lucios, lavoar cu blat integrat și dulap-oglindă cu iluminat LED deasupra.",
+    body: "Într-o baie mică, mobilierul trebuie <em>să fie practic fără să pară înghesuit</em>. Am pus mobilierul în alb lucios, care reflectă lumina și deschide spațiul, pe fondul cald al faianței cu aspect de lemn. Baza de lavoar stă pe rotile pentru acces ușor la instalație, iar dulapul-oglindă de deasupra adaugă depozitare la înălțime și un LED care luminează exact zona de folosit.",
+    specs: [
+      { label: "Mobilier", value: "Alb lucios" },
+      { label: "Lavoar", value: "Bază pe rotile cu blat integrat" },
+      { label: "Oglindă", value: "Dulap-oglindă cu LED" },
+      { label: "Finisaj", value: "Faianță aspect lemn" },
+    ],
+    image: {
+      src: "/portfolio/wood-tile-bathroom-cover.webp",
+      alt: "Baie mică cu faianță aspect lemn, mobilier alb lucios și dulap-oglindă cu LED",
+    },
+    gallery: [
+      {
+        src: "/portfolio/wood-tile-bathroom-vanity.webp",
+        alt: "Lavoarul cu bază albă și dulapul-oglindă deschis, cu rafturi interioare",
+      },
+    ],
+  },
+  {
+    slug: "dressing-tv-integrat",
+    index: 9,
+    category: "dormitor",
+    badge: "Dormitor · 2026",
+    title: "Dulap <em>cu nișă de TV.</em>",
+    seoTitle:
+      "Dulap pe tot peretele cu nișă de TV integrată — proiect la comandă",
+    seoDescription:
+      "Dulap pe tot peretele cu nișă de televizor integrată, uși glisante, rafturi deschise și sertare cu iluminat LED — depozitare completă pentru o cameră mică.",
+    lede: "Dulap pe tot peretele cu nișă de televizor integrată, uși glisante, rafturi deschise și sertare cu iluminat LED — depozitare completă fără să ocupe camera.",
+    body: "Într-o cameră unde <em>fiecare centimetru contează</em>, am strâns garderoba, televizorul și depozitarea într-un singur perete. Ușile glisante nu se deschid spre exterior, așa că nu fură spațiu, nișa de TV ține ecranul la înălțimea corectă cu o bandă LED discretă deasupra, iar sertarele și rafturile deschise împart hainele de obiectele la vedere. Volumul merge din podea până în tavan, ca nimic să nu se piardă sus.",
+    specs: [
+      { label: "Corpuri", value: "PAL melaminat" },
+      { label: "Uși", value: "Glisante" },
+      { label: "Nișă TV", value: "Cu iluminat LED" },
+      { label: "Depozitare", value: "Sertare + rafturi deschise" },
+    ],
+    image: {
+      src: "/portfolio/tv-wardrobe-cover.webp",
+      alt: "Dulap pe tot peretele cu nișă de televizor integrată, uși glisante și iluminat LED",
+    },
+    gallery: [
+      {
+        src: "/portfolio/tv-wardrobe-open.webp",
+        alt: "Dulapul cu ușile deschise, arătând bara de umeraș și rafturile interioare",
+      },
+      {
+        src: "/portfolio/tv-wardrobe-shelves.webp",
+        alt: "Zona centrală cu rafturi deschise, nișa de TV și sertare",
+      },
+      {
+        src: "/portfolio/tv-wardrobe-closed.webp",
+        alt: "Dulapul cu ușile glisante închise și nișa de televizor",
+      },
+    ],
+  },
+  {
+    slug: "dulap-hol-oglinda",
+    index: 10,
+    category: "dormitor",
+    badge: "Dulap hol · 2026",
+    title: "Dulap <em>cu oglindă, pe hol.</em>",
+    seoTitle:
+      "Dulap de hol cu uși glisante și oglindă pe toată înălțimea — la comandă",
+    seoDescription:
+      "Dulap de hol cu uși glisante și oglindă pe toată înălțimea pe ușa centrală, în decor cald — depozitare discretă la intrare care mărește optic spațiul.",
+    lede: "Dulap de hol cu uși glisante și oglindă pe toată înălțimea pe ușa centrală, în decor cald — depozitare discretă chiar la intrare, care și mărește optic holul.",
+    body: "Holul e primul lucru pe care îl vezi când intri, așa că dulapul trebuia <em>să depoziteze mult și să pară puțin</em>. Am mers pe uși glisante, ca să nu blocheze circulația pe un spațiu îngust, și am pus <em>oglindă pe toată înălțimea</em> pe ușa din mijloc — dublează lumina și face holul să pară de două ori mai lat. Decorul cald al fronturilor se leagă de tâmplăria existentă, iar covorul cu meandru grecesc a dat nota pentru restul.",
+    specs: [
+      { label: "Corpuri", value: "PAL decor cald" },
+      { label: "Uși", value: "Glisante cu oglindă" },
+      { label: "Rol", value: "Depozitare pe hol" },
+      { label: "Efect", value: "Mărește optic spațiul" },
+    ],
+    image: {
+      src: "/portfolio/mirror-hall-wardrobe-cover.webp",
+      alt: "Dulap de hol cu uși glisante și oglindă pe toată înălțimea, în decor cald",
+    },
+    gallery: [
+      {
+        src: "/portfolio/mirror-hall-wardrobe-angle.webp",
+        alt: "Dulapul de hol văzut din lateral, cu oglinda reflectând camera alăturată",
+      },
+      {
+        src: "/portfolio/mirror-hall-wardrobe-hall.webp",
+        alt: "Holul cu dulapul glisant și ușile de interior din lemn",
+      },
+    ],
+  },
 ];
 
 // Ordered by index — the source for the bento gallery and case-study lookup.
