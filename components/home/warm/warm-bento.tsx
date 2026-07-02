@@ -1,27 +1,32 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
+import { allPortfolioProjects, roomLabel } from "@/lib/portfolio-data";
 
-type Tile = {
-  title: string;
-  space: string;
-  image: string;
-  span: "" | "bento--2x2" | "bento--2x1" | "bento--1x2";
-  sizes: string;
-};
-
-// Curated to tile a 4-column grid cleanly (with grid-auto-flow: dense).
-const tiles: Tile[] = [
-  { title: "Bucătărie sculptată în contraste calde", space: "Bucătărie", image: "/portfolio/00-kitchen-ornate-navy-full.jpg", span: "bento--2x2", sizes: "(max-width: 900px) 100vw, 50vw" },
-  { title: "Living contemporan", space: "Living", image: "/portfolio/schite/living_randare1.jpg", span: "bento--2x1", sizes: "(max-width: 900px) 100vw, 50vw" },
-  { title: "Baie cu volume curate", space: "Baie", image: "/portfolio/schite/baie_randare1.jpg", span: "", sizes: "(max-width: 900px) 50vw, 25vw" },
-  { title: "Birou cu depozitare integrată", space: "Birou", image: "/portfolio/schite/birou_randare1.jpg", span: "", sizes: "(max-width: 900px) 50vw, 25vw" },
-  { title: "Bucătărie luminoasă", space: "Bucătărie", image: "/portfolio/schite/bucatarie_randare1.jpg", span: "bento--1x2", sizes: "(max-width: 900px) 50vw, 25vw" },
-  { title: "Dressing cu oglinzi", space: "Dressing", image: "/portfolio/dressing-mirror-wardrobe.jpg", span: "bento--2x1", sizes: "(max-width: 900px) 100vw, 50vw" },
-  { title: "Detaliu mâner auriu", space: "Detaliu", image: "/portfolio/00-detail-gold-handle.jpg", span: "", sizes: "(max-width: 900px) 50vw, 25vw" },
-  { title: "Bucătărie modernă albă", space: "Bucătărie", image: "/portfolio/00-kitchen-white-modern.jpg", span: "bento--2x1", sizes: "(max-width: 900px) 100vw, 50vw" },
-  { title: "Baie — vedere de ansamblu", space: "Baie", image: "/portfolio/schite/baie_randare2.jpg", span: "", sizes: "(max-width: 900px) 50vw, 25vw" },
+// Span + sizes pattern that tiles a 4-column dense grid cleanly. Applied by
+// position to the real portfolio projects so the home stays in sync with
+// /portfolio — the source of truth is lib/portfolio-data.
+const layout: { span: "" | "bento--2x2" | "bento--2x1" | "bento--1x2"; sizes: string }[] = [
+  { span: "bento--2x2", sizes: "(max-width: 900px) 100vw, 50vw" },
+  { span: "bento--2x1", sizes: "(max-width: 900px) 100vw, 50vw" },
+  { span: "", sizes: "(max-width: 900px) 50vw, 25vw" },
+  { span: "", sizes: "(max-width: 900px) 50vw, 25vw" },
+  { span: "bento--1x2", sizes: "(max-width: 900px) 50vw, 25vw" },
+  { span: "bento--2x1", sizes: "(max-width: 900px) 100vw, 50vw" },
+  { span: "", sizes: "(max-width: 900px) 50vw, 25vw" },
+  { span: "bento--2x1", sizes: "(max-width: 900px) 100vw, 50vw" },
+  { span: "", sizes: "(max-width: 900px) 50vw, 25vw" },
 ];
+
+// Take as many real projects as the layout pattern can place, in portfolio order.
+const tiles = allPortfolioProjects.slice(0, layout.length).map((project, index) => ({
+  slug: project.slug,
+  title: project.title,
+  space: roomLabel[project.category],
+  image: project.image.src,
+  alt: project.image.alt,
+  ...layout[index],
+}));
 
 export function WarmBento() {
   return (
@@ -48,13 +53,13 @@ export function WarmBento() {
       <div className="bento mt-12">
         {tiles.map((tile) => (
           <Link
-            key={tile.image}
-            href="/portfolio"
+            key={tile.slug}
+            href={`/portfolio/${tile.slug}`}
             className={`bento__tile group ${tile.span}`}
           >
             <Image
               src={tile.image}
-              alt={tile.title}
+              alt={tile.alt}
               fill
               sizes={tile.sizes}
               className="object-cover"
@@ -63,9 +68,10 @@ export function WarmBento() {
               <p className="text-xs uppercase tracking-[0.22em] text-cream/70">
                 {tile.space}
               </p>
-              <p className="mt-1 display-font text-xl leading-snug">
-                {tile.title}
-              </p>
+              <p
+                className="mt-1 display-font text-xl leading-snug"
+                dangerouslySetInnerHTML={{ __html: tile.title }}
+              />
             </div>
           </Link>
         ))}
