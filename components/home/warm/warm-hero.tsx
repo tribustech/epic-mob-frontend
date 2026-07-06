@@ -72,6 +72,13 @@ export function WarmHero() {
       transition: { duration: reduce ? 0 : 0.6, ease },
     },
   };
+  // The hero headline is the above-the-fold LCP element — it must be painted
+  // without waiting for JS. This variant animates transform only (no opacity
+  // gate), so the title is visible in SSR while still sliding up as enhancement.
+  const titleItem: Variants = {
+    hidden: { y: reduce ? 0 : 26 },
+    show: { y: 0, transition: { duration: reduce ? 0 : 0.6, ease } },
+  };
 
   return (
     <section className="hero2">
@@ -100,10 +107,12 @@ export function WarmHero() {
           </motion.p>
 
           <motion.div
-            variants={enterItem}
+            variants={titleItem}
             className="relative mt-4 min-h-[7.5rem] sm:min-h-[9rem] lg:min-h-[11rem]"
           >
-            <AnimatePresence mode="wait">
+            {/* initial={false}: first slide's headline renders at its final state
+                (no opacity-0 gate) so it counts toward LCP; swaps still crossfade. */}
+            <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={slide.room}
                 initial={{ opacity: 0, y: reduce ? 0 : 24 }}
@@ -173,12 +182,13 @@ export function WarmHero() {
           </motion.div>
         </motion.div>
 
-        {/* Circle stage */}
+        {/* Circle stage — starts opaque so the hero image (the LCP element) paints
+            immediately; only a subtle scale plays as progressive enhancement. */}
         <motion.div
           className="order-2 lg:order-2"
-          initial={{ opacity: 0, scale: reduce ? 1 : 0.9 }}
+          initial={{ opacity: 1, scale: reduce ? 1 : 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: reduce ? 0 : 0.9, ease, delay: reduce ? 0 : 0.1 }}
+          transition={{ duration: reduce ? 0 : 0.9, ease }}
         >
           <div className="hero2__stage">
             <span className="hero2__halo" aria-hidden="true" />
@@ -186,7 +196,9 @@ export function WarmHero() {
             <span className="hero2__spin" aria-hidden="true" />
             <span className="hero2__spin-dot" aria-hidden="true" />
             <div className="hero2__circle">
-              <AnimatePresence>
+              {/* initial={false}: the first slide renders at its final state (no
+                  opacity-0 gate that would delay LCP); later slide swaps still crossfade. */}
+              <AnimatePresence initial={false}>
                 <motion.div
                   key={slide.image}
                   className="absolute inset-0"

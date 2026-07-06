@@ -5,6 +5,14 @@ export const metadata: Metadata = {
   title: "Cere ofertă — EpicMob",
   description:
     "Răspunde la câteva întrebări simple și îți pregătim o ofertă personalizată pentru mobilierul tău.",
+  alternates: { canonical: "/configurator" },
+  openGraph: {
+    title: "Cere ofertă — Epic Mob",
+    description:
+      "Răspunde la câteva întrebări simple și îți pregătim o ofertă personalizată pentru mobilierul tău.",
+    url: "/configurator",
+    type: "website",
+  },
 };
 
 export default function ConfiguratorPage() {

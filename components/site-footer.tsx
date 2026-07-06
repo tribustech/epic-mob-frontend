@@ -38,6 +38,9 @@ function WarmFooter({ hasMobileBar }: { hasMobileBar: boolean }) {
                 {item.label}
               </Link>
             ))}
+            <Link href="/intrebari-frecvente" className="block text-sm">
+              Întrebări frecvente
+            </Link>
           </div>
         </div>
         <div>

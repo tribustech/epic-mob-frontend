@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { allPortfolioProjects, roomLabel } from "@/lib/portfolio-data";
+import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
+import { SITE_URL } from "@/lib/business-data";
 
 export function generateStaticParams() {
   return allPortfolioProjects.map((project) => ({ slug: project.slug }));
@@ -61,8 +63,30 @@ export default async function PortfolioCaseStudyPage({
 
   const next = allPortfolioProjects[(index + 1) % allPortfolioProjects.length];
 
+  const name = plainText(project.title).replace(/\.$/, "");
+  const creativeWorkSchema = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name,
+    headline: name,
+    description: project.seoDescription ?? plainText(project.lede),
+    image: `${SITE_URL}${project.image.src}`,
+    url: `${SITE_URL}/portfolio/${project.slug}`,
+    inLanguage: "ro",
+    creator: { "@id": `${SITE_URL}/#business` },
+    about: roomLabel[project.category],
+    keywords: `${roomLabel[project.category]}, mobilier la comandă, ${name}`,
+  };
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Acasă", path: "/" },
+    { name: "Portofoliu", path: "/portfolio" },
+    { name, path: `/portfolio/${project.slug}` },
+  ]);
+
   return (
     <main className="bg-sand text-espresso">
+      <JsonLd data={creativeWorkSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <article className="section-shell pt-28 pb-20 sm:pt-32 lg:pt-36">
         <Link href="/portfolio" className="warm-link inline-flex items-center gap-2 text-sm font-semibold">
           <ArrowLeft size={16} strokeWidth={2} />

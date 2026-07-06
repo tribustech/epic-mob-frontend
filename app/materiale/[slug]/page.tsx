@@ -8,6 +8,8 @@ import { MaterialStructure } from "@/components/materials/material-structure";
 import { MaterialVerdict } from "@/components/materials/material-verdict";
 import { MaterialProps } from "@/components/materials/material-props";
 import { MaterialPlacement } from "@/components/materials/material-placement";
+import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
+import { SITE_URL } from "@/lib/business-data";
 
 export function generateStaticParams() {
   return materialSlugs.map((slug) => ({ slug }));
@@ -53,8 +55,28 @@ export default async function MaterialArticlePage({
 
   const next = materials[(index + 1) % materials.length];
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: `${material.name} — ${material.tagline}`,
+    description: material.intro,
+    image: `${SITE_URL}${material.heroImage}`,
+    url: `${SITE_URL}/materiale/${material.slug}`,
+    inLanguage: "ro",
+    author: { "@id": `${SITE_URL}/#business` },
+    publisher: { "@id": `${SITE_URL}/#business` },
+    about: { "@type": "Thing", name: material.name },
+  };
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Acasă", path: "/" },
+    { name: "Materiale", path: "/materiale" },
+    { name: material.name, path: `/materiale/${material.slug}` },
+  ]);
+
   return (
     <main className="bg-sand text-espresso">
+      <JsonLd data={articleSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <article className="section-shell pt-28 pb-20 sm:pt-32 lg:pt-36">
         <Link
           href="/materiale"
