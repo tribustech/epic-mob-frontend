@@ -205,7 +205,7 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "bucatarie-cappuccino-piatra-neagra",
-    index: 4,
+    index: 5,
     category: "bucatarie",
     badge: "Apartament · 2025",
     title: "Cappuccino <em>&amp; piatră neagră.</em>",
@@ -250,7 +250,7 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "bucatarie-alba-marmura",
-    index: 5,
+    index: 6,
     category: "bucatarie",
     badge: "Bucătărie · 2026",
     title: "Alb <em>&amp; marmură.</em>",
@@ -279,7 +279,7 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "bucatarie-shaker-alba-blat-negru",
-    index: 6,
+    index: 7,
     category: "bucatarie",
     badge: "Bucătărie · 2026",
     title: "Shaker <em>alb, blat negru.</em>",
@@ -320,7 +320,7 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "bucatarie-stejar-garsoniera",
-    index: 7,
+    index: 8,
     category: "bucatarie",
     badge: "Bucătărie · 2026",
     title: "Stejar <em>pentru garsonieră.</em>",
@@ -349,7 +349,7 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "baie-faianta-lemn",
-    index: 8,
+    index: 9,
     category: "baie",
     badge: "Baie · 2026",
     title: "Baie <em>caldă, în lemn.</em>",
@@ -378,7 +378,7 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "dressing-tv-integrat",
-    index: 9,
+    index: 10,
     category: "dormitor",
     badge: "Dormitor · 2026",
     title: "Dulap <em>cu nișă de TV.</em>",
@@ -415,7 +415,7 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "dulap-hol-oglinda",
-    index: 10,
+    index: 11,
     category: "dormitor",
     badge: "Dulap hol · 2026",
     title: "Dulap <em>cu oglindă, pe hol.</em>",
@@ -443,6 +443,43 @@ export const portfolioProjects: PortfolioProject[] = [
       {
         src: "/portfolio/mirror-hall-wardrobe-hall.webp",
         alt: "Holul cu dulapul glisant și ușile de interior din lemn",
+      },
+    ],
+  },
+  {
+    slug: "bucatarie-verde-pesto-alama",
+    index: 4,
+    category: "bucatarie",
+    badge: "Bucătărie · 2026",
+    title: "Verde <em>pesto &amp; alamă.</em>",
+    seoTitle:
+      "Bucătărie verde pesto cu mânere de alamă și blat marmură — la comandă",
+    seoDescription:
+      "Bucătărie în L cu fronturi MDF melaminat verde pesto mat, corpuri PAL, mânere bară din alamă aplicate, blat Egger aspect marmură și feronerie Blum.",
+    lede: "Bucătărie în L în verde pesto mat, cu mânere bară din alamă, blat și pardoseală cu aspect de marmură și o nișă din lemn care încălzește compoziția.",
+    body: "Clienții voiau o bucătărie <em>caldă, dar cu personalitate</em> — nu încă o bucătărie albă sau gri. Am mers pe fronturi din MDF melaminat în <em>verde pesto mat</em>, care se așază liniștit lângă marmura albă, și am dat ritmul cu accente de <em>alamă</em>: mânerele bară aplicate pe corp, plinta și profilul de sub blat, toate în același auriu cald. Bucătăria în L urcă până în tavan pe latura cu coloana de depozitare, iar o <em>nișă din lemn</em> deschide zona de blat și aduce o pauză caldă exact unde ochiul are nevoie de ea. Blatul Egger cu aspect de marmură continuă pattern-ul pardoselii.",
+    specs: [
+      { label: "Fronturi", value: "MDF melaminat verde pesto" },
+      { label: "Corpuri", value: "PAL" },
+      { label: "Blat", value: "Egger, aspect marmură" },
+      { label: "Feronerie", value: "Blum + mâner bară alamă" },
+    ],
+    image: {
+      src: "/portfolio/green-pesto-kitchen-cover.webp",
+      alt: "Bucătărie în L verde pesto mat cu mânere de alamă, blat și pardoseală aspect marmură",
+    },
+    gallery: [
+      {
+        src: "/portfolio/green-pesto-kitchen-column.webp",
+        alt: "Coloana înaltă de depozitare verde pesto, cu nișă din lemn și mânere de alamă",
+      },
+      {
+        src: "/portfolio/green-pesto-kitchen-corner.webp",
+        alt: "Colțul în L cu chiuveta sub fereastră și spate din marmură",
+      },
+      {
+        src: "/portfolio/green-pesto-kitchen-window.webp",
+        alt: "Zona de lucru de lângă fereastră, cu blat aspect marmură și baterie înaltă",
       },
     ],
   },
