@@ -4,6 +4,7 @@ import { WarmBento } from "@/components/home/warm/warm-bento";
 import { WarmJourney } from "@/components/home/warm/warm-journey";
 import { WarmMaterials } from "@/components/home/warm/warm-materials";
 import { WarmFeatured } from "@/components/home/warm/warm-featured";
+import { WarmReels } from "@/components/home/warm/warm-reels";
 import { WarmFinalCta } from "@/components/home/warm/warm-final-cta";
 import { WarmTabbar } from "@/components/home/warm/warm-tabbar";
 
@@ -17,6 +18,7 @@ export function WarmHome() {
         <WarmJourney />
         <WarmMaterials />
         <WarmFeatured />
+        <WarmReels />
         <WarmFinalCta />
       </main>
       <WarmTabbar />
