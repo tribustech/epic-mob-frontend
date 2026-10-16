@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { trackPixel } from "@/lib/meta-pixel";
 import {
   ArrowRight,
   Check,
@@ -75,6 +76,7 @@ export function ContactView() {
       const data = (await response.json()) as { whatsAppUrl?: string };
       setWhatsAppUrl(data.whatsAppUrl ?? null);
       setStatus("success");
+      trackPixel("Lead", { content_name: "formular_contact" });
     } catch {
       setStatus("error");
       setError(

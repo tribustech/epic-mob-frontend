@@ -27,6 +27,7 @@ import {
   type QuoteFile,
 } from "@/lib/quote-wizard";
 import { contactDetails } from "@/lib/site-data";
+import { trackPixel } from "@/lib/meta-pixel";
 import { newSessionId, sendRecord, trackEvent } from "@/lib/wizard-analytics";
 import { AnswerCard } from "./answer-card";
 import { SummaryStep } from "./summary-step";
@@ -183,6 +184,7 @@ export function QuoteWizard() {
       const data = (await response.json()) as SubmitResult;
       submittedRef.current = true;
       trackEvent("wizard_submitted", { emailed: data.emailed });
+      trackPixel("Lead", { content_name: "configurator" });
       sendRecord({
         status: "submitted",
         sessionId: sessionId.current,

@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { CookieBanner } from "@/components/consent/cookie-banner";
+import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { JsonLd } from "@/components/seo/json-ld";
 import { buildBusinessSchema, buildWebSiteSchema } from "@/lib/business-data";
 import "./globals.css";
@@ -58,6 +59,7 @@ export default function RootLayout({
         <div className="relative">{children}</div>
         <SiteFooter />
         <CookieBanner />
+        <MetaPixel />
         <Analytics />
       </body>
     </html>
