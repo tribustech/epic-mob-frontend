@@ -7,11 +7,23 @@ import { contactDetails } from "@/lib/site-data";
 
 export const SITE_URL = "https://epicmob.ro";
 
+// Company registration details, shown on the privacy policy (data controller).
+// The registered office is a legal address only — not published in schema,
+// since the business serves clients nationally without a storefront.
+export const legalEntity = {
+  name: "EPIC MOB PRODUCTION S.R.L.",
+  registeredOffice:
+    "București, Sectorul 3, Calea Vitan nr. 199, bl. 52, sc. 2, et. 10, ap. 58",
+  cui: "54806005",
+  tradeRegister: "J2026035979007",
+  euid: "ROONRC.J2026035979007",
+};
+
 export const business = {
   name: "Epic Mob",
   displayName: "Epic Mob Atelier",
-  // Legal entity name — fill when known; omitted from schema while empty.
-  legalName: "",
+  // Legal entity name — omitted from schema while empty.
+  legalName: "EPIC MOB PRODUCTION S.R.L.",
   url: SITE_URL,
   logo: `${SITE_URL}/icon.png`,
   foundingDate: "2019",

@@ -1269,7 +1269,7 @@ select {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(0.5rem, 1vw, 1rem);
+  gap: clamp(0.6rem, 1.4vw, 1.1rem);
 }
 
 .site-menu__primary-link {
@@ -1279,10 +1279,10 @@ select {
   column-gap: clamp(0.75rem, 2vw, 1.5rem);
   color: rgba(237, 231, 222, 0.9);
   font-family: var(--font-display), serif;
-  font-size: clamp(3rem, 11vw, 9.5rem);
-  font-weight: 600;
-  letter-spacing: 0;
-  line-height: 0.88;
+  font-size: clamp(2.25rem, 4.6vw, 4.25rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
   text-transform: none;
   transition: color 0.25s ease, transform 0.25s ease;
 }
@@ -1381,7 +1381,7 @@ select {
 
   .site-menu__primary-link {
     grid-template-columns: 2rem minmax(0, 1fr);
-    font-size: clamp(3.2rem, 17vw, 6.5rem);
+    font-size: clamp(2.25rem, 10vw, 3.5rem);
   }
 
   .site-menu__lower {

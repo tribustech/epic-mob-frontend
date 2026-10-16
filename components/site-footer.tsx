@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
 import { contactDetails, navigation } from "@/lib/site-data";
 
 export function SiteFooter() {
@@ -64,10 +65,16 @@ function WarmFooter({ hasMobileBar }: { hasMobileBar: boolean }) {
         </div>
       </div>
 
-      <div className="section-shell warm-footer__divider py-6">
-        <p className="text-center text-xs text-espresso/45">
+      <div className="section-shell warm-footer__divider flex flex-col items-center gap-3 py-6 text-xs text-espresso/45 sm:flex-row sm:justify-between">
+        <p>
           &copy; {new Date().getFullYear()} Epic Mob. Toate drepturile rezervate.
         </p>
+        <div className="flex gap-5">
+          <Link href="/politica-confidentialitate" className="hover:text-espresso">
+            Politica de confidențialitate
+          </Link>
+          <CookieSettingsButton className="hover:text-espresso" />
+        </div>
       </div>
     </footer>
   );
