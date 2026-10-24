@@ -32,7 +32,9 @@ export type PortfolioProject = {
   specs: { label: string; value: string }[];
   image: { src: string; alt: string };
   // Optional extra photos shown as a gallery on the case-study page.
-  gallery?: { src: string; alt: string }[];
+  // `aspectRatio` (width / height) shows that photo whole instead of cropped
+  // to 4:3 — use it when the full frame matters (e.g. a tall portrait shot).
+  gallery?: { src: string; alt: string; aspectRatio?: number }[];
   // Optional SEO overrides. When absent, a keyword-aware default is derived from
   // the room + project name (see generateMetadata in app/portfolio/[slug]).
   seoTitle?: string;
@@ -480,6 +482,248 @@ export const portfolioProjects: PortfolioProject[] = [
       {
         src: "/portfolio/green-pesto-kitchen-window.webp",
         alt: "Zona de lucru de lângă fereastră, cu blat aspect marmură și baterie înaltă",
+      },
+    ],
+  },
+  {
+    slug: "bucatarie-verde-menta-arin",
+    index: 12,
+    category: "bucatarie",
+    badge: "Bucătărie · 2026",
+    title: "Mentă <em>&amp; arin.</em>",
+    seoTitle:
+      "Bucătărie verde mentă din MDF vopsit cu corpuri arin Egger — la comandă",
+    seoDescription:
+      "Bucătărie în L la comandă: fronturi MDF vopsit verde mentă pal, corpuri superioare PAL Egger Arin, blat și contrablat HPL Kronospan, mânere alamă pe muchie, feronerie Blum Tandem.",
+    lede: "Bucătărie în L în verde mentă pal, cu un rând de corpuri din arin între fronturi, mânere de alamă pe muchie și un frigider încorporat care dispare în coloană.",
+    body: "Clienții ne sunt <em>dragi</em>, pentru că bucătăria asta n-a ieșit dintr-un catalog: am stat împreună și am ales <em>fiecare detaliu</em>, ca apartamentul lor să spună o poveste de la un capăt la altul. Fronturile sunt din MDF vopsit într-un <em>verde mentă pal</em>, iar între ele am strecurat un rând de corpuri superioare din PAL Egger <em>Arin</em>, care aduce căldura lemnului exact la nivelul privirii. Mânerele de alamă sunt aplicate pe muchia frontului, iar plinta de aluminiu în același auriu închide linia la podea. Blatul și contrablatul sunt din HPL Kronospan, ca suprafața de lucru și peretele să curgă în aceeași nuanță caldă, iar frigiderul încorporat se pierde în coloana înaltă de lângă ușa de sticlă.",
+    specs: [
+      { label: "Fronturi", value: "MDF vopsit verde mentă pal" },
+      { label: "Corpuri", value: "PAL Egger Arin" },
+      { label: "Blat", value: "HPL Kronospan + contrablat" },
+      { label: "Feronerie", value: "Blum Tandem + Blumotion" },
+    ],
+    image: {
+      src: "/portfolio/mint-alder-kitchen-cover.webp",
+      alt: "Bucătărie în L cu fronturi verde mentă pal și corpuri superioare din arin, mânere de alamă",
+    },
+    gallery: [
+      {
+        src: "/portfolio/mint-alder-kitchen-wall.webp",
+        alt: "Latura cu plită, cuptoare încorporate și corpuri superioare din arin",
+      },
+      {
+        src: "/portfolio/mint-alder-kitchen-corner.webp",
+        alt: "Colțul în L cu chiuveta, blat și contrablat HPL Kronospan",
+      },
+      {
+        src: "/portfolio/mint-alder-kitchen-fridge.webp",
+        alt: "Coloana cu frigider încorporat, mânere de alamă pe muchie și plintă aurie",
+      },
+    ],
+  },
+  {
+    slug: "baie-bej-butoni-ceramica",
+    index: 13,
+    category: "baie",
+    badge: "Baie · 2026",
+    title: "Bej <em>&amp; muștar.</em>",
+    seoTitle:
+      "Mobilier baie din MDF vopsit bej cu butoni ceramici galbeni — la comandă",
+    seoDescription:
+      "Mobilier de baie la comandă: corp cu sertare din MDF vopsit bej cald, butoni din ceramică galbenă, picioare din lemn, dulăpior cu oglindă și LED, feronerie Blum Tandem cu Blumotion.",
+    lede: "Mobilier de baie din MDF vopsit într-un bej cald, cu butoni din ceramică galbenă, picioare din lemn și un dulăpior cu oglindă pe un perete de mozaic muștar.",
+    body: "Baia face parte din același apartament ca bucătăria <em>Mentă &amp; arin</em>, iar aici povestea continuă cu o paletă la fel de atent aleasă. Am pornit de la peretele de mozaic hexagonal muștar și am construit mobilierul ca să-l lase <em>să respire</em>: corp și fronturi din MDF vopsit într-un bej cald deschis, ridicat pe picioare din lemn, ca baia să pară mai aerisită. Culoarea vine înapoi prin detalii — <em>butonii din ceramică galbenă</em> de pe sertare și de pe ușa dulăpiorului cu oglindă, pe care l-am făcut și montat tot noi, împreună cu lampa LED de deasupra. Sertarele largi, pe glisiere Blum Tandem cu Blumotion, țin la vedere doar lavoarul și câteva obiecte alese.",
+    specs: [
+      { label: "Material", value: "MDF vopsit bej cald" },
+      { label: "Mânere", value: "Butoni din ceramică galbenă" },
+      { label: "Feronerie", value: "Blum Tandem + Blumotion" },
+      { label: "Oglindă", value: "Dulăpior la comandă + LED" },
+    ],
+    image: {
+      src: "/portfolio/mustard-bathroom-vanity-cover.webp",
+      alt: "Mobilier de baie bej din MDF vopsit cu butoni ceramici galbeni, dulăpior cu oglindă și mozaic hexagonal muștar",
+    },
+    gallery: [
+      {
+        src: "/portfolio/mustard-bathroom-vanity-cover.webp",
+        alt: "Baia întreagă: mobilier bej pe picioare din lemn, dulăpior cu oglindă și LED pe peretele de mozaic muștar",
+        aspectRatio: 1276 / 2000,
+      },
+    ],
+  },
+  {
+    slug: "baie-verde-petrol-litiera-pisica",
+    index: 14,
+    category: "baie",
+    badge: "Baie · 2026",
+    title: "Verde petrol <em>&amp; o pisică.</em>",
+    seoTitle:
+      "Mobilier baie verde petrol cu litieră ascunsă pentru pisică — la comandă",
+    seoDescription:
+      "Mobilier de baie la comandă din MDF vopsit verde petrol, cu litieră ascunsă pentru pisică și decupaj în formă de cap de pisică, butoni din ceramică, dulăpior cu oglindă și feronerie Blum Tandem cu Blumotion.",
+    lede: "Mobilier de baie din MDF vopsit verde petrol, care ascunde în lateral o litieră pentru pisică, cu intrarea decupată în forma capului ei.",
+    body: "A doua baie din apartamentul cu bucătăria <em>Mentă &amp; arin</em> are un locatar în plus: pisica. În loc ca litiera să stea la vedere, am construit-o <em>în mobilier</em> — corpul de sub lavoar ascunde un compartiment gândit special pentru ea, cu intrarea decupată în lateral în forma unui <em>cap de pisică</em>. Marginea decupajului e vopsită separat, într-un verde mai deschis, ca un mic semn de exclamare pe fondul închis. Corpul și fronturile sunt din MDF vopsit <em>verde petrol</em>, un verde-albăstrui care se așază calm lângă gresia bej, iar butonii din ceramică repetă detaliul din baia galbenă. Deasupra, dulăpiorul cu oglindă e făcut tot de noi, în aceeași culoare.",
+    specs: [
+      { label: "Material", value: "MDF vopsit verde petrol" },
+      { label: "Detaliu", value: "Litieră ascunsă pentru pisică" },
+      { label: "Feronerie", value: "Blum Tandem + Blumotion" },
+      { label: "Mânere", value: "Butoni din ceramică" },
+    ],
+    image: {
+      src: "/portfolio/petrol-bathroom-vanity-cover.webp",
+      alt: "Mobilier de baie verde petrol din MDF vopsit cu lavoar bej, butoni ceramici și dulăpior cu oglindă",
+    },
+    gallery: [
+      {
+        src: "/portfolio/petrol-bathroom-vanity-full.webp",
+        alt: "Baia întreagă: dulăpior cu oglindă verde petrol deasupra mobilierului cu sertare",
+        aspectRatio: 962 / 2000,
+      },
+      {
+        src: "/portfolio/petrol-bathroom-vanity-cat.webp",
+        alt: "Intrarea în litiera ascunsă, decupată în forma unui cap de pisică pe lateralul mobilierului",
+        aspectRatio: 1500 / 2000,
+      },
+    ],
+  },
+  {
+    slug: "dormitor-comoda-mustar",
+    index: 15,
+    category: "dormitor",
+    badge: "Dormitor · 2026",
+    title: "Muștar <em>&amp; ceramică pictată.</em>",
+    seoTitle:
+      "Dormitor la comandă: comodă muștar din MDF vopsit, noptieră suspendată, dulap glisant",
+    seoDescription:
+      "Dormitor la comandă: comodă și noptieră suspendată din MDF vopsit muștar, blat Egger, butoni din ceramică pictată, dulap cu uși glisante din MDF vopsit și feronerie Blum Tandem cu Blumotion.",
+    lede: "Dormitor cu o comodă muștar pe picioare din lemn, noptieră suspendată în aceeași culoare, butoni din ceramică pictată și un dulap cu uși glisante într-un bej liniștit.",
+    body: "Dormitorul continuă povestea apartamentului cu bucătăria <em>Mentă &amp; arin</em> și cele două băi — fiecare cameră cu culoarea ei, toate alese împreună cu clienții. Aici culoarea e <em>muștarul</em>: comoda cu opt sertare și noptiera sunt din MDF vopsit, iar blatul Egger cu aspect de lemn închis le așază pe amândouă. Comoda stă pe picioare din lemn, ca în baia galbenă, iar noptiera e <em>suspendată</em>, cu un sertar și o nișă deschisă pentru cartea de seară. Detaliul care leagă totul sunt <em>butonii din ceramică pictată</em>, fiecare ca un mic obiect găsit. Pe peretele opus, dulapul cu uși glisante din MDF vopsit bej rămâne în fundal și ascunde înăuntru sertare, bare și rafturi.",
+    specs: [
+      { label: "Material", value: "MDF vopsit muștar + blat Egger" },
+      { label: "Mânere", value: "Butoni din ceramică pictată" },
+      { label: "Feronerie", value: "Blum Tandem + Blumotion" },
+      { label: "Dulap", value: "Uși glisante, MDF vopsit" },
+    ],
+    image: {
+      src: "/portfolio/mustard-bedroom-cover.webp",
+      alt: "Comodă muștar din MDF vopsit cu opt sertare, blat Egger și butoni din ceramică pictată",
+    },
+    gallery: [
+      {
+        src: "/portfolio/mustard-bedroom-nightstand.webp",
+        alt: "Noptieră suspendată muștar cu sertar, nișă deschisă și buton din ceramică pictată",
+        aspectRatio: 1500 / 2000,
+      },
+      {
+        src: "/portfolio/mustard-bedroom-wardrobe.webp",
+        alt: "Dulap cu uși glisante din MDF vopsit bej în rame de aluminiu",
+        aspectRatio: 1500 / 2000,
+      },
+    ],
+  },
+  {
+    slug: "living-comoda-tv-biblioteca-crem",
+    index: 16,
+    category: "living",
+    badge: "Living · 2026",
+    title: "Crem, lemn <em>&amp; viniluri.</em>",
+    seoTitle:
+      "Living la comandă: comodă TV și bibliotecă din PAL Egger și MDF vopsit crem",
+    seoDescription:
+      "Living la comandă: comodă TV pe picioare din lemn cu sertare MDF vopsit crem și nișă pentru viniluri, bibliotecă cu nișe deschise și dulapuri PAL Egger, feronerie Blum Tandem și Clip Top cu Blumotion.",
+    lede: "Comodă TV lungă pe picioare din lemn, cu sertare crem și o nișă pentru viniluri, plus o bibliotecă în aceleași două culori — lemn Egger jos, crem deasupra.",
+    body: "Livingul închide povestea apartamentului cu bucătăria <em>Mentă &amp; arin</em>, cele două băi și dormitorul muștar — de data asta într-o paletă mai liniștită, potrivită unei camere în care se stă. Comoda TV are corpul din PAL Egger cu aspect de lemn și patru sertare din MDF vopsit într-un <em>bej crem</em>, cu mânere aurii aplicate, pe glisiere Blum Tandem cu Blumotion. Stă pe picioare din lemn, ca piesele din dormitor și din baie, iar în capăt am lăsat o <em>nișă deschisă pentru viniluri</em> și pick-up. Biblioteca de lângă fereastră folosește <em>aceleași două culori</em>, inversate pe înălțime: dulapuri închise din PAL Egger jos, pe balamale Blum Clip Top cu Blumotion, și nișe deschise din MDF vopsit crem sus, desenate în ritm alternat, ca rafturile să nu pară o grilă.",
+    specs: [
+      { label: "Corpuri", value: "PAL Egger, aspect lemn" },
+      { label: "Fronturi", value: "MDF vopsit bej crem" },
+      { label: "Feronerie", value: "Blum Tandem + Clip Top Blumotion" },
+      { label: "Mânere", value: "Aurii, aplicate" },
+    ],
+    image: {
+      src: "/portfolio/cream-living-cover.webp",
+      alt: "Comodă TV pe picioare din lemn cu corp PAL Egger, sertare crem cu mânere aurii și nișă pentru viniluri",
+    },
+    gallery: [
+      {
+        src: "/portfolio/cream-living-bookcase.webp",
+        alt: "Bibliotecă cu nișe deschise crem și dulapuri din PAL Egger, plină de cărți",
+        aspectRatio: 1090 / 2000,
+      },
+      {
+        src: "/portfolio/cream-living-bookcase-empty.webp",
+        alt: "Biblioteca la montaj: nișe deschise în ritm alternat deasupra dulapurilor cu aspect de lemn",
+        aspectRatio: 1500 / 1992,
+      },
+    ],
+  },
+  {
+    slug: "hol-panou-sipci-gri-oliv",
+    index: 17,
+    category: "living",
+    badge: "Hol · 2026",
+    title: "Gri oliv <em>&amp; alb ivoire.</em>",
+    seoTitle:
+      "Mobilier hol la comandă: panou cu șipci gri oliv, pantofare suspendate alb ivoire",
+    seoDescription:
+      "Hol la comandă: perete cu șipci gri oliv și cuiere din ceramică, două pantofare suspendate alb ivoire cu rabateuri pe feronerie Blum, mânere ceramice și dulap înalt cu două uși.",
+    lede: "Hol cu un perete întreg de șipci gri oliv, cuiere din ceramică colorată, două pantofare suspendate în alb ivoire și un dulap înalt care ține restul la adăpost.",
+    body: "Holul e primul lucru pe care îl vezi în apartamentul cu bucătăria <em>Mentă &amp; arin</em>, așa că aici povestea începe. Am îmbrăcat peretele din fața intrării în <em>șipci gri oliv</em> și am prins pe el cuiere din <em>ceramică colorată</em> — aceleași mici obiecte care se regăsesc, ca butoni, în tot apartamentul. Dedesubt, cele două pantofare — unul lat, cu un rabatou, și unul înalt, cu două — sunt <em>suspendate</em>, în alb ivoire, ca podeaua să rămână liberă și holul să pară mai larg; rabateurile pentru pantofi merg pe feronerie Blum, iar mânerele ovale sunt tot din ceramică. Pe peretele alăturat, un dulap înalt cu două uși, până aproape de tavan, ascunde gecile și tot ce nu vrei să vezi când intri pe ușă.",
+    specs: [
+      { label: "Perete", value: "Șipci gri oliv" },
+      { label: "Mobilier", value: "Alb ivoire, suspendat" },
+      { label: "Feronerie", value: "Blum" },
+      { label: "Mânere", value: "Ceramică, cuiere ceramice" },
+    ],
+    image: {
+      src: "/portfolio/olive-hall-cover.webp",
+      alt: "Două pantofare suspendate alb ivoire cu mânere ceramice, în fața peretelui cu șipci gri oliv",
+    },
+    gallery: [
+      {
+        src: "/portfolio/olive-hall-overview.webp",
+        alt: "Holul văzut de la intrare: perete cu șipci gri oliv, cuiere ceramice colorate, două pantofare suspendate",
+        aspectRatio: 1146 / 1523,
+      },
+      {
+        src: "/portfolio/olive-hall-tall-cabinet.webp",
+        alt: "Dulap înalt cu două uși și butoni ceramici, pe holul de la intrare",
+        aspectRatio: 974 / 2000,
+      },
+    ],
+  },
+  {
+    slug: "birou-dublu-pal-egger",
+    index: 18,
+    category: "birou",
+    badge: "Birou · 2026",
+    title: "Doi la birou, <em>un singur blat.</em>",
+    seoTitle:
+      "Birou dublu la comandă: blat PAL Egger pe cadre reglabile, raft suspendat",
+    seoDescription:
+      "Birou dublu la comandă pentru două persoane: două blaturi PAL Egger îmbinate pe cadre reglabile, raft suspendat cu prindere ascunsă în același decor și dulap cu uși glisante.",
+    lede: "Birou pentru două persoane, cu blat lung din PAL Egger montat pe cadre reglabile, un raft care plutește deasupra și un dulap cu uși glisante pe peretele opus.",
+    body: "În apartamentul cu bucătăria <em>Mentă &amp; arin</em>, o cameră e pentru lucru — și pentru doi oameni deodată. Am făcut blatul din <em>două plăci de PAL Egger</em> îmbinate, ca să încapă două posturi de lucru cu monitoare mari fără ca nimeni să stea înghesuit, și l-am montat pe cadrele reglabile ale clienților. Deasupra, un <em>raft suspendat</em> în același decor, cu prindere ascunsă, pare că plutește pe perete și ține la îndemână obiectele mici. Decorul de lemn se leagă de comoda TV și de biblioteca din living, ca biroul să rămână parte din aceeași casă, nu un colț separat. Pe peretele opus, un dulap cu uși glisante bej ține la adăpost tot ce nu trebuie să stea pe birou.",
+    specs: [
+      { label: "Blat", value: "PAL Egger, două plăci îmbinate" },
+      { label: "Raft", value: "PAL Egger, prindere ascunsă" },
+      { label: "Montaj", value: "Pe cadrele reglabile ale clienților" },
+      { label: "Depozitare", value: "Dulap cu uși glisante" },
+    ],
+    image: {
+      src: "/portfolio/double-office-cover.webp",
+      alt: "Birou dublu cu blat din PAL Egger pentru două posturi de lucru și raft suspendat deasupra",
+    },
+    gallery: [
+      {
+        src: "/portfolio/double-office-full.webp",
+        alt: "Camera de lucru întreagă: blat lung pe cadre reglabile, raft suspendat și fereastră",
+        aspectRatio: 1500 / 2000,
+      },
+      {
+        src: "/portfolio/double-office-wardrobe.webp",
+        alt: "Dulap cu uși glisante bej în rame de aluminiu, în camera de lucru",
+        aspectRatio: 1500 / 2000,
       },
     ],
   },

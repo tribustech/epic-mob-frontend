@@ -139,20 +139,39 @@ export default async function PortfolioCaseStudyPage({
           <div className="mt-16">
             <p className="eyebrow-warm">Galerie</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {project.gallery.map((photo) => (
-                <div
-                  key={photo.src}
-                  className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] shadow-[var(--shadow-warm)]"
-                >
-                  <Image
-                    src={photo.src}
-                    alt={photo.alt}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 50vw"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
+              {project.gallery.map((photo) =>
+                photo.aspectRatio ? (
+                  // Uncropped photo at its own ratio; a lone one spans the grid.
+                  <div
+                    key={photo.src}
+                    className={`relative w-full self-start overflow-hidden rounded-[1.5rem] shadow-[var(--shadow-warm)] ${
+                      project.gallery!.length === 1 ? "mx-auto max-w-xl sm:col-span-2" : ""
+                    }`}
+                    style={{ aspectRatio: photo.aspectRatio }}
+                  >
+                    <Image
+                      src={photo.src}
+                      alt={photo.alt}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 50vw"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    key={photo.src}
+                    className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] shadow-[var(--shadow-warm)]"
+                  >
+                    <Image
+                      src={photo.src}
+                      alt={photo.alt}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 50vw"
+                      className="object-cover"
+                    />
+                  </div>
+                )
+              )}
             </div>
           </div>
         ) : null}
