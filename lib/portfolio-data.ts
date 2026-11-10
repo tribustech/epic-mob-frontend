@@ -116,15 +116,15 @@ export const portfolioProjects: PortfolioProject[] = [
     },
     gallery: [
       {
-        src: "/portfolio/00-kitchen-ornate-navy-overview.jpg",
+        src: "/portfolio/artist-kitchen-overview.webp",
         alt: "Bucătărie navy — vedere de ansamblu",
       },
       {
-        src: "/portfolio/00-kitchen-ornate-navy-upper.jpg",
+        src: "/portfolio/artist-kitchen-carved-fronts.webp",
         alt: "Corpuri superioare cu vitrină și LED mascat",
       },
       {
-        src: "/portfolio/00-kitchen-ornate-navy-shelves.jpg",
+        src: "/portfolio/artist-kitchen-shelves.webp",
         alt: "Corpuri superioare cu rafturi și vitrine iluminate",
       },
       {
@@ -138,10 +138,6 @@ export const portfolioProjects: PortfolioProject[] = [
       {
         src: "/portfolio/kitchen-navy-sink-wide.jpg",
         alt: "Zona chiuvetei cu baterie premium și nișă",
-      },
-      {
-        src: "/portfolio/00-kitchen-white-modern.jpg",
-        alt: "Bucătărie modernă cu linii curate și blat porcelanat",
       },
       {
         src: "/portfolio/00-detail-gold-handle.jpg",
@@ -188,26 +184,26 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "dressing-cu-oglinzi",
-    index: 3,
+    index: 21,
     category: "dormitor",
     badge: "Dressing · 2025",
     title: "Dressing <em>cu oglinzi.</em>",
-    lede: "Dressing pe două nivele într-un dormitor de 3.6m, cu oglindă integrată pe ușa centrală și iluminare LED pe sertare.",
-    body: "Spațiul real era de 3.6m liniari, dar tavanul avea o grindă decorativă care intra 18cm în volum. Am oprit corpul exact sub grindă și am compensat cu un raft tehnic pe latură. Oglinda <em>pivotantă</em> permite vedere completă fără să scoată clientul din volum.",
+    lede: "Dressing pe toată lungimea dormitorului, cu uși glisante din oglindă argintie împărțite de profile negre din aluminiu, iar în spate sertare, rafturi și bară pentru haine.",
+    body: "Dressingul ocupă un perete întreg al dormitorului, dar nu se simte greu, pentru că fața lui e <em>oglindă</em>. Ușile glisante din oglindă argintie, împărțite în caroiaj de <em>profile negre din aluminiu</em>, reflectă ferestrele și lumina, așa că dormitorul pare de două ori mai mare. Fiind glisante, ușile nu se deschid spre cameră și nu fură spațiu din jurul patului. În spatele lor, corpul din PAL e organizat pentru tot ce ține de haine: <em>sertare, rafturi și bară</em> pentru umerașe.",
     specs: [
-      { label: "Material", value: "PAL + MDF infoliat" },
-      { label: "Oglindă", value: "Pivotantă cu balama-piano" },
-      { label: "Suprafață", value: "3.6 m liniari" },
+      { label: "Uși", value: "Glisante, oglindă argintie" },
+      { label: "Profile", value: "Aluminiu negru, în caroiaj" },
+      { label: "Interior", value: "PAL: sertare, rafturi, bară" },
       { label: "Predat", value: "August 2025" },
     ],
     image: {
-      src: "/portfolio/dressing-mirror-wardrobe.jpg",
-      alt: "Dressing pe două nivele cu oglindă pivotantă integrată",
+      src: "/portfolio/mirror-dressing-cover.webp",
+      alt: "Dressing cu uși glisante din oglindă și profile negre, pe toată lungimea dormitorului",
     },
   },
   {
     slug: "bucatarie-cappuccino-piatra-neagra",
-    index: 5,
+    index: 22,
     category: "bucatarie",
     badge: "Apartament · 2025",
     title: "Cappuccino <em>&amp; piatră neagră.</em>",
@@ -224,29 +220,19 @@ export const portfolioProjects: PortfolioProject[] = [
       { label: "Electrocasnice", value: "Beko integrate" },
     ],
     image: {
-      src: "/portfolio/cappuccino-kitchen-cover.webp",
+      src: "/portfolio/cappuccino-kitchen-cover-v2.webp",
       alt: "Bucătărie în U cu fronturi lucioase cappuccino și blat din piatră neagră",
     },
     gallery: [
       {
-        src: "/portfolio/cappuccino-kitchen-wide.webp",
-        alt: "Vedere de ansamblu a bucătăriei cappuccino cu spate din piatră neagră",
-      },
-      {
-        src: "/portfolio/cappuccino-kitchen-appliances.webp",
-        alt: "Zona de gătit cu cuptor Beko, sertare și mașină de spălat vase integrată",
-      },
-      {
-        src: "/portfolio/cappuccino-bathroom.webp",
+        src: "/portfolio/cappuccino-bathroom-v2.webp",
         alt: "Baie cu mobilier crem, dulap-oglindă cu LED și coloană suspendată",
+        aspectRatio: 1085 / 1449,
       },
       {
-        src: "/portfolio/cappuccino-wardrobe.webp",
+        src: "/portfolio/cappuccino-wardrobe-v2.webp",
         alt: "Dressing alb cu ușă-oglindă centrală în dormitor",
-      },
-      {
-        src: "/portfolio/cappuccino-bedroom.webp",
-        alt: "Dormitor cu pat alb lucios și dulap cu oglindă asortat",
+        aspectRatio: 1085 / 1449,
       },
     ],
   },
@@ -322,7 +308,7 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     slug: "bucatarie-stejar-garsoniera",
-    index: 8,
+    index: 24,
     category: "bucatarie",
     badge: "Bucătărie · 2026",
     title: "Stejar <em>pentru garsonieră.</em>",
@@ -339,42 +325,13 @@ export const portfolioProjects: PortfolioProject[] = [
       { label: "Electrocasnice", value: "Plită gaz + cuptor încastrat" },
     ],
     image: {
-      src: "/portfolio/oak-studio-kitchen-cover.webp",
+      src: "/portfolio/oak-studio-kitchen-cover-v2.webp",
       alt: "Bucătărie dreaptă în decor stejar deschis cu spate maro și coloană de depozitare, pentru garsonieră",
     },
     gallery: [
       {
-        src: "/portfolio/oak-studio-kitchen-wide.webp",
-        alt: "Bucătăria stejar văzută în camera de zi, cu coloana înaltă alături",
-      },
-    ],
-  },
-  {
-    slug: "baie-faianta-lemn",
-    index: 9,
-    category: "baie",
-    badge: "Baie · 2026",
-    title: "Baie <em>caldă, în lemn.</em>",
-    seoTitle:
-      "Mobilier de baie alb lucios pe faianță aspect lemn — proiect la comandă",
-    seoDescription:
-      "Baie mică cu faianță aspect lemn, mobilier alb lucios, bază de lavoar pe rotile cu blat integrat și dulap-oglindă cu iluminat LED.",
-    lede: "Baie mică îmbrăcată în faianță cu aspect de lemn, cu mobilier alb lucios, lavoar cu blat integrat și dulap-oglindă cu iluminat LED deasupra.",
-    body: "Într-o baie mică, mobilierul trebuie <em>să fie practic fără să pară înghesuit</em>. Am pus mobilierul în alb lucios, care reflectă lumina și deschide spațiul, pe fondul cald al faianței cu aspect de lemn. Baza de lavoar stă pe rotile pentru acces ușor la instalație, iar dulapul-oglindă de deasupra adaugă depozitare la înălțime și un LED care luminează exact zona de folosit.",
-    specs: [
-      { label: "Mobilier", value: "Alb lucios" },
-      { label: "Lavoar", value: "Bază pe rotile cu blat integrat" },
-      { label: "Oglindă", value: "Dulap-oglindă cu LED" },
-      { label: "Finisaj", value: "Faianță aspect lemn" },
-    ],
-    image: {
-      src: "/portfolio/wood-tile-bathroom-cover.webp",
-      alt: "Baie mică cu faianță aspect lemn, mobilier alb lucios și dulap-oglindă cu LED",
-    },
-    gallery: [
-      {
-        src: "/portfolio/wood-tile-bathroom-vanity.webp",
-        alt: "Lavoarul cu bază albă și dulapul-oglindă deschis, cu rafturi interioare",
+        src: "/portfolio/oak-studio-kitchen-wide-v2.webp",
+        alt: "Bucătăria stejar pe un singur perete, cu chiuvetă, corpuri suspendate și coloana înaltă de depozitare alături",
       },
     ],
   },
@@ -697,7 +654,7 @@ export const portfolioProjects: PortfolioProject[] = [
     index: 18,
     category: "birou",
     badge: "Birou · 2026",
-    title: "Doi la birou, <em>un singur blat.</em>",
+    title: "Doi la birou, <em>fiecare cu locul lui.</em>",
     seoTitle:
       "Birou dublu la comandă: blat PAL Egger pe cadre reglabile, raft suspendat",
     seoDescription:
@@ -724,6 +681,81 @@ export const portfolioProjects: PortfolioProject[] = [
         src: "/portfolio/double-office-wardrobe.webp",
         alt: "Dulap cu uși glisante bej în rame de aluminiu, în camera de lucru",
         aspectRatio: 1500 / 2000,
+      },
+    ],
+  },
+  {
+    slug: "living-perete-tv-egger-gri-casmir",
+    index: 19,
+    category: "living",
+    badge: "Living · 2026",
+    title: "Gri cașmir, alb <em>&amp; nuc.</em>",
+    seoTitle:
+      "Living la comandă: perete TV din PAL Egger U702 gri cașmir, comodă albă lucioasă și dulap nuc",
+    seoDescription:
+      "Living la comandă într-un apartament nou: perete TV placat cu PAL Egger U702 gri cașmir, cu profile din aluminiu și cabluri ascunse, comodă TV din PAL alb lucios și dulap înalt din PAL Kastamonu A669 cu aspect de nuc, cu rafturi deschise și sertare, pe feronerie Blum.",
+    lede: "Living într-un apartament nou: perete TV placat până în tavan cu PAL Egger gri cașmir, comodă TV albă, lucioasă, și un dulap înalt cu aspect de nuc care ține tot restul la locul lui.",
+    body: "Într-un apartament nou, clienții voiau ca televizorul să aibă <em>un fundal al lui</em>, nu doar un perete alb cu cabluri atârnând. Am placat toată nișa, de la comodă până în tavan, cu <em>PAL Egger U702 gri cașmir</em>, împărțit în panouri verticale despărțite de <em>profile subțiri din aluminiu argintiu</em>, care dau ritm peretelui fără să-l încarce. Cablurile televizorului trec <em>ascunse în spatele panourilor</em>, așa că pe perete nu rămâne decât ecranul. Dedesubt, comoda TV din <em>PAL alb lucios</em> ocupă toată lățimea nișei: uși la capete, trei nișe deschise pentru aparatură și sertare pe feronerie Blum cu închidere lină. Pe peretele de lângă ușă, un <em>dulap înalt din PAL Kastamonu A669</em>, cu aspect de nuc, în același decor ca spălătoria, urcă până în tavan: două uși mari pe laterale, rafturi deschise la mijloc pentru cărți și obiecte, corpuri sus și două sertare largi jos. Mânerele aurii au fost alese de clienți, ca să se lege de restul casei. Rezultatul e un living calm, în care fiecare lucru are locul lui.",
+    specs: [
+      { label: "Perete TV", value: "PAL Egger U702 gri cașmir" },
+      { label: "Profile", value: "Aluminiu argintiu, cabluri ascunse" },
+      { label: "Comodă", value: "PAL alb lucios" },
+      { label: "Dulap", value: "PAL Kastamonu A669, aspect nuc" },
+    ],
+    image: {
+      src: "/portfolio/cashmere-living-tv-cover.webp",
+      alt: "Perete TV placat cu panouri verticale din PAL Egger gri cașmir deasupra unei comode TV albe cu nișe deschise și sertare",
+    },
+    gallery: [
+      {
+        src: "/portfolio/cashmere-living-wardrobe.webp",
+        alt: "Dulap înalt cu aspect de nuc în living: uși laterale, rafturi deschise la mijloc, corpuri sus și sertare jos, cu mânere aurii",
+        aspectRatio: 1086 / 1448,
+      },
+    ],
+  },
+  {
+    slug: "spalatorie-depozitare-nuc-kastamonu",
+    index: 20,
+    category: "baie",
+    badge: "Spălătorie · 2026",
+    title: "Spălătorie <em>cu loc de toate.</em>",
+    seoTitle:
+      "Spălătorie la comandă cu dulapuri până în tavan din PAL Kastamonu — depozitare maximă",
+    seoDescription:
+      "Spălătorie la comandă cu dulapuri din podea până în tavan din PAL Kastamonu A669 cu aspect de nuc, blat dublat pentru împăturit rufe, LED sub corpurile suspendate și feronerie Blum.",
+    lede: "Spălătorie mică îmbrăcată din podea până în tavan în dulapuri cu aspect de nuc, cu loc pentru mașina de spălat și uscător, un blat pentru rufe și depozitare pentru tot restul casei.",
+    body: "Spălătoria face parte din același apartament nou ca <em>peretele TV gri cașmir</em>, iar aici clienții au avut o singură cerință: <em>cât mai mult spațiu de depozitare</em>. Așa că am folosit fiecare centimetru — dulapurile urcă din podea până în tavan pe toți pereții și ocolesc în trepte colțul unde tavanul coboară. Înăuntru e loc pentru tot ce nu vrei să vezi prin casă: <em>aspiratorul, mătura, masa de călcat</em>, rafturi și bară pentru haine. Mașina de spălat și uscătorul stau unul peste altul, sub un rând de corpuri suspendate cu <em>bandă LED</em> montată dedesubt, iar lângă ele am făcut un <em>blat pentru împăturit rufe</em>, din foaie de PAL dublată. Totul e din PAL Kastamonu A669 cu aspect de nuc, pe feronerie Blum, iar mânerele aurii au fost alese de clienți, ca să se potrivească cu restul casei. Din hol, spălătoria nici nu se vede: <em>ușa e îngropată în perete</em>, iar tapetul floral continuă peste ea.",
+    specs: [
+      { label: "Material", value: "PAL Kastamonu A669, aspect nuc" },
+      { label: "Blat", value: "PAL dublat, același decor" },
+      { label: "Iluminat", value: "Bandă LED sub corpuri" },
+      { label: "Feronerie", value: "Blum" },
+    ],
+    image: {
+      src: "/portfolio/walnut-laundry-cover.webp",
+      alt: "Spălătorie cu dulapuri până în tavan cu aspect de nuc, mașină de spălat și uscător suprapuse, blat pentru rufe și LED",
+    },
+    gallery: [
+      {
+        src: "/portfolio/walnut-laundry-washer.webp",
+        alt: "Spălătoria întreagă: dulapuri înalte, corpuri suspendate cu LED peste mașina de spălat și uscător, blat pentru împăturit rufe",
+        aspectRatio: 1086 / 1448,
+      },
+      {
+        src: "/portfolio/walnut-laundry-door.webp",
+        alt: "Dulapuri din podea până în tavan pe lângă ușa spălătoriei, cu mânere aurii",
+        aspectRatio: 1086 / 1448,
+      },
+      {
+        src: "/portfolio/walnut-laundry-cabinets.webp",
+        alt: "Colțul cu dulapuri în trepte și blatul pentru rufe luminat de banda LED",
+        aspectRatio: 1086 / 1448,
+      },
+      {
+        src: "/portfolio/walnut-laundry-hidden-door.webp",
+        alt: "Ușa spălătoriei îngropată în perete, cu tapet floral continuat peste ea, văzută din hol",
+        aspectRatio: 1086 / 1448,
       },
     ],
   },

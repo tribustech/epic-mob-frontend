@@ -139,13 +139,14 @@ export default async function PortfolioCaseStudyPage({
           <div className="mt-16">
             <p className="eyebrow-warm">Galerie</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {project.gallery.map((photo) =>
+              {project.gallery.map((photo, i, all) =>
                 photo.aspectRatio ? (
-                  // Uncropped photo at its own ratio; a lone one spans the grid.
+                  // Uncropped photo at its own ratio; one left alone on the last
+                  // row (a single photo, or the odd one out) spans the grid.
                   <div
                     key={photo.src}
                     className={`relative w-full self-start overflow-hidden rounded-[1.5rem] shadow-[var(--shadow-warm)] ${
-                      project.gallery!.length === 1 ? "mx-auto max-w-xl sm:col-span-2" : ""
+                      all.length % 2 === 1 && i === all.length - 1 ? "mx-auto max-w-xl sm:col-span-2" : ""
                     }`}
                     style={{ aspectRatio: photo.aspectRatio }}
                   >

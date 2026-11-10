@@ -31,7 +31,7 @@ export const heroImages = [
   "/portfolio/schite/baie_randare2.jpg",
   "/portfolio/00-kitchen-ornate-navy-full.jpg",
   "/portfolio/00-kitchen-white-modern.jpg",
-  "/portfolio/00-kitchen-ornate-navy-overview.jpg",
+  "/portfolio/artist-kitchen-overview.webp",
   "/portfolio/kitchen-navy-sink-wide.jpg",
 ];
 
@@ -103,7 +103,7 @@ export const materials = [
   },
   {
     name: "MDF Infoliat / Laminat",
-    image: "/portfolio/00-kitchen-ornate-navy-upper.jpg",
+    image: "/portfolio/artist-kitchen-carved-fronts.webp",
     bullets: [
       "Alternativă elegantă la vopsit",
       "Texturi lemn sau finisaje mate",
@@ -144,7 +144,7 @@ export const portfolioProjects = [
   {
     title: "Dressing cu oglinzi",
     space: "Dressing",
-    image: "/portfolio/dressing-mirror-wardrobe.jpg",
+    image: "/portfolio/mirror-dressing-cover.webp",
     tall: false,
   },
   {
@@ -174,13 +174,13 @@ export const portfolioProjects = [
   {
     title: "Bucătărie navy — vedere de ansamblu",
     space: "Bucătărie",
-    image: "/portfolio/00-kitchen-ornate-navy-overview.jpg",
+    image: "/portfolio/artist-kitchen-overview.webp",
     tall: true,
   },
   {
     title: "Corpuri superioare cu vitrină",
     space: "Bucătărie",
-    image: "/portfolio/00-kitchen-ornate-navy-shelves.jpg",
+    image: "/portfolio/artist-kitchen-shelves.webp",
     tall: false,
   },
   {
@@ -192,7 +192,7 @@ export const portfolioProjects = [
   {
     title: "Corpuri superioare close-up",
     space: "Bucătărie",
-    image: "/portfolio/00-kitchen-ornate-navy-upper.jpg",
+    image: "/portfolio/artist-kitchen-carved-fronts.webp",
     tall: false,
   },
   {
