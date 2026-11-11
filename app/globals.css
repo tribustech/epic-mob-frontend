@@ -3726,3 +3726,131 @@ select {
 .warm-materials__cta {
   margin-top: 1.75rem;
 }
+
+/* ── Atelier 3D configurator (/configurator) — cinematic palette ── */
+.atelier-page {
+  background: var(--home-black);
+  color: var(--home-ivory);
+}
+
+.atelier-panel {
+  border: 1px solid color-mix(in srgb, var(--home-ivory) 12%, transparent);
+  border-radius: var(--image-radius);
+  background: var(--home-charcoal);
+  padding: 1.25rem;
+}
+
+.atelier-panel__title {
+  font-family: var(--font-display), serif;
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: var(--home-ivory);
+}
+
+.atelier-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--home-ivory) 60%, transparent);
+}
+
+.atelier-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--home-ivory) 18%, transparent);
+  border-radius: 0.6rem;
+  background: var(--home-black);
+  color: var(--home-ivory);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.95rem;
+}
+
+.atelier-input:focus {
+  outline: 2px solid var(--home-orange);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.atelier-input:disabled {
+  opacity: 0.5;
+}
+
+.atelier-range {
+  width: 100%;
+  accent-color: var(--home-orange);
+}
+
+.atelier-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--home-ivory) 18%, transparent);
+  border-radius: 999px;
+  padding: 0.5rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--home-ivory) 80%, transparent);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.atelier-chip:hover:not(:disabled) {
+  border-color: var(--home-orange);
+  color: var(--home-ivory);
+}
+
+.atelier-chip[aria-pressed="true"],
+.atelier-chip[aria-checked="true"] {
+  border-color: var(--home-orange);
+  background: var(--home-orange-soft);
+  color: var(--home-ivory);
+}
+
+.atelier-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.atelier-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--home-ivory) 12%, transparent);
+  border-radius: 0.75rem;
+  padding: 0.45rem;
+  background: transparent;
+  color: var(--home-ivory);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.atelier-swatch:hover {
+  border-color: color-mix(in srgb, var(--home-orange) 60%, transparent);
+}
+
+.atelier-swatch[aria-checked="true"] {
+  border-color: var(--home-orange);
+  box-shadow: 0 0 0 1px var(--home-orange);
+}
+
+.atelier-swatch__tile {
+  display: block;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  border-radius: 0.5rem;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.atelier-link {
+  color: var(--home-orange);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
