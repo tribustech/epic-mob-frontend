@@ -80,7 +80,7 @@ export function NumberField({
           aria-label={`${label} (glisor)`}
         />
       )}
-      <p id={`${id}-range`} className="mt-1 text-xs text-[var(--home-ivory)]/45">
+      <p id={`${id}-range`} className="mt-1 text-xs text-[var(--home-ivory)]/60">
         {min}–{max} mm
       </p>
     </div>

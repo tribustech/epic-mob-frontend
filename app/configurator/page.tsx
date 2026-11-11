@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AtelierConfigurator } from "@/components/atelier/atelier-configurator";
 import { getAtelierCatalog } from "@/lib/atelier/crm";
+import type { AtelierCatalog, AtelierMaterial } from "@/lib/atelier/types";
 
 // The catalog comes from the CRM (cached 10 minutes); regenerate on the same cadence
 // so a page built while the CRM was unreachable recovers on its own.
@@ -24,6 +25,26 @@ export const metadata: Metadata = {
   },
 };
 
+/** Only the public fields reach the client bundle / RSC payload, whatever else the CRM sends. */
+function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
+  const material = (m: AtelierMaterial): AtelierMaterial => ({
+    id: m.id,
+    name: m.name,
+    decorCode: m.decorCode ?? null,
+    brand: m.brand ?? null,
+    imageUrl: m.imageUrl ?? null,
+  });
+  return {
+    carcass: (catalog.carcass ?? []).map(material),
+    fronts: {
+      PAL: (catalog.fronts?.PAL ?? []).map(material),
+      MDF_MELAMINAT: (catalog.fronts?.MDF_MELAMINAT ?? []).map(material),
+      MDF_VOPSIT: (catalog.fronts?.MDF_VOPSIT ?? []).map((m) => ({ id: m.id, name: m.name })),
+    },
+    ral: (catalog.ral ?? []).map((r) => ({ code: r.code, name: r.name, hex: r.hex })),
+  };
+}
+
 function CatalogUnavailable() {
   return (
     <div className="atelier-panel mx-auto max-w-2xl text-center">
@@ -41,7 +62,8 @@ function CatalogUnavailable() {
 }
 
 export default async function ConfiguratorPage() {
-  const catalog = await getAtelierCatalog();
+  const raw = await getAtelierCatalog();
+  const catalog = raw ? publicCatalog(raw) : null;
 
   return (
     <main className="atelier-page min-h-screen">

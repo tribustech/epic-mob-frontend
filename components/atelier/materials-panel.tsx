@@ -58,7 +58,7 @@ function SwatchGrid({
           <span className="atelier-swatch__tile" style={swatchStyle(materialLook(m, kind))} aria-hidden="true" />
           <span className="block truncate text-xs font-semibold">{m.name}</span>
           {(m.decorCode || m.brand) && (
-            <span className="block truncate text-[0.68rem] text-[var(--home-ivory)]/50">
+            <span className="block truncate text-[0.68rem] text-[var(--home-ivory)]/60">
               {[m.brand, m.decorCode].filter(Boolean).join(" · ")}
             </span>
           )}
@@ -186,7 +186,7 @@ export function MaterialsPanel({
             />
             <span className="block truncate text-xs font-semibold">{m.name}</span>
             {(m.decorCode || m.brand) && (
-              <span className="block truncate text-[0.68rem] text-[var(--home-ivory)]/50">
+              <span className="block truncate text-[0.68rem] text-[var(--home-ivory)]/60">
                 {[m.brand, m.decorCode].filter(Boolean).join(" · ")}
               </span>
             )}

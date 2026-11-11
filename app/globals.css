@@ -3854,3 +3854,10 @@ select {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+.atelier-page button:focus-visible,
+.atelier-page a:focus-visible,
+.atelier-page select:focus-visible {
+  outline: 2px solid var(--home-orange);
+  outline-offset: 2px;
+}

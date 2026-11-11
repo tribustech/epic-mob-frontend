@@ -22,7 +22,7 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
     <section className="atelier-panel" aria-labelledby="atelier-columns">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="atelier-columns" className="atelier-panel__title">
-          Coloane <span className="text-[var(--home-ivory)]/50">({n})</span>
+          Coloane <span className="text-[var(--home-ivory)]/60">({n})</span>
         </h2>
         <button
           type="button"

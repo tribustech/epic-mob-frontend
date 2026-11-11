@@ -67,7 +67,7 @@ export function DoorsPanel({ config, dispatch }: { config: AtelierConfig; dispat
               </option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-[var(--home-ivory)]/50">
+          <p className="mt-2 text-xs text-[var(--home-ivory)]/60">
             Ușile glisează pe două șine și se suprapun ușor, ca să nu rămână fante.
           </p>
         </div>

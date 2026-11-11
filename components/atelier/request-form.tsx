@@ -7,7 +7,7 @@ import type { AtelierConfig, AtelierIssue } from "@/lib/atelier/types";
 type Status =
   | { kind: "idle" }
   | { kind: "sending" }
-  | { kind: "success" }
+  | { kind: "success"; key: string }
   | { kind: "error"; message: string; issues?: AtelierIssue[] };
 
 const UNAVAILABLE_MESSAGE =
@@ -15,14 +15,24 @@ const UNAVAILABLE_MESSAGE =
 
 export function RequestForm({ config, blocked }: { config: AtelierConfig; blocked: boolean }) {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const configKey = JSON.stringify(config);
 
-  if (status.kind === "success") {
+  // A sent request only "sticks" for the configuration it was sent with; changing
+  // the configuration brings the form back so another one can be sent.
+  if (status.kind === "success" && status.key === configKey) {
     return (
       <section className="atelier-panel border-emerald-400/40" aria-live="polite">
         <p className="flex items-center gap-3 text-lg text-emerald-300">
           <CheckCircle2 aria-hidden="true" className="shrink-0" />
           Mulțumim! Te sunăm în curând pentru măsurători.
         </p>
+        <button
+          type="button"
+          className="atelier-chip mt-4"
+          onClick={() => setStatus({ kind: "idle" })}
+        >
+          Trimite altă configurație
+        </button>
       </section>
     );
   }
@@ -56,7 +66,7 @@ export function RequestForm({ config, blocked }: { config: AtelierConfig; blocke
         errors?: AtelierIssue[];
       } | null;
       if (res.ok && body?.ok) {
-        setStatus({ kind: "success" });
+        setStatus({ kind: "success", key: configKey });
       } else if (res.status === 422 && Array.isArray(body?.errors)) {
         setStatus({ kind: "error", message: "Configurația are nevoie de ajustări:", issues: body.errors });
       } else if (res.status === 429) {

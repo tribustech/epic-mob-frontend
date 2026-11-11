@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useReducer, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 import { atelierReducer, defaultConfig } from "@/lib/atelier/state";
 import { useLivePrice } from "@/lib/atelier/use-live-price";
 import type { AtelierCatalog, AtelierScene } from "@/lib/atelier/types";
@@ -33,6 +33,8 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   const [lastScene, setLastScene] = useState<AtelierScene | null>(null);
   if (result?.scene && result.scene !== lastScene) setLastScene(result.scene);
 
+  const columnContents = useMemo(() => config.columns.map((c) => c.content), [config.columns]);
+
   const hasErrors = (result?.errors.length ?? 0) > 0;
 
   return (
@@ -40,6 +42,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
       <div className="h-[50vh] min-h-[18rem] lg:sticky lg:top-[calc(var(--site-header-height)+1rem)] lg:h-[calc(100svh-var(--site-header-height)-2rem)]">
         <Viewer3D
           scene={lastScene}
+          columns={columnContents}
           carcass={carcassLook(catalog, config)}
           front={frontLook(catalog, config)}
           updating={loading}

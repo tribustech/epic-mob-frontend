@@ -1,76 +1,164 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Edges, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
-import type { AtelierScene, SceneDoor, ScenePiece } from "@/lib/atelier/types";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import type { AtelierScene, ColumnContent, SceneDoor, ScenePiece } from "@/lib/atelier/types";
 import type { MaterialLook } from "./material-look";
 
 /** Scene units are millimetres; three.js works in metres. */
 const S = 0.001;
 const DOOR_THICKNESS_MM = 18;
-const TRACK_OFFSET_MM = [14, 46] as const;
+const PANEL_MM = 18;
+const RAIL_RADIUS_MM = 12.5;
+const RAIL_DROP_MM = 70;
+
+/** The bits of drei's OrbitControls instance the camera rig touches. */
+interface OrbitControlsLike {
+  target: THREE.Vector3;
+  minDistance: number;
+  maxDistance: number;
+  update: () => void;
+}
 
 export interface Viewer3DProps {
   scene: AtelierScene | null;
+  /** Interior of each column, in order (used to draw hanging rails). */
+  columns: ColumnContent[];
   carcass: MaterialLook;
   front: MaterialLook;
   /** A newer configuration is being priced; the last valid scene stays on screen. */
   updating: boolean;
 }
 
-/** Loads a texture if the URL works; any failure (CORS, 404) just falls back to the flat colour. */
-function useOptionalTexture(url: string | null): THREE.Texture | null {
-  const [loaded, setLoaded] = useState<{ url: string; texture: THREE.Texture } | null>(null);
-  useEffect(() => {
-    if (!url) return;
-    let cancelled = false;
-    let texture: THREE.Texture | null = null;
-    const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin("anonymous");
-    loader.load(
-      url,
-      (t) => {
-        if (cancelled) {
-          t.dispose();
-          return;
-        }
-        t.colorSpace = THREE.SRGBColorSpace;
-        texture = t;
-        setLoaded({ url, texture: t });
-      },
-      undefined,
-      () => {
-        /* keep the flat colour */
-      },
-    );
-    return () => {
-      cancelled = true;
-      texture?.dispose();
-    };
-  }, [url]);
-  return url && loaded?.url === url ? loaded.texture : null;
+/* ── Shared textures: one THREE.Texture per imageUrl for the whole page ── */
+
+type TextureEntry = THREE.Texture | "loading" | "failed";
+const textureCache = new Map<string, TextureEntry>();
+const textureListeners = new Set<() => void>();
+const subscribeTextures = (fn: () => void) => {
+  textureListeners.add(fn);
+  return () => {
+    textureListeners.delete(fn);
+  };
+};
+
+function requestTexture(url: string) {
+  if (textureCache.has(url)) return;
+  textureCache.set(url, "loading");
+  const loader = new THREE.TextureLoader();
+  loader.setCrossOrigin("anonymous");
+  const settle = (entry: TextureEntry) => {
+    textureCache.set(url, entry);
+    textureListeners.forEach((fn) => fn());
+  };
+  loader.load(
+    url,
+    (t) => {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 4;
+      settle(t);
+    },
+    undefined,
+    () => settle("failed"), // CORS / 404 → flat colour
+  );
 }
 
-function useLookMaterial(look: MaterialLook, extra: THREE.MeshStandardMaterialParameters = {}) {
-  const texture = useOptionalTexture(look.imageUrl);
-  const material = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: texture ? "#ffffff" : look.color,
-        map: texture,
-        roughness: 0.75,
-        metalness: 0,
-        ...extra,
-      }),
-    // `extra` is a literal per call site; its values never change between renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [texture, look.color],
+function useOptionalTexture(url: string | null): THREE.Texture | null {
+  const entry = useSyncExternalStore(
+    subscribeTextures,
+    () => (url ? textureCache.get(url) : undefined),
+    () => undefined,
   );
+  useEffect(() => {
+    if (url) requestTexture(url);
+  }, [url]);
+  return entry instanceof THREE.Texture ? entry : null;
+}
+
+function useDisposable<T extends THREE.Material>(material: T): T {
   useEffect(() => () => material.dispose(), [material]);
   return material;
 }
+
+function useLookMaterial(look: MaterialLook, roughness: number) {
+  const texture = useOptionalTexture(look.imageUrl);
+  return useDisposable(
+    useMemo(
+      () =>
+        new THREE.MeshStandardMaterial({
+          color: texture ? "#ffffff" : look.color,
+          map: texture,
+          roughness,
+          metalness: 0,
+          envMapIntensity: 0.35,
+        }),
+      [texture, look.color, roughness],
+    ),
+  );
+}
+
+/* ── Environment: a procedural room, so mirrors and metal have something to reflect (no download) ── */
+
+function StudioEnvironment() {
+  const gl = useThree((s) => s.gl);
+  const env = useMemo(() => {
+    const pmrem = new THREE.PMREMGenerator(gl);
+    const room = new RoomEnvironment();
+    const texture = pmrem.fromScene(room, 0.04).texture;
+    room.dispose();
+    pmrem.dispose();
+    return texture;
+  }, [gl]);
+  useEffect(() => () => env.dispose(), [env]);
+  // Attached to the root scene as scene.environment.
+  return <primitive object={env} attach="environment" />;
+}
+
+/* ── Camera: frame the whole wardrobe (plinth to top) with margin; re-frame on notable size changes ── */
+
+function CameraRig({ W, H, D }: { W: number; H: number; D: number }) {
+  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
+  const controls = useThree((s) => s.controls) as unknown as OrbitControlsLike | null;
+  const size = useThree((s) => s.size);
+  const invalidate = useThree((s) => s.invalidate);
+  const aspect = size.height > 0 ? size.width / size.height : 1;
+
+  // Buckets: re-frame only when the model or the canvas changes noticeably,
+  // not on every 10 mm tweak (which would fight the customer's own orbiting).
+  const wB = Math.round(W / 0.2);
+  const hB = Math.round(H / 0.15);
+  const dB = Math.round(D / 0.1);
+  const aB = Math.round(aspect * 10);
+
+  useEffect(() => {
+    const halfFov = THREE.MathUtils.degToRad(camera.fov) / 2;
+    const halfH = (H / 2) * 1.18 + 0.12;
+    const halfW = (W / 2) * 1.08 + 0.08;
+    const dist = Math.max(halfH / Math.tan(halfFov), halfW / (Math.tan(halfFov) * aspect)) + D / 2;
+    const target = new THREE.Vector3(0, H / 2, 0);
+    const dir = new THREE.Vector3(0.3, 0.08, 1).normalize();
+    camera.position.copy(target).addScaledVector(dir, dist);
+    camera.near = 0.05;
+    camera.far = dist * 6 + 10;
+    camera.lookAt(target);
+    camera.updateProjectionMatrix();
+    if (controls) {
+      controls.target.copy(target);
+      controls.minDistance = dist * 0.35;
+      controls.maxDistance = dist * 2;
+      controls.update();
+    }
+    invalidate();
+    // Deliberately keyed on the size buckets (see above), not on exact values.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wB, hB, dB, aB, controls, camera, invalidate]);
+  return null;
+}
+
+/* ── Pieces, rails, doors ── */
 
 function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierScene; material: THREE.Material }) {
   const { x, y, z, w, h, d } = piece;
@@ -81,6 +169,66 @@ function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierSc
     >
       <boxGeometry args={[Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S]} />
       {piece.role === "CORP" && <Edges threshold={20} color="#000000" transparent opacity={0.18} />}
+    </mesh>
+  );
+}
+
+interface Rail {
+  x0: number;
+  x1: number;
+  y: number;
+  z: number;
+}
+
+/**
+ * Hanging rails aren't part of the scene contract, so they are derived here: the
+ * lower body of column i is found from its plinth (x range) and its side panels;
+ * BARA / POLITE_BARA / BARA_SERTARE get one rail just under the top panel,
+ * BARA_DUBLA a second one at mid height.
+ */
+export function railsFor(scene: AtelierScene, columns: ColumnContent[]): Rail[] {
+  const plinths = scene.pieces.filter((p) => p.role === "PLINTA").sort((a, b) => a.x - b.x);
+  const rails: Rail[] = [];
+  plinths.forEach((plinth, i) => {
+    const content = columns[i];
+    const count = content === "BARA_DUBLA" ? 2 : content && content !== "POLITE" ? 1 : 0;
+    if (count === 0) return;
+    const sides = scene.pieces.filter(
+      (p) =>
+        p.role === "CORP" &&
+        p.w <= 30 &&
+        p.h > 300 &&
+        p.x >= plinth.x - 1 &&
+        p.x + p.w <= plinth.x + plinth.w + 1,
+    );
+    if (sides.length < 2) return;
+    const bottomY = Math.min(...sides.map((s) => s.y));
+    const lower = sides.filter((s) => Math.abs(s.y - bottomY) < 2);
+    if (lower.length < 2) return;
+    const top = Math.max(...lower.map((s) => s.y + s.h));
+    const x0 = Math.min(...lower.map((s) => s.x + s.w));
+    const x1 = Math.max(...lower.map((s) => s.x));
+    if (x1 - x0 < 100) return;
+    const z = lower[0].z + lower[0].d / 2;
+    const upperRail = top - PANEL_MM - RAIL_DROP_MM;
+    rails.push({ x0, x1, y: upperRail, z });
+    if (count === 2) {
+      const interiorMid = (bottomY + PANEL_MM + top - PANEL_MM) / 2;
+      rails.push({ x0, x1, y: interiorMid - RAIL_DROP_MM / 2, z });
+    }
+  });
+  return rails;
+}
+
+function RailMesh({ rail, scene, material }: { rail: Rail; scene: AtelierScene; material: THREE.Material }) {
+  const len = rail.x1 - rail.x0;
+  return (
+    <mesh
+      position={[((rail.x0 + rail.x1) / 2 - scene.widthMm / 2) * S, rail.y * S, (rail.z - scene.depthMm / 2) * S]}
+      rotation={[0, 0, Math.PI / 2]}
+      material={material}
+    >
+      <cylinderGeometry args={[RAIL_RADIUS_MM * S, RAIL_RADIUS_MM * S, len * S, 20]} />
     </mesh>
   );
 }
@@ -99,79 +247,120 @@ function Door({
   material: THREE.Material;
 }) {
   const ref = useRef<THREE.Mesh>(null);
+  const invalidate = useThree((s) => s.invalidate);
   const bottom = Math.max(0, scene.heightMm - door.h);
   const targetX = (targetXmm + door.w / 2 - scene.widthMm / 2) * S;
+
+  // X is owned by the animation, never by a prop (a prop would snap it into place).
+  const placed = useRef(false);
+  useLayoutEffect(() => {
+    if (!placed.current && ref.current) {
+      ref.current.position.x = targetX;
+      placed.current = true;
+    }
+  }, [targetX]);
+  // frameloop="demand": kick the loop whenever the target moves.
+  useEffect(() => {
+    invalidate();
+  }, [targetX, invalidate]);
 
   useFrame((state, delta) => {
     const mesh = ref.current;
     if (!mesh) return;
     const dx = targetX - mesh.position.x;
     if (Math.abs(dx) < 0.0005) {
-      mesh.position.x = targetX;
+      if (dx !== 0) mesh.position.x = targetX;
       return;
     }
-    mesh.position.x += dx * Math.min(1, delta * 8);
+    mesh.position.x += dx * Math.min(1, delta * 7);
     state.invalidate();
   });
 
   return (
-    <mesh
-      ref={ref}
-      position={[targetX, (bottom + door.h / 2) * S, (zMm + DOOR_THICKNESS_MM / 2 - scene.depthMm / 2) * S]}
-      material={material}
-      renderOrder={2}
-    >
-      <boxGeometry args={[door.w * S, door.h * S, DOOR_THICKNESS_MM * S]} />
-      <Edges threshold={20} color="#d66c00" transparent opacity={0.35} />
-    </mesh>
+    <group position={[0, (bottom + door.h / 2) * S, (zMm + DOOR_THICKNESS_MM / 2 - scene.depthMm / 2) * S]}>
+      <mesh ref={ref} material={material} renderOrder={2}>
+        <boxGeometry args={[door.w * S, door.h * S, DOOR_THICKNESS_MM * S]} />
+        <Edges threshold={20} color="#2a2420" transparent opacity={0.5} />
+      </mesh>
+    </group>
   );
 }
 
-function Wardrobe({ scene, carcass, front, doorsOpen }: Omit<Viewer3DProps, "updating" | "scene"> & { scene: AtelierScene; doorsOpen: boolean }) {
-  const carcassMat = useLookMaterial(carcass);
-  const backMat = useLookMaterial(carcass, { roughness: 0.9 });
-  const frontMat = useLookMaterial(front, { roughness: 0.55 });
-  const panelDoorMat = useLookMaterial(front, { transparent: true, opacity: 0.55, depthWrite: false });
-  const mirrorMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#cfd8de",
-        metalness: 0.85,
-        roughness: 0.12,
+function useDoorMaterials(front: MaterialLook, open: boolean) {
+  const texture = useOptionalTexture(front.imageUrl);
+  // Open doors turn into ghosts so the interior reads through them.
+  const ghost = open ? { transparent: true, opacity: 0.22, depthWrite: false } : {};
+  const panel = useDisposable(
+    useMemo(
+      () =>
+        new THREE.MeshStandardMaterial({
+          color: texture ? "#ffffff" : front.color,
+          map: texture,
+          roughness: 0.5,
+          envMapIntensity: 0.35,
+          ...ghost,
+        }),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [texture, front.color, open],
+    ),
+  );
+  const mirror = useDisposable(
+    useMemo(
+      () =>
+        new THREE.MeshStandardMaterial({
+          color: "#f2f5f7",
+          metalness: 1,
+          roughness: 0.04,
+          envMapIntensity: 1.7,
+          ...ghost,
+        }),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [open],
+    ),
+  );
+  const glass = useDisposable(
+    useMemo(() => {
+      // Lacquered (back-painted) glass: the front colour, cooled down, under a glossy coat.
+      const tint = new THREE.Color(front.color).lerp(new THREE.Color("#6f93a3"), 0.6);
+      return new THREE.MeshPhysicalMaterial({
+        color: tint,
+        roughness: 0.06,
+        metalness: 0,
+        clearcoat: 1,
+        clearcoatRoughness: 0.03,
+        envMapIntensity: 0.8,
         transparent: true,
-        opacity: 0.5,
-        depthWrite: false,
-      }),
-    [],
+        opacity: open ? 0.22 : 0.92,
+        depthWrite: !open,
+      });
+    }, [front.color, open]),
   );
-  const glassMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#bcd6e2",
-        metalness: 0.1,
-        roughness: 0.05,
-        transparent: true,
-        opacity: 0.28,
-        depthWrite: false,
-      }),
-    [],
-  );
-  useEffect(
-    () => () => {
-      mirrorMat.dispose();
-      glassMat.dispose();
-    },
-    [mirrorMat, glassMat],
-  );
+  return { PANOU: panel, OGLINDA: mirror, STICLA: glass } as const;
+}
 
-  // The carcass front face; door tracks sit in front of it.
-  const carcassFront = scene.pieces.reduce(
-    (max, p) => (p.role === "CORP" ? Math.max(max, p.z + p.d) : max),
-    0,
-  ) || scene.depthMm - 80;
+function Wardrobe({
+  scene,
+  columns,
+  carcass,
+  front,
+  doorsOpen,
+}: Omit<Viewer3DProps, "updating" | "scene"> & { scene: AtelierScene; doorsOpen: boolean }) {
+  const carcassMat = useLookMaterial(carcass, 0.75);
+  const backMat = useLookMaterial(carcass, 0.9);
+  const frontMat = useLookMaterial(front, 0.55);
+  const doorMats = useDoorMaterials(front, doorsOpen);
+  const railMat = useDisposable(
+    useMemo(() => new THREE.MeshStandardMaterial({ color: "#c9cdd2", metalness: 1, roughness: 0.28 }), []),
+  );
+  const rails = useMemo(() => railsFor(scene, columns), [scene, columns]);
 
-  const doorMaterial = (fill: SceneDoor["fill"]) =>
-    fill === "OGLINDA" ? mirrorMat : fill === "STICLA" ? glassMat : panelDoorMat;
+  // Doors run on two tracks in the zone between the carcass front face and the full depth.
+  const carcassFront =
+    scene.pieces.reduce((max, p) => (p.role === "CORP" ? Math.max(max, p.z + p.d) : max), 0) ||
+    scene.depthMm - 100;
+  const zone = Math.max(2 * DOOR_THICKNESS_MM + 6, scene.depthMm - carcassFront);
+  const gap = (zone - 2 * DOOR_THICKNESS_MM) / 3;
+  const trackZ = [carcassFront + gap, carcassFront + 2 * gap + DOOR_THICKNESS_MM];
 
   return (
     <group>
@@ -183,8 +372,11 @@ function Wardrobe({ scene, carcass, front, doorsOpen }: Omit<Viewer3DProps, "upd
           material={piece.role === "FRONT" ? frontMat : piece.role === "SPATE" ? backMat : carcassMat}
         />
       ))}
+      {rails.map((rail, i) => (
+        <RailMesh key={i} rail={rail} scene={scene} material={railMat} />
+      ))}
       {scene.doors.map((door, i) => {
-        // Opening slides each rear-track door over its neighbour, revealing the column behind it.
+        // Opening slides each front-track door over its left neighbour.
         const prev = scene.doors[i - 1];
         const targetXmm = doorsOpen && door.track === 1 && prev ? prev.x : door.x;
         return (
@@ -192,9 +384,9 @@ function Wardrobe({ scene, carcass, front, doorsOpen }: Omit<Viewer3DProps, "upd
             key={i}
             door={door}
             targetXmm={targetXmm}
-            zMm={carcassFront + TRACK_OFFSET_MM[door.track]}
+            zMm={trackZ[door.track]}
             scene={scene}
-            material={doorMaterial(door.fill)}
+            material={doorMats[door.fill]}
           />
         );
       })}
@@ -202,14 +394,13 @@ function Wardrobe({ scene, carcass, front, doorsOpen }: Omit<Viewer3DProps, "upd
   );
 }
 
-export default function Viewer3D({ scene, carcass, front, updating }: Viewer3DProps) {
+export default function Viewer3D({ scene, columns, carcass, front, updating }: Viewer3DProps) {
   const [doorsOpen, setDoorsOpen] = useState(false);
   const hasDoors = (scene?.doors.length ?? 0) > 0;
 
   const W = (scene?.widthMm ?? 2400) * S;
   const H = (scene?.heightMm ?? 2600) * S;
-  const span = Math.max(W, H);
-  const distance = span * 1.35 + 1.2;
+  const D = (scene?.depthMm ?? 600) * S;
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-[var(--image-radius)] bg-[#141414]">
@@ -217,7 +408,7 @@ export default function Viewer3D({ scene, carcass, front, updating }: Viewer3DPr
         <Canvas
           frameloop="demand"
           dpr={[1, 2]}
-          camera={{ position: [distance * 0.35, H * 0.62, distance], fov: 35, near: 0.05, far: 100 }}
+          camera={{ position: [1, 1.5, 6], fov: 35, near: 0.05, far: 100 }}
           fallback={
             <p className="p-6 text-sm text-[var(--home-ivory)]/70">
               Browserul tău nu poate afișa modelul 3D. Configurația și prețul funcționează în continuare.
@@ -225,25 +416,24 @@ export default function Viewer3D({ scene, carcass, front, updating }: Viewer3DPr
           }
         >
           <color attach="background" args={["#141414"]} />
-          <hemisphereLight args={["#fff6ea", "#2a241f", 0.9]} />
-          <directionalLight position={[3, 5, 6]} intensity={1.6} />
-          <directionalLight position={[-4, 3, -2]} intensity={0.35} />
+          <StudioEnvironment />
+          <hemisphereLight args={["#fff6ea", "#2a241f", 0.5]} />
+          <directionalLight position={[3, 5, 6]} intensity={1.0} />
+          <directionalLight position={[-4, 3, -2]} intensity={0.3} />
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.001, 0]}>
             <planeGeometry args={[W + 6, 8]} />
             <meshStandardMaterial color="#1f1c19" roughness={1} />
           </mesh>
-          <Wardrobe scene={scene} carcass={carcass} front={front} doorsOpen={doorsOpen} />
+          <Wardrobe scene={scene} columns={columns} carcass={carcass} front={front} doorsOpen={doorsOpen} />
           <OrbitControls
             makeDefault
-            target={[0, H / 2, 0]}
             enablePan={false}
-            minDistance={span * 0.6 + 0.6}
-            maxDistance={span * 2.6 + 2}
             minPolarAngle={Math.PI / 6}
             maxPolarAngle={Math.PI / 2 - 0.04}
             minAzimuthAngle={-Math.PI / 2.4}
             maxAzimuthAngle={Math.PI / 2.4}
           />
+          <CameraRig W={W} H={H} D={D} />
         </Canvas>
       ) : (
         <div className="flex h-full items-center justify-center text-sm text-[var(--home-ivory)]/60">
@@ -284,7 +474,7 @@ export default function Viewer3D({ scene, carcass, front, updating }: Viewer3DPr
           Se actualizează…
         </span>
       )}
-      <p className="pointer-events-none absolute bottom-3 left-3 text-[0.7rem] text-[var(--home-ivory)]/45">
+      <p className="pointer-events-none absolute bottom-3 left-3 text-[0.7rem] text-[var(--home-ivory)]/60">
         Trage pentru a roti · scroll / ciupește pentru zoom
       </p>
     </div>
