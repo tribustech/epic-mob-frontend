@@ -12,12 +12,12 @@ export const contactDetails = {
 };
 
 export const headerCta = {
-  href: "/configurator",
+  href: "/cere-oferta",
   label: "Cere ofertă",
 };
 
 export const menuSecondaryLinks = [
-  { href: "/configurator", label: "Cere ofertă" },
+  { href: "/cere-oferta", label: "Cere ofertă" },
   { href: "/portfolio", label: "Portofoliu" },
   { href: "/contact", label: "Contact" },
 ];

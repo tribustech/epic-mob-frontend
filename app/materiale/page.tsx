@@ -149,7 +149,7 @@ export default function MaterialePage() {
             potrivite pentru fiecare corp — în funcție de cameră, buget și stil.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link href="/configurator" className="btn-warm btn-warm--primary">
+            <Link href="/cere-oferta" className="btn-warm btn-warm--primary">
               Cere o ofertă
               <ArrowRight size={18} strokeWidth={2} />
             </Link>

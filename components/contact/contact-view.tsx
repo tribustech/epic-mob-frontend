@@ -324,7 +324,7 @@ export function ContactView() {
               ))}
             </ul>
             <Link
-              href="/configurator"
+              href="/cere-oferta"
               className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-terracotta"
             >
               Prefer să răspund pas cu pas

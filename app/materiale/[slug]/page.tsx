@@ -190,7 +190,7 @@ export default async function MaterialArticlePage({
 
         {/* Footer nav / CTA */}
         <div className="mt-20 flex flex-wrap items-center justify-between gap-6 border-t border-[var(--line)] pt-10">
-          <Link href="/configurator" className="btn-warm btn-warm--primary">
+          <Link href="/cere-oferta" className="btn-warm btn-warm--primary">
             Cere o ofertă cu {material.name}
             <ArrowRight size={18} strokeWidth={2} />
           </Link>
