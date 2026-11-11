@@ -56,9 +56,11 @@ test("setSize keeps sum exact with rounding and respects 300-1200", () => {
   assert.equal(sum(s), 2000);
   const big = atelierReducer(base(2400, cols(800, 800, 800)), { type: "setSize", widthMm: 5000 });
   assert.equal(sum(big), 5000);
+  assert.equal(big.columns.length, 5);
   assert.ok(widths(big).every((w) => w >= 300 && w <= 1200));
   const small = atelierReducer(base(2400, cols(800, 800, 800)), { type: "setSize", widthMm: 700 });
   assert.equal(sum(small), 700);
+  assert.equal(small.columns.length, 2);
   assert.ok(widths(small).every((w) => w >= 300 && w <= 1200));
 });
 
@@ -119,4 +121,21 @@ test("content, carcass, fronts, legs, doors", () => {
 test("isLatest ignores stale responses", () => {
   assert.equal(isLatest(3, 3), true);
   assert.equal(isLatest(2, 3), false);
+});
+
+test("growing width beyond what current columns can cover adds columns", () => {
+  const cases: [AtelierColumn[], number, number][] = [
+    [cols(800), 3000, 3],
+    [cols(1000, 1000), 3000, 3],
+    [cols(300), 2000, 2],
+    [cols(1000), 2500, 3],
+  ];
+  for (const [c, target, n] of cases) {
+    const start = c.reduce((a, x) => a + x.widthMm, 0);
+    const s = atelierReducer(base(start, c), { type: "setSize", widthMm: target });
+    assert.equal(s.widthMm, target);
+    assert.equal(sum(s), target);
+    assert.equal(s.columns.length, n);
+    assert.ok(widths(s).every((w) => w >= 300 && w <= 1200), JSON.stringify(widths(s)));
+  }
 });

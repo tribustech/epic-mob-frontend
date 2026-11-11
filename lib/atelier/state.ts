@@ -101,10 +101,14 @@ function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
   let cols = state.columns;
   const minN = Math.ceil(widthMm / MAX_COL_MM);
   const maxN = Math.max(1, Math.floor(widthMm / MIN_COL_MM));
-  while (cols.length < minN) {
-    const s = splitWidest(cols);
-    if (!s) break;
-    cols = s;
+  if (cols.length < minN) {
+    // Add POLITE columns weighted at the target average; fit() then rescales
+    // everything to the new total, so narrow columns can still grow.
+    const avg = Math.round(widthMm / minN);
+    cols = [
+      ...cols,
+      ...Array.from({ length: minN - cols.length }, () => ({ widthMm: avg, content: "POLITE" as const })),
+    ];
   }
   if (cols.length > maxN) cols = cols.slice(0, maxN);
   const fitted = fit(cols.map((c) => c.widthMm), widthMm);
