@@ -9,9 +9,9 @@ import type { AtelierCatalog, AtelierMaterial } from "@/lib/atelier/types";
 // so a page built while the CRM was unreachable recovers on its own.
 export const revalidate = 600;
 
-const TITLE = "Atelier 3D — configurează-ți dressingul | EpicMob";
+const TITLE = "Atelier 3D — configurează-ți mobilierul | EpicMob";
 const DESCRIPTION =
-  "Configurează-ți dressingul în 3D: dimensiuni, coloane, materiale și uși glisante, cu preț estimativ pe loc. Trimite configurația și venim la măsurători.";
+  "Configurează-ți în 3D dressingul, comoda, separatorul sau corpurile suspendate: dimensiuni, coloane și materiale, cu preț estimativ pe loc. Trimite configurația și venim la măsurători.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -71,10 +71,11 @@ export default async function ConfiguratorPage() {
         <header className="max-w-3xl">
           <p className="home-kicker">Atelier 3D</p>
           <h1 className="display-font mt-4 text-[clamp(2.4rem,5vw,4rem)] leading-[1.02] text-[var(--home-ivory)]">
-            Configurează-ți dressingul
+            Configurează-ți mobilierul
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--home-ivory)]/70">
-            Alege dimensiunile, coloanele, materialele și ușile. Vezi modelul în 3D și prețul estimativ pe loc,
+            Dressing, comodă, separator sau corpuri suspendate: alege dimensiunile, coloanele și materialele. Vezi
+            modelul în 3D și prețul estimativ pe loc,
             apoi trimite-ne configurația — venim la măsurători.
           </p>
         </header>

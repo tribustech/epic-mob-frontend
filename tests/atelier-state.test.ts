@@ -6,6 +6,7 @@ import {
   defaultConfig,
 } from "../lib/atelier/state.ts";
 import { isLatest } from "../lib/atelier/use-live-price.ts";
+import { CATEGORY_RULES, autoDrawers } from "../lib/atelier/categories.ts";
 import type { AtelierCatalog, AtelierColumn, AtelierConfig } from "../lib/atelier/types.ts";
 
 const mat = (id: string) => ({ id, name: id, decorCode: null, brand: null, imageUrl: null });
@@ -138,4 +139,99 @@ test("growing width beyond what current columns can cover adds columns", () => {
     assert.equal(s.columns.length, n);
     assert.ok(widths(s).every((w) => w >= 300 && w <= 1200), JSON.stringify(widths(s)));
   }
+});
+
+/* ── categories ── */
+
+const dims = (c: AtelierConfig) => [c.widthMm, c.heightMm, c.depthMm];
+const inRange = (v: number, [lo, hi]: readonly [number, number]) => v >= lo && v <= hi;
+
+function assertValid(c: AtelierConfig) {
+  const r = CATEGORY_RULES[c.category];
+  assert.ok(inRange(c.widthMm, r.width) && inRange(c.heightMm, r.height) && inRange(c.depthMm, r.depth), JSON.stringify(dims(c)));
+  assert.ok(r.legs.includes(c.legsMm), `legs ${c.legsMm}`);
+  assert.equal(sum(c), c.widthMm);
+  for (const col of c.columns) {
+    assert.ok(inRange(col.widthMm, r.column), `col ${col.widthMm}`);
+    assert.ok(r.contents.includes(col.content), `content ${col.content}`);
+  }
+  if (c.category !== "DRESSING") assert.deepEqual(c.doors, { type: "NONE" });
+}
+
+test("setCategory('COMODA') -> valid comodă defaults, no doors, materials kept", () => {
+  const start = atelierReducer(defaultConfig(catalog), { type: "setCarcass", materialId: "c2" });
+  const s = atelierReducer(start, { type: "setCategory", category: "COMODA" });
+  assert.equal(s.category, "COMODA");
+  assert.deepEqual(dims(s), [1600, 800, 450]);
+  assert.deepEqual(s.columns.map((c) => c.content), ["SERTARE", "SERTARE"]);
+  assert.deepEqual(widths(s), [800, 800]);
+  assert.deepEqual(s.doors, { type: "NONE" });
+  assert.equal(s.legsMm, 100);
+  assert.equal(s.carcassMaterialId, "c2");
+  assert.deepEqual(s.fronts, start.fronts);
+  assertValid(s);
+});
+
+test("defaults of every category are valid", () => {
+  for (const category of ["DRESSING", "COMODA", "SEPARATOR", "SUSPENDAT"] as const) {
+    assertValid(defaultConfig(catalog, category));
+  }
+  const sep = defaultConfig(catalog, "SEPARATOR");
+  assert.deepEqual(dims(sep), [1200, 2000, 350]);
+  assert.deepEqual(sep.columns.map((c) => c.content), ["DESCHIS", "DESCHIS", "DESCHIS"]);
+  const sus = defaultConfig(catalog, "SUSPENDAT");
+  assert.deepEqual(dims(sus), [1200, 600, 350]);
+  assert.deepEqual(sus.columns.map((c) => c.content), ["USI", "USI"]);
+  assert.deepEqual(defaultConfig(catalog), defaultConfig(catalog, "DRESSING"));
+});
+
+test("setCategory('SUSPENDAT') -> legsMm 0; setLegs keeps it 0", () => {
+  const s = atelierReducer(defaultConfig(catalog), { type: "setCategory", category: "SUSPENDAT" });
+  assert.equal(s.legsMm, 0);
+  assert.equal(atelierReducer(s, { type: "setLegs", legsMm: 150 }).legsMm, 0);
+  const back = atelierReducer(s, { type: "setCategory", category: "DRESSING" });
+  assert.equal(back.legsMm, 100);
+  assert.deepEqual(back.doors, { type: "GLISANTE" });
+  assert.equal(atelierReducer(defaultConfig(catalog), { type: "setLegs", legsMm: 0 }).legsMm, 100);
+});
+
+test("setSize clamps to the category limits", () => {
+  const c = defaultConfig(catalog, "COMODA");
+  const big = atelierReducer(c, { type: "setSize", widthMm: 9000, heightMm: 2600, depthMm: 900 });
+  assert.deepEqual(dims(big), [3000, 1200, 600]);
+  assertValid(big);
+  const small = atelierReducer(c, { type: "setSize", widthMm: 100, heightMm: 100, depthMm: 100 });
+  assert.deepEqual(dims(small), [400, 400, 300]);
+  assertValid(small);
+  const sus = atelierReducer(defaultConfig(catalog, "SUSPENDAT"), { type: "setSize", widthMm: 300, heightMm: 1500 });
+  assert.deepEqual(dims(sus).slice(0, 2), [300, 1000]);
+  assertValid(sus);
+  const dr = atelierReducer(defaultConfig(catalog), { type: "setSize", widthMm: 8000, heightMm: 500 });
+  assert.deepEqual(dims(dr).slice(0, 2), [6000, 1000]);
+  assertValid(dr);
+});
+
+test("column contents and new columns follow the category", () => {
+  const c = defaultConfig(catalog, "SUSPENDAT");
+  assert.equal(atelierReducer(c, { type: "setColumnContent", index: 0, content: "SERTARE" }), c);
+  assert.equal(atelierReducer(c, { type: "setColumnContent", index: 0, content: "USA_RIDICABILA" }).columns[0].content, "USA_RIDICABILA");
+  const wide = atelierReducer(c, { type: "setSize", widthMm: 3000 });
+  assertValid(wide);
+  assertValid(atelierReducer(c, { type: "addColumn" }));
+  const sep = atelierReducer(defaultConfig(catalog, "SEPARATOR"), { type: "setSize", widthMm: 4000 });
+  assertValid(sep);
+  assert.deepEqual(atelierReducer(defaultConfig(catalog, "COMODA"), { type: "setDoors", doors: { type: "GLISANTE" } }).doors, { type: "NONE" });
+});
+
+test("setColumnDrawers: SERTARE 2-6, auto by default", () => {
+  const c = defaultConfig(catalog, "COMODA");
+  assert.equal(c.columns[0].drawers, undefined);
+  assert.equal(atelierReducer(c, { type: "setColumnDrawers", index: 0, drawers: 5 }).columns[0].drawers, 5);
+  assert.equal(atelierReducer(c, { type: "setColumnDrawers", index: 0, drawers: 9 }).columns[0].drawers, 6);
+  assert.equal(atelierReducer(c, { type: "setColumnDrawers", index: 0, drawers: 1 }).columns[0].drawers, 2);
+  assert.equal(atelierReducer(c, { type: "setColumnDrawers", index: 0, drawers: undefined }).columns[0].drawers, undefined);
+  // auto count shown in the UI = the CRM rule on the body height (total − legs)
+  assert.equal(autoDrawers(800 - 100), 4);
+  assert.equal(autoDrawers(300), 2);
+  assert.equal(autoDrawers(2000), 6);
 });

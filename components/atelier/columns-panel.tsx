@@ -2,21 +2,22 @@
 
 import type { Dispatch } from "react";
 import { Minus, Plus } from "lucide-react";
+import { CONTENT_LABELS, SERTARE_RANGE, autoDrawers, categoryRules } from "@/lib/atelier/categories";
 import { MAX_COL_MM, MIN_COL_MM, type AtelierAction } from "@/lib/atelier/state";
 import type { AtelierConfig, ColumnContent } from "@/lib/atelier/types";
 import { NumberField } from "./number-field";
 
-export const CONTENT_LABELS: Record<ColumnContent, string> = {
-  POLITE: "Polițe",
-  BARA: "Bară de haine",
-  BARA_DUBLA: "Bară dublă (haine scurte)",
-  POLITE_BARA: "Polițe + bară",
-  BARA_SERTARE: "Bară + sertare",
-};
+const DRAWER_COUNTS = Array.from(
+  { length: SERTARE_RANGE[1] - SERTARE_RANGE[0] + 1 },
+  (_, i) => SERTARE_RANGE[0] + i,
+);
 
 export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; dispatch: Dispatch<AtelierAction> }) {
   const n = config.columns.length;
   const canAdd = config.columns.some((c) => c.widthMm >= 2 * MIN_COL_MM);
+  const { contents } = categoryRules(config.category);
+  // Same rule as the CRM: drawers share the body height (total minus legs).
+  const autoCount = autoDrawers(config.heightMm - config.legsMm);
 
   return (
     <section className="atelier-panel" aria-labelledby="atelier-columns">
@@ -74,17 +75,44 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                   id={`atelier-col-${index}-content`}
                   className="atelier-input mt-2"
                   value={col.content}
+                  disabled={contents.length <= 1}
                   onChange={(e) =>
                     dispatch({ type: "setColumnContent", index, content: e.target.value as ColumnContent })
                   }
                 >
-                  {(Object.keys(CONTENT_LABELS) as ColumnContent[]).map((c) => (
+                  {contents.map((c) => (
                     <option key={c} value={c}>
                       {CONTENT_LABELS[c]}
                     </option>
                   ))}
                 </select>
               </div>
+              {col.content === "SERTARE" && (
+                <div className="min-w-0 sm:col-start-2">
+                  <label htmlFor={`atelier-col-${index}-drawers`} className="atelier-label">
+                    Număr de sertare
+                  </label>
+                  <select
+                    id={`atelier-col-${index}-drawers`}
+                    className="atelier-input mt-2"
+                    value={col.drawers ?? ""}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "setColumnDrawers",
+                        index,
+                        drawers: e.target.value ? Number(e.target.value) : undefined,
+                      })
+                    }
+                  >
+                    <option value="">Automat ({autoCount} sertare)</option>
+                    {DRAWER_COUNTS.map((d) => (
+                      <option key={d} value={d}>
+                        {d} sertare
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </li>
         ))}

@@ -1,51 +1,74 @@
+import { CATEGORY_RULES, SERTARE_RANGE, categoryRules } from "./categories";
 import type {
   AtelierCatalog,
+  AtelierCategory,
   AtelierColumn,
   AtelierConfig,
   AtelierFronts,
   ColumnContent,
 } from "./types.ts";
 
-export const MIN_COL_MM = 300;
-export const MAX_COL_MM = 1200;
+/** Column limits are the same for every category (CATEGORY_RULES[*].column). */
+export const MIN_COL_MM = CATEGORY_RULES.DRESSING.column[0];
+export const MAX_COL_MM = CATEGORY_RULES.DRESSING.column[1];
 
 export type AtelierAction =
+  | { type: "setCategory"; category: AtelierCategory }
   | { type: "setSize"; widthMm?: number; heightMm?: number; depthMm?: number }
   | { type: "setColumnWidth"; index: number; widthMm: number }
   | { type: "setColumnContent"; index: number; content: ColumnContent }
+  | { type: "setColumnDrawers"; index: number; drawers: number | undefined }
   | { type: "addColumn" }
   | { type: "removeColumn"; index: number }
   | { type: "setCarcass"; materialId: string }
   | { type: "setFronts"; fronts: AtelierFronts }
-  | { type: "setLegs"; legsMm: 100 | 150 }
+  | { type: "setLegs"; legsMm: AtelierConfig["legsMm"] }
   | { type: "setDoors"; doors: AtelierConfig["doors"] };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const sumOf = (a: number[]) => a.reduce((x, y) => x + y, 0);
 
-/** n = max(1, ceil(w/1000)) equal columns (floor), remainder on the last; alternating BARA/POLITE. */
+/** Splits widthMm into equal columns (floor), remainder on the last. */
+function splitEven(widthMm: number, n: number): number[] {
+  const base = Math.floor(widthMm / n);
+  return Array.from({ length: n }, (_, i) => (i === n - 1 ? widthMm - base * (n - 1) : base));
+}
+
+/** Dressing: n = max(1, ceil(w/1000)) equal columns (floor), remainder on the last; alternating BARA/POLITE. */
 export function defaultColumns(widthMm: number): AtelierColumn[] {
   const n = Math.max(1, Math.ceil(widthMm / 1000));
-  const base = Math.floor(widthMm / n);
-  return Array.from({ length: n }, (_, i) => ({
-    widthMm: i === n - 1 ? widthMm - base * (n - 1) : base,
+  return splitEven(widthMm, n).map((w, i) => ({
+    widthMm: w,
     content: i % 2 === 0 ? ("BARA" as const) : ("POLITE" as const),
   }));
 }
 
-export function defaultConfig(catalog: AtelierCatalog): AtelierConfig {
+function categoryDefaults(category: AtelierCategory) {
+  const { defaults } = categoryRules(category);
+  const columns = defaults.columns
+    ? splitEven(defaults.widthMm, defaults.columns.length).map((widthMm, i) => ({
+        widthMm,
+        content: defaults.columns![i],
+      }))
+    : defaultColumns(defaults.widthMm);
+  return {
+    category,
+    widthMm: defaults.widthMm,
+    heightMm: defaults.heightMm,
+    depthMm: defaults.depthMm,
+    columns,
+    legsMm: defaults.legsMm,
+    doors: { ...defaults.doors },
+  };
+}
+
+export function defaultConfig(catalog: AtelierCatalog, category: AtelierCategory = "DRESSING"): AtelierConfig {
   const carcassId = catalog.carcass[0]?.id ?? "";
   const frontId = catalog.fronts.PAL[0]?.id ?? carcassId;
   return {
-    category: "DRESSING",
-    widthMm: 2400,
-    heightMm: 2600,
-    depthMm: 600,
-    columns: defaultColumns(2400),
+    ...categoryDefaults(category),
     carcassMaterialId: carcassId,
     fronts: { kind: "PAL", materialId: frontId },
-    legsMm: 100,
-    doors: { type: "GLISANTE" },
   };
 }
 
@@ -84,7 +107,7 @@ function withWidths(cols: AtelierColumn[], w: number[]): AtelierColumn[] {
   return cols.map((c, i) => ({ ...c, widthMm: w[i] }));
 }
 
-function splitWidest(cols: AtelierColumn[]): AtelierColumn[] | null {
+function splitWidest(cols: AtelierColumn[], fill: ColumnContent): AtelierColumn[] | null {
   let idx = 0;
   cols.forEach((c, i) => {
     if (c.widthMm > cols[idx].widthMm) idx = i;
@@ -93,22 +116,20 @@ function splitWidest(cols: AtelierColumn[]): AtelierColumn[] | null {
   if (w < 2 * MIN_COL_MM) return null;
   const left = Math.floor(w / 2);
   const next = [...cols];
-  next.splice(idx, 1, { ...cols[idx], widthMm: left }, { widthMm: w - left, content: "POLITE" });
+  next.splice(idx, 1, { ...cols[idx], widthMm: left }, { widthMm: w - left, content: fill });
   return next;
 }
 
 function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
+  const { fill } = categoryRules(state.category);
   let cols = state.columns;
   const minN = Math.ceil(widthMm / MAX_COL_MM);
   const maxN = Math.max(1, Math.floor(widthMm / MIN_COL_MM));
   if (cols.length < minN) {
-    // Add POLITE columns weighted at the target average; fit() then rescales
+    // Add filler columns weighted at the target average; fit() then rescales
     // everything to the new total, so narrow columns can still grow.
     const avg = Math.round(widthMm / minN);
-    cols = [
-      ...cols,
-      ...Array.from({ length: minN - cols.length }, () => ({ widthMm: avg, content: "POLITE" as const })),
-    ];
+    cols = [...cols, ...Array.from({ length: minN - cols.length }, () => ({ widthMm: avg, content: fill }))];
   }
   if (cols.length > maxN) cols = cols.slice(0, maxN);
   const fitted = fit(cols.map((c) => c.widthMm), widthMm);
@@ -117,15 +138,21 @@ function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
 }
 
 export function atelierReducer(state: AtelierConfig, action: AtelierAction): AtelierConfig {
+  const rules = categoryRules(state.category);
   switch (action.type) {
+    case "setCategory": {
+      if (action.category === state.category || !CATEGORY_RULES[action.category]) return state;
+      // New category starts from its own defaults; the chosen materials stay.
+      return { ...state, ...categoryDefaults(action.category) };
+    }
     case "setSize": {
       let next = state;
       if (action.heightMm !== undefined && Number.isFinite(action.heightMm))
-        next = { ...next, heightMm: Math.round(action.heightMm) };
+        next = { ...next, heightMm: clamp(Math.round(action.heightMm), ...rules.height) };
       if (action.depthMm !== undefined && Number.isFinite(action.depthMm))
-        next = { ...next, depthMm: Math.round(action.depthMm) };
+        next = { ...next, depthMm: clamp(Math.round(action.depthMm), ...rules.depth) };
       if (action.widthMm !== undefined && Number.isFinite(action.widthMm)) {
-        const w = Math.max(MIN_COL_MM, Math.round(action.widthMm));
+        const w = clamp(Math.round(action.widthMm), Math.max(MIN_COL_MM, rules.width[0]), rules.width[1]);
         if (w !== next.widthMm) next = resize(next, w);
       }
       return next;
@@ -148,7 +175,7 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
     }
     case "setColumnContent": {
       const { index, content } = action;
-      if (index < 0 || index >= state.columns.length) return state;
+      if (index < 0 || index >= state.columns.length || !rules.contents.includes(content)) return state;
       const columns = state.columns.map((c, i) => {
         if (i !== index) return c;
         const next: AtelierColumn = { widthMm: c.widthMm, content };
@@ -157,8 +184,18 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       });
       return { ...state, columns };
     }
+    case "setColumnDrawers": {
+      const { index, drawers } = action;
+      const col = state.columns[index];
+      if (!col || col.content !== "SERTARE") return state;
+      const next: AtelierColumn = { widthMm: col.widthMm, content: col.content };
+      if (col.shelves !== undefined) next.shelves = col.shelves;
+      if (drawers !== undefined && Number.isFinite(drawers))
+        next.drawers = clamp(Math.round(drawers), ...SERTARE_RANGE) as AtelierColumn["drawers"];
+      return { ...state, columns: state.columns.map((c, i) => (i === index ? next : c)) };
+    }
     case "addColumn": {
-      const cols = splitWidest(state.columns);
+      const cols = splitWidest(state.columns, rules.fill);
       return cols ? { ...state, columns: cols } : state;
     }
     case "removeColumn": {
@@ -174,8 +211,8 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
     case "setFronts":
       return { ...state, fronts: action.fronts };
     case "setLegs":
-      return { ...state, legsMm: action.legsMm };
+      return rules.legs.includes(action.legsMm) ? { ...state, legsMm: action.legsMm } : state;
     case "setDoors":
-      return { ...state, doors: action.doors };
+      return rules.slidingDoors ? { ...state, doors: action.doors } : state;
   }
 }

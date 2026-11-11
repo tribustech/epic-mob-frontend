@@ -6,6 +6,7 @@ import { Edges, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { AtelierScene, ColumnContent, SceneDoor, ScenePiece } from "@/lib/atelier/types";
+import { RAIL_COUNT } from "@/lib/atelier/categories";
 import type { MaterialLook } from "./material-look";
 
 /** Scene units are millimetres; three.js works in metres. */
@@ -191,7 +192,8 @@ export function railsFor(scene: AtelierScene, columns: ColumnContent[]): Rail[] 
   const rails: Rail[] = [];
   plinths.forEach((plinth, i) => {
     const content = columns[i];
-    const count = content === "BARA_DUBLA" ? 2 : content && content !== "POLITE" ? 1 : 0;
+    // only dressing contents hang clothes; drawers / doors / open shelves get no rail
+    const count = (content && RAIL_COUNT[content]) || 0;
     if (count === 0) return;
     const sides = scene.pieces.filter(
       (p) =>

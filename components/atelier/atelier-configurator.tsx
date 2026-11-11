@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useReducer, useState } from "react";
+import { categoryRules } from "@/lib/atelier/categories";
 import { atelierReducer, defaultConfig } from "@/lib/atelier/state";
 import { useLivePrice } from "@/lib/atelier/use-live-price";
 import type { AtelierCatalog, AtelierScene } from "@/lib/atelier/types";
@@ -25,7 +26,7 @@ const Viewer3D = dynamic(() => import("./viewer-3d"), {
 });
 
 export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
-  const [config, dispatch] = useReducer(atelierReducer, catalog, defaultConfig);
+  const [config, dispatch] = useReducer(atelierReducer, catalog, (c) => defaultConfig(c));
   const { result, loading, unavailable } = useLivePrice(config);
 
   // Keep showing the last valid scene while a new one loads or when the
@@ -50,11 +51,11 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
       </div>
 
       <div className="min-w-0 space-y-5">
-        <CategoryPicker />
+        <CategoryPicker category={config.category} dispatch={dispatch} />
         <SizePanel config={config} dispatch={dispatch} />
         <ColumnsPanel config={config} dispatch={dispatch} />
         <MaterialsPanel catalog={catalog} config={config} dispatch={dispatch} />
-        <DoorsPanel config={config} dispatch={dispatch} />
+        {categoryRules(config.category).slidingDoors && <DoorsPanel config={config} dispatch={dispatch} />}
         <div className="sticky bottom-0 z-10 lg:static">
           <PriceBar result={result} loading={loading} unavailable={unavailable} />
         </div>

@@ -1,16 +1,23 @@
-export type ColumnContent = 'POLITE' | 'BARA' | 'BARA_DUBLA' | 'POLITE_BARA' | 'BARA_SERTARE';
-export interface AtelierColumn { widthMm: number; content: ColumnContent; shelves?: number; drawers?: 1 | 2 | 3 }
+export type AtelierCategory = 'DRESSING' | 'COMODA' | 'SEPARATOR' | 'SUSPENDAT';
+export type ColumnContent =
+  | 'POLITE' | 'BARA' | 'BARA_DUBLA' | 'POLITE_BARA' | 'BARA_SERTARE'   // dressing
+  | 'SERTARE' | 'USI' | 'DESCHIS' | 'USA_RIDICABILA';                   // comodă / separator / suspendat
+export interface AtelierColumn {
+  widthMm: number; content: ColumnContent;
+  shelves?: number;                 // 0–15
+  drawers?: 1 | 2 | 3 | 4 | 5 | 6;  // BARA_SERTARE: 1–3; SERTARE: 2–6
+}
 export type FrontKind = 'PAL' | 'MDF_MELAMINAT' | 'MDF_VOPSIT';
 export interface AtelierFronts { kind: FrontKind; materialId?: string; modelId?: string; ralCode?: string; faces?: 1 | 2 }
 export type DoorType = 'NONE' | 'GLISANTE' | 'GLISANTE_OGLINDA' | 'GLISANTE_STICLA';
 export interface AtelierConfig {
-  category: 'DRESSING';
+  category: AtelierCategory;
   widthMm: number; heightMm: number; depthMm: number;
   columns: AtelierColumn[];
   carcassMaterialId: string;
   fronts: AtelierFronts;
-  legsMm: 100 | 150;
-  doors: { type: DoorType; count?: number };
+  legsMm: 0 | 100 | 150;           // 0 doar la SUSPENDAT; 100 | 150 la restul
+  doors: { type: DoorType; count?: number };   // în afara DRESSING: { type: 'NONE' }
 }
 export interface AtelierIssue { code: string; message: string; column?: number }
 export interface ScenePiece { x: number; y: number; z: number; w: number; h: number; d: number; role: 'CORP' | 'FRONT' | 'SPATE' | 'PLINTA' }
