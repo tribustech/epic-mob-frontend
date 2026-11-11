@@ -2,6 +2,7 @@
 
 import type { Dispatch } from "react";
 import type { AtelierAction } from "@/lib/atelier/state";
+import { autoDoorCount, doorCountOptions } from "@/lib/atelier/doors";
 import type { AtelierConfig, DoorType } from "@/lib/atelier/types";
 
 const DOOR_TYPES: { type: DoorType; label: string; hint: string }[] = [
@@ -11,17 +12,11 @@ const DOOR_TYPES: { type: DoorType; label: string; hint: string }[] = [
   { type: "GLISANTE_STICLA", label: "Glisante din sticlă", hint: "Sticlă lacuită" },
 ];
 
-/** Same rule as the CRM: one door per started metre, at least two. */
-export function autoDoorCount(widthMm: number): number {
-  return Math.max(2, Math.ceil(widthMm / 1000));
-}
-
 export function DoorsPanel({ config, dispatch }: { config: AtelierConfig; dispatch: Dispatch<AtelierAction> }) {
   const { doors } = config;
   const auto = autoDoorCount(config.widthMm);
-  const counts = [2, 3, 4, 5, 6].filter(
-    (n) => n === 2 || n === doors.count || config.widthMm / n >= 450,
-  );
+  // only counts whose doors fit on a sheet (too-wide doors cannot be cut)
+  const counts = doorCountOptions(config.widthMm, doors.count);
 
   return (
     <section className="atelier-panel" aria-labelledby="atelier-doors">

@@ -18,6 +18,9 @@ export function WarmFinalCta() {
             Cere o ofertă
             <ArrowRight size={18} strokeWidth={2} />
           </Link>
+          <Link href="/configurator" className="btn-warm btn-warm--ghost-invert">
+            Configurează în 3D
+          </Link>
           <Link href="/portfolio" className="btn-warm btn-warm--ghost-invert">
             Vezi portofoliul
           </Link>

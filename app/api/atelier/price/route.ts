@@ -14,7 +14,12 @@ export async function POST(request: Request) {
     if (error instanceof CrmRejectedError) {
       return NextResponse.json(error.body ?? { error: "Configurație invalidă." }, { status: error.status });
     }
-    if (!(error instanceof CrmUnavailableError)) console.error("Atelier price failed", error);
+    if (error instanceof CrmUnavailableError) {
+      // 401/403/5xx/network/timeout — status and cause only (the error never carries the API key)
+      console.error(`Atelier price: CRM unavailable (${error.message})`);
+    } else {
+      console.error("Atelier price failed", error);
+    }
     return NextResponse.json({ unavailable: true }, { status: 503 });
   }
 }
