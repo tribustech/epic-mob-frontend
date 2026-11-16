@@ -3,6 +3,7 @@ import { buildQuoteSummary, parseQuoteAnswers } from "@/lib/quote-wizard";
 import { buildQuoteEmailHtml } from "@/lib/quote-email";
 import { isPostmarkConfigured, sendPostmarkEmail } from "@/lib/postmark";
 import { contactDetails } from "@/lib/site-data";
+import { forwardInquiryToCrm } from "@/lib/crm-inquiry";
 
 export async function POST(request: Request) {
   const payload = await request.json();
@@ -13,6 +14,14 @@ export async function POST(request: Request) {
   }
 
   const summary = buildQuoteSummary(answers);
+
+  // Lead in the CRM + Telegram notification (once per finished request).
+  const raw = payload as Record<string, unknown>;
+  await forwardInquiryToCrm({
+    id: typeof raw.id === "string" ? raw.id : null,
+    origin: raw.origin === "configurator" ? "configurator" : "contact",
+    answers,
+  });
 
   // Optional legacy webhook (kept for backward compatibility).
   const webhookUrl = process.env.QUOTE_WEBHOOK_URL;

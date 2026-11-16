@@ -178,7 +178,7 @@ export function QuoteWizard() {
       const response = await fetch("/api/quote", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(answers),
+        body: JSON.stringify({ ...answers, id: sessionId.current, origin: "configurator" }),
       });
       if (!response.ok) throw new Error("Cererea nu a putut fi trimisă. Verifică datele de contact.");
       const data = (await response.json()) as SubmitResult;
