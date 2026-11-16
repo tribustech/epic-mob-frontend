@@ -5,6 +5,7 @@ import type {
   AtelierColumn,
   AtelierConfig,
   AtelierFronts,
+  AtelierHandle,
   ColumnContent,
   RailPosition,
 } from "./types.ts";
@@ -26,7 +27,9 @@ export type AtelierAction =
   | { type: "setCarcass"; materialId: string }
   | { type: "setFronts"; fronts: AtelierFronts }
   | { type: "setLegs"; legsMm: AtelierConfig["legsMm"] }
-  | { type: "setDoors"; doors: AtelierConfig["doors"] };
+  | { type: "setDoors"; doors: AtelierConfig["doors"]; handle?: AtelierHandle }
+  | { type: "setHandle"; handle: AtelierHandle }
+  | { type: "setColumnDoorRows"; index: number; doorRows: number };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const sumOf = (a: number[]) => a.reduce((x, y) => x + y, 0);
@@ -146,7 +149,9 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
     case "setCategory": {
       if (action.category === state.category || !CATEGORY_RULES[action.category]) return state;
       // New category starts from its own defaults; the chosen materials stay.
-      return { ...state, ...categoryDefaults(action.category) };
+      const next: AtelierConfig = { ...state, ...categoryDefaults(action.category) };
+      delete next.handle;
+      return next;
     }
     case "setSize": {
       let next = state;
@@ -231,7 +236,25 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       return { ...state, fronts: action.fronts };
     case "setLegs":
       return rules.legs.includes(action.legsMm) ? { ...state, legsMm: action.legsMm } : state;
-    case "setDoors":
-      return rules.slidingDoors ? { ...state, doors: action.doors } : state;
+    case "setDoors": {
+      if (!rules.slidingDoors) return state;
+      const next: AtelierConfig = { ...state, doors: action.doors };
+      // the handle belongs to hinged doors only; keep the last choice while switching between them
+      if (action.doors.type === "BATANTE") next.handle = action.handle ?? state.handle;
+      else delete next.handle;
+      return next;
+    }
+    case "setHandle":
+      return state.doors.type === "BATANTE" ? { ...state, handle: action.handle } : state;
+    case "setColumnDoorRows": {
+      const { index } = action;
+      const col = state.columns[index];
+      if (!col || !Number.isFinite(action.doorRows)) return state;
+      const rows = clamp(Math.round(action.doorRows), 1, 3);
+      const next: AtelierColumn = { ...col };
+      if (rows === 1) delete next.doorRows;
+      else next.doorRows = rows as AtelierColumn["doorRows"];
+      return { ...state, columns: state.columns.map((c, i) => (i === index ? next : c)) };
+    }
   }
 }

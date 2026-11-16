@@ -97,6 +97,23 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                   ))}
                 </select>
               </div>
+              {config.doors.type === "BATANTE" && (
+                <div className="min-w-0 sm:col-start-2">
+                  <label htmlFor={`atelier-col-${index}-door-rows`} className="atelier-label">
+                    Uși pe înălțime
+                  </label>
+                  <select
+                    id={`atelier-col-${index}-door-rows`}
+                    className="atelier-input mt-2"
+                    value={col.doorRows ?? 1}
+                    onChange={(e) => dispatch({ type: "setColumnDoorRows", index, doorRows: Number(e.target.value) })}
+                  >
+                    <option value={1}>O ușă pe toată înălțimea</option>
+                    <option value={2}>2 uși, una peste alta</option>
+                    <option value={3}>3 uși, una peste alta</option>
+                  </select>
+                </div>
+              )}
               {col.content === "POLITE_BARA" && (
                 <>
                   <div className="min-w-0 sm:col-span-2">

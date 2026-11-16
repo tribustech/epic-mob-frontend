@@ -254,3 +254,22 @@ test("POLITE_BARA: rail SUS/JOS and shelf count, kept on width changes", () => {
   assert.equal(other.columns[0].railPosition, undefined);
   assert.equal(atelierReducer(other, { type: "setColumnRail", index: 0, railPosition: "JOS" }), other);
 });
+
+test("hinged doors: handle kept with BATANTE only, door rows 1-3 per column", () => {
+  let c = defaultConfig(catalog, "DRESSING");
+  c = atelierReducer(c, { type: "setDoors", doors: { type: "BATANTE" }, handle: { type: "PUSH" } });
+  assert.deepEqual(c.doors, { type: "BATANTE" });
+  assert.deepEqual(c.handle, { type: "PUSH" });
+  c = atelierReducer(c, { type: "setHandle", handle: { type: "APLICAT", itemId: "m1" } });
+  assert.deepEqual(c.handle, { type: "APLICAT", itemId: "m1" });
+  c = atelierReducer(c, { type: "setColumnDoorRows", index: 0, doorRows: 5 });
+  assert.equal(c.columns[0].doorRows, 3);
+  c = atelierReducer(c, { type: "setColumnDoorRows", index: 0, doorRows: 1 });
+  assert.equal(c.columns[0].doorRows, undefined);
+  const sliding = atelierReducer(c, { type: "setDoors", doors: { type: "GLISANTE" } });
+  assert.equal(sliding.handle, undefined);
+  assert.equal(atelierReducer(sliding, { type: "setHandle", handle: { type: "PUSH" } }), sliding);
+  // switching back restores nothing by itself — the panel passes the handle again
+  const comoda = atelierReducer(c, { type: "setCategory", category: "COMODA" });
+  assert.equal(comoda.handle, undefined);
+});

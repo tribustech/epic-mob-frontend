@@ -57,7 +57,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
         <SizePanel config={config} dispatch={dispatch} />
         <ColumnsPanel config={config} dispatch={dispatch} />
         <MaterialsPanel catalog={catalog} config={config} dispatch={dispatch} />
-        {categoryRules(config.category).slidingDoors && <DoorsPanel config={config} dispatch={dispatch} />}
+        {categoryRules(config.category).slidingDoors && <DoorsPanel catalog={catalog} config={config} dispatch={dispatch} />}
         <div className="sticky bottom-0 z-10 lg:static">
           <PriceBar result={result} loading={loading} unavailable={unavailable} />
         </div>

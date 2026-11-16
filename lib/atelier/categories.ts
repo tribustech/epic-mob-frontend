@@ -39,7 +39,7 @@ const COLUMN: Range = [300, 1200];
 export const CATEGORY_RULES: Record<AtelierCategory, SiteCategory> = {
   DRESSING: {
     label: "Dressing & depozitare",
-    intro: "Dressing pe toată nișa, cu bare, polițe, sertare și uși glisante.",
+    intro: "Dressing pe toată nișa, cu bare, polițe, sertare și uși glisante sau batante.",
     sizeHint: "Măsurile golului (nișei) unde va sta dressingul.",
     legs: [100, 150],
     width: [600, 6000], height: [1000, 3000], depth: [350, 800], column: COLUMN,

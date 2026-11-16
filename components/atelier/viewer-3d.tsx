@@ -176,6 +176,65 @@ function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierSc
   );
 }
 
+/** Open angle of hinged doors (side hinges) and lift-up doors (top hinge), radians. */
+const SWING_OPEN_RAD = (100 * Math.PI) / 180;
+const LIFT_OPEN_RAD = (75 * Math.PI) / 180;
+
+/**
+ * A hinged front (piece.hinge set by the CRM): a pivot group sits on the hinge edge and the
+ * door mesh hangs off it, so rotating the group swings the door outwards (towards +z).
+ */
+function HingedFront({
+  piece,
+  scene,
+  material,
+  open,
+}: {
+  piece: ScenePiece;
+  scene: AtelierScene;
+  material: THREE.Material;
+  open: boolean;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const invalidate = useThree((s) => s.invalidate);
+  const { x, y, z, w, h, d, hinge } = piece;
+  const cx = (v: number) => (v - scene.widthMm / 2) * S;
+  const cz = (v: number) => (v - scene.depthMm / 2) * S;
+  // pivot on the hinge edge, at the door's front face
+  const pivot: [number, number, number] =
+    hinge === "T" ? [cx(x + w / 2), (y + h) * S, cz(z + d)] : [cx(hinge === "R" ? x + w : x), (y + h / 2) * S, cz(z + d)];
+  // the mesh relative to the pivot
+  const offset: [number, number, number] =
+    hinge === "T" ? [0, (-h / 2) * S, (-d / 2) * S] : [((hinge === "R" ? -w : w) / 2) * S, 0, (-d / 2) * S];
+  const target = !open ? 0 : hinge === "T" ? -LIFT_OPEN_RAD : hinge === "R" ? SWING_OPEN_RAD : -SWING_OPEN_RAD;
+
+  useEffect(() => {
+    invalidate();
+  }, [target, invalidate]);
+
+  useFrame((state, delta) => {
+    const g = ref.current;
+    if (!g) return;
+    const axis = hinge === "T" ? "x" : "y";
+    const cur = g.rotation[axis];
+    const diff = target - cur;
+    if (Math.abs(diff) < 0.001) {
+      if (diff !== 0) g.rotation[axis] = target;
+      return;
+    }
+    g.rotation[axis] = cur + diff * Math.min(1, delta * 6);
+    state.invalidate();
+  });
+
+  return (
+    <group ref={ref} position={pivot}>
+      <mesh position={offset} material={material}>
+        <boxGeometry args={[Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S]} />
+      </mesh>
+    </group>
+  );
+}
+
 interface Rail {
   x0: number;
   x1: number;
@@ -386,14 +445,18 @@ function Wardrobe({
 
   return (
     <group>
-      {scene.pieces.map((piece, i) => (
-        <Piece
-          key={i}
-          piece={piece}
-          scene={scene}
-          material={piece.role === "FRONT" ? frontMat : piece.role === "SPATE" ? backMat : carcassMat}
-        />
-      ))}
+      {scene.pieces.map((piece, i) =>
+        piece.hinge ? (
+          <HingedFront key={i} piece={piece} scene={scene} material={frontMat} open={doorsOpen} />
+        ) : (
+          <Piece
+            key={i}
+            piece={piece}
+            scene={scene}
+            material={piece.role === "FRONT" ? frontMat : piece.role === "SPATE" ? backMat : carcassMat}
+          />
+        ),
+      )}
       {rails.map((rail, i) => (
         <RailMesh key={i} rail={rail} scene={scene} material={railMat} />
       ))}
@@ -418,7 +481,8 @@ function Wardrobe({
 
 export default function Viewer3D({ scene, columns, railPositions, carcass, front, updating }: Viewer3DProps) {
   const [doorsOpen, setDoorsOpen] = useState(false);
-  const hasDoors = (scene?.doors.length ?? 0) > 0;
+  // sliding doors, or hinged fronts the CRM marked with their hinge side
+  const hasDoors = (scene?.doors.length ?? 0) > 0 || (scene?.pieces.some((p) => p.hinge) ?? false);
 
   const W = (scene?.widthMm ?? 2400) * S;
   const H = (scene?.heightMm ?? 2600) * S;
@@ -467,7 +531,7 @@ export default function Viewer3D({ scene, columns, railPositions, carcass, front
         <div
           className="absolute left-3 top-3 flex gap-1 rounded-full bg-white/85 shadow-sm p-1 backdrop-blur"
           role="radiogroup"
-          aria-label="Uși glisante"
+          aria-label="Uși"
         >
           {[
             { open: false, label: "Uși închise" },
