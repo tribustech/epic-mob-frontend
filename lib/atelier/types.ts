@@ -9,7 +9,6 @@ export interface AtelierColumn {
   railPosition?: RailPosition;      // doar POLITE_BARA: unde stă bara (implicit SUS)
   doorRows?: 1 | 2 | 3;             // doar dressing cu uși batante: uși pe înălțime (implicit 1)
   doorsAcross?: 1 | 2;              // doar dressing cu uși batante: uși pe lățime (implicit 1)
-  shelfOverDrawers?: boolean;       // doar BARA_SERTARE: poliță peste sertare (implicit da)
 }
 /** POLITE_BARA: SUS = bara sus și polițele jos; JOS = polițele sus și bara jos (haine scurte). */
 export type RailPosition = 'SUS' | 'JOS';

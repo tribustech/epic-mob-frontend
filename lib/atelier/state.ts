@@ -30,8 +30,7 @@ export type AtelierAction =
   | { type: "setDoors"; doors: AtelierConfig["doors"]; handle?: AtelierHandle }
   | { type: "setHandle"; handle: AtelierHandle }
   | { type: "setColumnDoorRows"; index: number; doorRows: number }
-  | { type: "setColumnDoorsAcross"; index: number; doorsAcross: number }
-  | { type: "setColumnShelfOverDrawers"; index: number; shelfOverDrawers: boolean };
+  | { type: "setColumnDoorsAcross"; index: number; doorsAcross: number };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const sumOf = (a: number[]) => a.reduce((x, y) => x + y, 0);
@@ -252,14 +251,6 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       return state.category === "SEPARATOR" || (state.category === "DRESSING" && state.doors.type !== "BATANTE")
         ? state
         : { ...state, handle: action.handle };
-    case "setColumnShelfOverDrawers": {
-      const col = state.columns[action.index];
-      if (!col || col.content !== "BARA_SERTARE") return state;
-      const next: AtelierColumn = { ...col };
-      if (action.shelfOverDrawers) delete next.shelfOverDrawers;
-      else next.shelfOverDrawers = false;
-      return { ...state, columns: state.columns.map((c, i) => (i === action.index ? next : c)) };
-    }
     case "setColumnDoorsAcross": {
       const col = state.columns[action.index];
       if (!col) return state;

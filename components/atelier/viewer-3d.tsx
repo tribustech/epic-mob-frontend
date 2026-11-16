@@ -172,6 +172,7 @@ function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierSc
     >
       <boxGeometry args={[Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S]} />
       {piece.role === "CORP" && <Edges threshold={20} color="#000000" transparent opacity={0.18} />}
+      {piece.role === "FRONT" && <Edges threshold={20} color="#2a2420" transparent opacity={0.55} />}
     </mesh>
   );
 }
@@ -230,6 +231,7 @@ function HingedFront({
     <group ref={ref} position={pivot}>
       <mesh position={offset} material={material}>
         <boxGeometry args={[Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S]} />
+        <Edges threshold={20} color="#2a2420" transparent opacity={0.55} />
       </mesh>
     </group>
   );

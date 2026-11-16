@@ -201,28 +201,6 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                       ))}
                     </select>
                   </div>
-                  <div className="min-w-0">
-                    <span className="atelier-label" id={`atelier-col-${index}-drawer-shelf`}>
-                      Poliță peste sertare
-                    </span>
-                    <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-labelledby={`atelier-col-${index}-drawer-shelf`}>
-                      {[
-                        { v: true, label: "Da" },
-                        { v: false, label: "Nu, bară direct" },
-                      ].map((o) => (
-                        <button
-                          key={o.label}
-                          type="button"
-                          role="radio"
-                          aria-checked={(col.shelfOverDrawers ?? true) === o.v}
-                          className="atelier-chip"
-                          onClick={() => dispatch({ type: "setColumnShelfOverDrawers", index, shelfOverDrawers: o.v })}
-                        >
-                          {o.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </>
               )}
               {col.content === "SERTARE" && (

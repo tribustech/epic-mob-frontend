@@ -292,15 +292,11 @@ test("hinged doors across: one by default, two on request", () => {
   assert.equal(c.columns[0].doorsAcross, undefined);
 });
 
-test("bar + drawers: 1-3 interior drawers, optional shelf over them", () => {
+test("bar + drawers: 1-3 interior drawers", () => {
   let c = atelierReducer(defaultConfig(catalog, "DRESSING"), { type: "setColumnContent", index: 0, content: "BARA_SERTARE" });
   c = atelierReducer(c, { type: "setColumnDrawers", index: 0, drawers: 3 });
   assert.equal(c.columns[0].drawers, 3);
   c = atelierReducer(c, { type: "setColumnDrawers", index: 0, drawers: 6 });
   assert.equal(c.columns[0].drawers, 3);
-  c = atelierReducer(c, { type: "setColumnShelfOverDrawers", index: 0, shelfOverDrawers: false });
-  assert.equal(c.columns[0].shelfOverDrawers, false);
-  c = atelierReducer(c, { type: "setColumnShelfOverDrawers", index: 0, shelfOverDrawers: true });
-  assert.equal(c.columns[0].shelfOverDrawers, undefined);
   assert.equal(c.columns[0].drawers, 3);
 });
