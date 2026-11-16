@@ -118,7 +118,7 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                       ))}
                     </div>
                     <p className="mt-2 text-xs text-[var(--home-ivory)]/60">
-                      Zona de bară are ~1 m, pentru haine scurte (cămăși, sacouri).
+                      Coloana se împarte în două: o jumătate cu bară pentru haine scurte, cealaltă cu polițe.
                     </p>
                   </div>
                   <div className="min-w-0 sm:col-start-2">
