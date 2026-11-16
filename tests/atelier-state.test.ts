@@ -260,8 +260,8 @@ test("hinged doors: handle kept with BATANTE only, door rows 1-3 per column", ()
   c = atelierReducer(c, { type: "setDoors", doors: { type: "BATANTE" }, handle: { type: "PUSH" } });
   assert.deepEqual(c.doors, { type: "BATANTE" });
   assert.deepEqual(c.handle, { type: "PUSH" });
-  c = atelierReducer(c, { type: "setHandle", handle: { type: "APLICAT", itemId: "m1" } });
-  assert.deepEqual(c.handle, { type: "APLICAT", itemId: "m1" });
+  c = atelierReducer(c, { type: "setHandle", handle: { type: "APLICAT" } });
+  assert.deepEqual(c.handle, { type: "APLICAT" });
   c = atelierReducer(c, { type: "setColumnDoorRows", index: 0, doorRows: 5 });
   assert.equal(c.columns[0].doorRows, 3);
   c = atelierReducer(c, { type: "setColumnDoorRows", index: 0, doorRows: 1 });
@@ -272,4 +272,22 @@ test("hinged doors: handle kept with BATANTE only, door rows 1-3 per column", ()
   // switching back restores nothing by itself — the panel passes the handle again
   const comoda = atelierReducer(c, { type: "setCategory", category: "COMODA" });
   assert.equal(comoda.handle, undefined);
+});
+
+test("handles on comode and wall cabinets; none on the separator", () => {
+  const comoda = atelierReducer(defaultConfig(catalog, "COMODA"), { type: "setHandle", handle: { type: "GOLA" } });
+  assert.deepEqual(comoda.handle, { type: "GOLA" });
+  const sus = atelierReducer(defaultConfig(catalog, "SUSPENDAT"), { type: "setHandle", handle: { type: "APLICAT" } });
+  assert.deepEqual(sus.handle, { type: "APLICAT" });
+  const sep = defaultConfig(catalog, "SEPARATOR");
+  assert.equal(atelierReducer(sep, { type: "setHandle", handle: { type: "PUSH" } }), sep);
+});
+
+test("hinged doors across: one by default, two on request", () => {
+  let c = atelierReducer(defaultConfig(catalog, "DRESSING"), { type: "setDoors", doors: { type: "BATANTE" } });
+  assert.equal(c.columns[0].doorsAcross, undefined);
+  c = atelierReducer(c, { type: "setColumnDoorsAcross", index: 0, doorsAcross: 2 });
+  assert.equal(c.columns[0].doorsAcross, 2);
+  c = atelierReducer(c, { type: "setColumnDoorsAcross", index: 0, doorsAcross: 1 });
+  assert.equal(c.columns[0].doorsAcross, undefined);
 });

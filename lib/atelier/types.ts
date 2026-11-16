@@ -8,15 +8,16 @@ export interface AtelierColumn {
   drawers?: 1 | 2 | 3 | 4 | 5 | 6;  // BARA_SERTARE: 1–3; SERTARE: 2–6
   railPosition?: RailPosition;      // doar POLITE_BARA: unde stă bara (implicit SUS)
   doorRows?: 1 | 2 | 3;             // doar dressing cu uși batante: uși pe înălțime (implicit 1)
+  doorsAcross?: 1 | 2;              // doar dressing cu uși batante: uși pe lățime (implicit 1)
 }
 /** POLITE_BARA: SUS = bara sus și polițele jos; JOS = polițele sus și bara jos (haine scurte). */
 export type RailPosition = 'SUS' | 'JOS';
 export type FrontKind = 'PAL' | 'MDF_MELAMINAT' | 'MDF_VOPSIT';
 export interface AtelierFronts { kind: FrontKind; materialId?: string; modelId?: string; ralCode?: string; faces?: 1 | 2 }
 export type DoorType = 'NONE' | 'GLISANTE' | 'GLISANTE_OGLINDA' | 'GLISANTE_STICLA' | 'BATANTE';
-/** Mânerul ușilor batante (ca în CRM). APLICAT/BUTON/INGROPAT cer un produs din catalog.handles.items. */
-export type HandleKind = 'APLICAT' | 'BUTON' | 'INGROPAT' | 'PROFIL_J' | 'GOLA' | 'PUSH' | 'FARA';
-export interface AtelierHandle { type: HandleKind; itemId?: string }
+/** Mânerul fronturilor (uși și sertare). Modelul exact al mânerului aplicat se stabilește la măsurători. */
+export type HandleKind = 'APLICAT' | 'PUSH' | 'GOLA';
+export interface AtelierHandle { type: HandleKind }
 export interface AtelierConfig {
   category: AtelierCategory;
   widthMm: number; heightMm: number; depthMm: number;
@@ -25,7 +26,7 @@ export interface AtelierConfig {
   fronts: AtelierFronts;
   legsMm: 0 | 100 | 150;           // 0 doar la SUSPENDAT; 100 | 150 la restul
   doors: { type: DoorType; count?: number };   // în afara DRESSING: { type: 'NONE' }; count doar la glisante
-  handle?: AtelierHandle;          // doar DRESSING cu uși BATANTE (obligatoriu acolo)
+  handle?: AtelierHandle;          // fronturile cu mâner (comodă, suspendat, dressing cu uși batante); lipsă = implicitul categoriei
 }
 export interface AtelierIssue { code: string; message: string; column?: number }
 export interface ScenePiece {
@@ -41,7 +42,7 @@ export interface AtelierCatalog {
   carcass: AtelierMaterial[];                                   // PAL + MDF melaminat cu preț
   fronts: { PAL: AtelierMaterial[]; MDF_MELAMINAT: AtelierMaterial[]; MDF_VOPSIT: { id: string; name: string }[] };
   ral: { code: string; name: string; hex: string }[];
-  /** mânerele disponibile pentru ușile batante: tipurile care se pot cota + produsele de mâner cu preț */
-  handles?: { types: { type: HandleKind; label: string }[]; items: AtelierMaterial[] };
+  /** tipurile de mâner care se pot cota acum */
+  handles?: { types: { type: HandleKind; label: string }[] };
 }
 export interface AtelierContact { name: string; phone: string; city: string; notes?: string }

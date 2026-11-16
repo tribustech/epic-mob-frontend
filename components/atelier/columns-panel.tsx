@@ -98,7 +98,25 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                 </select>
               </div>
               {config.doors.type === "BATANTE" && (
-                <div className="min-w-0 sm:col-start-2">
+                <div className="min-w-0">
+                  <label htmlFor={`atelier-col-${index}-doors-across`} className="atelier-label">
+                    Uși pe lățime
+                  </label>
+                  <select
+                    id={`atelier-col-${index}-doors-across`}
+                    className="atelier-input mt-2"
+                    value={col.doorsAcross ?? 1}
+                    onChange={(e) =>
+                      dispatch({ type: "setColumnDoorsAcross", index, doorsAcross: Number(e.target.value) })
+                    }
+                  >
+                    <option value={1}>O ușă</option>
+                    <option value={2}>Două uși</option>
+                  </select>
+                </div>
+              )}
+              {config.doors.type === "BATANTE" && (
+                <div className="min-w-0">
                   <label htmlFor={`atelier-col-${index}-door-rows`} className="atelier-label">
                     Uși pe înălțime
                   </label>

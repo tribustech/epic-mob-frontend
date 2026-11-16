@@ -42,10 +42,7 @@ function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
       MDF_VOPSIT: (catalog.fronts?.MDF_VOPSIT ?? []).map((m) => ({ id: m.id, name: m.name })),
     },
     ral: (catalog.ral ?? []).map((r) => ({ code: r.code, name: r.name, hex: r.hex })),
-    handles: {
-      types: (catalog.handles?.types ?? []).map((t) => ({ type: t.type, label: t.label })),
-      items: (catalog.handles?.items ?? []).map(material),
-    },
+    handles: { types: (catalog.handles?.types ?? []).map((t) => ({ type: t.type, label: t.label })) },
   };
 }
 

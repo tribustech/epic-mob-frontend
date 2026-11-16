@@ -11,6 +11,8 @@ import { ColumnsPanel } from "./columns-panel";
 import { DoorsPanel } from "./doors-panel";
 import { carcassLook, frontLook } from "./material-look";
 import { MaterialsPanel } from "./materials-panel";
+import { HandlePicker } from "./handle-picker";
+import { hasHandledFronts } from "@/lib/atelier/handles";
 import { PriceBar } from "./price-bar";
 import { RequestForm } from "./request-form";
 import { SizePanel } from "./size-panel";
@@ -58,6 +60,16 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
         <ColumnsPanel config={config} dispatch={dispatch} />
         <MaterialsPanel catalog={catalog} config={config} dispatch={dispatch} />
         {categoryRules(config.category).slidingDoors && <DoorsPanel catalog={catalog} config={config} dispatch={dispatch} />}
+        {config.category !== "DRESSING" && hasHandledFronts(config) && (
+          <section className="atelier-panel" aria-labelledby="atelier-handles">
+            <h2 id="atelier-handles" className="atelier-panel__title">
+              Mânere
+            </h2>
+            <div className="mt-4">
+              <HandlePicker catalog={catalog} config={config} dispatch={dispatch} />
+            </div>
+          </section>
+        )}
         <div className="sticky bottom-0 z-10 lg:static">
           <PriceBar result={result} loading={loading} unavailable={unavailable} />
         </div>

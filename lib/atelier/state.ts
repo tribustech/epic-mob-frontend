@@ -29,7 +29,8 @@ export type AtelierAction =
   | { type: "setLegs"; legsMm: AtelierConfig["legsMm"] }
   | { type: "setDoors"; doors: AtelierConfig["doors"]; handle?: AtelierHandle }
   | { type: "setHandle"; handle: AtelierHandle }
-  | { type: "setColumnDoorRows"; index: number; doorRows: number };
+  | { type: "setColumnDoorRows"; index: number; doorRows: number }
+  | { type: "setColumnDoorsAcross"; index: number; doorsAcross: number };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const sumOf = (a: number[]) => a.reduce((x, y) => x + y, 0);
@@ -245,7 +246,18 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       return next;
     }
     case "setHandle":
-      return state.doors.type === "BATANTE" ? { ...state, handle: action.handle } : state;
+      // every front can take a handle (doors and drawers); the separator and open wardrobes have none
+      return state.category === "SEPARATOR" || (state.category === "DRESSING" && state.doors.type !== "BATANTE")
+        ? state
+        : { ...state, handle: action.handle };
+    case "setColumnDoorsAcross": {
+      const col = state.columns[action.index];
+      if (!col) return state;
+      const next: AtelierColumn = { ...col };
+      if (action.doorsAcross === 2) next.doorsAcross = 2;
+      else delete next.doorsAcross;
+      return { ...state, columns: state.columns.map((c, i) => (i === action.index ? next : c)) };
+    }
     case "setColumnDoorRows": {
       const { index } = action;
       const col = state.columns[index];

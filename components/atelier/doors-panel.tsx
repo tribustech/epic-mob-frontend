@@ -3,8 +3,8 @@
 import type { Dispatch } from "react";
 import type { AtelierAction } from "@/lib/atelier/state";
 import { autoDoorCount, doorCountOptions } from "@/lib/atelier/doors";
-import { HANDLE_WITH_ITEM, defaultHandle, withHandleType } from "@/lib/atelier/handles";
 import type { AtelierCatalog, AtelierConfig, DoorType } from "@/lib/atelier/types";
+import { HandlePicker } from "./handle-picker";
 
 const DOOR_TYPES: { type: DoorType; label: string; hint: string }[] = [
   { type: "NONE", label: "Fără uși", hint: "Dressing deschis" },
@@ -26,8 +26,6 @@ export function DoorsPanel({
   const { doors } = config;
   const sliding = doors.type.startsWith("GLISANTE");
   const handleTypes = catalog.handles?.types ?? [];
-  const handleItems = catalog.handles?.items ?? [];
-  const handle = config.handle;
   const auto = autoDoorCount(config.widthMm);
   // only counts whose doors fit on a sheet (too-wide doors cannot be cut)
   const counts = doorCountOptions(config.widthMm, doors.count);
@@ -49,7 +47,7 @@ export function DoorsPanel({
             onClick={() =>
               dispatch(
                 d.type === "BATANTE"
-                  ? { type: "setDoors", doors: { type: "BATANTE" }, handle: config.handle ?? defaultHandle(catalog) }
+                  ? { type: "setDoors", doors: { type: "BATANTE" } }
                   : {
                       type: "setDoors",
                       doors: d.type === "NONE" || !sliding ? { type: d.type } : { ...doors, type: d.type },
@@ -65,52 +63,9 @@ export function DoorsPanel({
 
       {doors.type === "BATANTE" && (
         <div className="mt-5 space-y-4">
-          {handleTypes.length === 0 && (
-            <p className="text-sm text-red-700">
-              Mânerele nu s-au încărcat. Reîncarcă pagina sau alege altă variantă de uși.
-            </p>
-          )}
-          <div>
-            <span className="atelier-label" id="atelier-handle-type">
-              Mâner
-            </span>
-            <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="atelier-handle-type">
-              {handleTypes.map((t) => (
-                <button
-                  key={t.type}
-                  type="button"
-                  role="radio"
-                  aria-checked={handle?.type === t.type}
-                  className="atelier-chip"
-                  onClick={() => dispatch({ type: "setHandle", handle: withHandleType(handle, t.type, catalog) })}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {handle && HANDLE_WITH_ITEM.has(handle.type) && (
-            <div>
-              <label htmlFor="atelier-handle-item" className="atelier-label">
-                Model mâner
-              </label>
-              <select
-                id="atelier-handle-item"
-                className="atelier-input mt-2 sm:max-w-sm"
-                value={handle.itemId ?? ""}
-                onChange={(e) => dispatch({ type: "setHandle", handle: { type: handle.type, itemId: e.target.value } })}
-              >
-                {handleItems.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <HandlePicker catalog={catalog} config={config} dispatch={dispatch} />
           <p className="text-xs text-[var(--home-ivory)]/60">
-            O ușă pe coloanele de până la 60 cm, două pe cele mai late. Câte uși vrei pe înălțime alegi la fiecare
-            coloană.
+            Fiecare coloană are o ușă; la fiecare coloană poți alege două uși pe lățime sau mai multe pe înălțime.
           </p>
         </div>
       )}
