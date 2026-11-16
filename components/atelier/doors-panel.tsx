@@ -38,7 +38,8 @@ export function DoorsPanel({
         Uși
       </h2>
       <div className="mt-4 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Tip uși">
-        {DOOR_TYPES.map((d) => (
+        {/* hinged doors need a handle the CRM can price; without any (old cached catalog) the option is hidden */}
+        {DOOR_TYPES.filter((d) => d.type !== "BATANTE" || handleTypes.length > 0 || doors.type === "BATANTE").map((d) => (
           <button
             key={d.type}
             type="button"
@@ -64,6 +65,11 @@ export function DoorsPanel({
 
       {doors.type === "BATANTE" && (
         <div className="mt-5 space-y-4">
+          {handleTypes.length === 0 && (
+            <p className="text-sm text-red-700">
+              Mânerele nu s-au încărcat. Reîncarcă pagina sau alege altă variantă de uși.
+            </p>
+          )}
           <div>
             <span className="atelier-label" id="atelier-handle-type">
               Mâner
