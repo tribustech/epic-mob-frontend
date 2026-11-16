@@ -1,4 +1,4 @@
-import { CATEGORY_RULES, SERTARE_RANGE, categoryRules } from "./categories";
+import { CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, categoryRules } from "./categories";
 import type {
   AtelierCatalog,
   AtelierCategory,
@@ -6,6 +6,7 @@ import type {
   AtelierConfig,
   AtelierFronts,
   ColumnContent,
+  RailPosition,
 } from "./types.ts";
 
 /** Column limits are the same for every category (CATEGORY_RULES[*].column). */
@@ -18,6 +19,8 @@ export type AtelierAction =
   | { type: "setColumnWidth"; index: number; widthMm: number }
   | { type: "setColumnContent"; index: number; content: ColumnContent }
   | { type: "setColumnDrawers"; index: number; drawers: number | undefined }
+  | { type: "setColumnRail"; index: number; railPosition: RailPosition }
+  | { type: "setColumnShelves"; index: number; shelves: number | undefined }
   | { type: "addColumn" }
   | { type: "removeColumn"; index: number }
   | { type: "setCarcass"; materialId: string }
@@ -192,6 +195,22 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       if (col.shelves !== undefined) next.shelves = col.shelves;
       if (drawers !== undefined && Number.isFinite(drawers))
         next.drawers = clamp(Math.round(drawers), ...SERTARE_RANGE) as AtelierColumn["drawers"];
+      return { ...state, columns: state.columns.map((c, i) => (i === index ? next : c)) };
+    }
+    case "setColumnRail": {
+      const { index, railPosition } = action;
+      const col = state.columns[index];
+      if (!col || col.content !== "POLITE_BARA" || (railPosition !== "SUS" && railPosition !== "JOS")) return state;
+      return { ...state, columns: state.columns.map((c, i) => (i === index ? { ...c, railPosition } : c)) };
+    }
+    case "setColumnShelves": {
+      const { index, shelves } = action;
+      const col = state.columns[index];
+      if (!col || col.content !== "POLITE_BARA") return state;
+      const next: AtelierColumn = { ...col };
+      delete next.shelves;
+      if (shelves !== undefined && Number.isFinite(shelves))
+        next.shelves = clamp(Math.round(shelves), ...POLITE_BARA_SHELVES);
       return { ...state, columns: state.columns.map((c, i) => (i === index ? next : c)) };
     }
     case "addColumn": {

@@ -5,7 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Edges, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import type { AtelierScene, ColumnContent, SceneDoor, ScenePiece } from "@/lib/atelier/types";
+import type { AtelierScene, ColumnContent, RailPosition, SceneDoor, ScenePiece } from "@/lib/atelier/types";
 import { RAIL_COUNT } from "@/lib/atelier/categories";
 import type { MaterialLook } from "./material-look";
 
@@ -28,6 +28,8 @@ export interface Viewer3DProps {
   scene: AtelierScene | null;
   /** Interior of each column, in order (used to draw hanging rails). */
   columns: ColumnContent[];
+  /** POLITE_BARA: where the rail sits, per column (undefined = SUS). */
+  railPositions?: (RailPosition | undefined)[];
   carcass: MaterialLook;
   front: MaterialLook;
   /** A newer configuration is being priced; the last valid scene stays on screen. */
@@ -185,9 +187,10 @@ interface Rail {
  * Hanging rails aren't part of the scene contract, so they are derived here: the
  * lower body of column i is found from its plinth (x range) and its side panels;
  * BARA / POLITE_BARA / BARA_SERTARE get one rail just under the top panel,
- * BARA_DUBLA a second one at mid height.
+ * BARA_DUBLA a second one at mid height. POLITE_BARA with the rail at the bottom
+ * (railPosition JOS) hangs it under the lowest shelf (the divider; the CRM places it).
  */
-export function railsFor(scene: AtelierScene, columns: ColumnContent[]): Rail[] {
+export function railsFor(scene: AtelierScene, columns: ColumnContent[], railPositions: (RailPosition | undefined)[] = []): Rail[] {
   const plinths = scene.pieces.filter((p) => p.role === "PLINTA").sort((a, b) => a.x - b.x);
   const rails: Rail[] = [];
   plinths.forEach((plinth, i) => {
@@ -212,6 +215,22 @@ export function railsFor(scene: AtelierScene, columns: ColumnContent[]): Rail[] 
     const x1 = Math.max(...lower.map((s) => s.x));
     if (x1 - x0 < 100) return;
     const z = lower[0].z + lower[0].d / 2;
+    if (content === "POLITE_BARA" && railPositions[i] === "JOS") {
+      const shelves = scene.pieces.filter(
+        (p) =>
+          p.role === "CORP" &&
+          p.h <= PANEL_MM + 2 &&
+          p.w > 100 &&
+          p.x >= x0 - 1 &&
+          p.x + p.w <= x1 + 1 &&
+          p.y > bottomY + PANEL_MM + 1 &&
+          p.y < top - PANEL_MM - 1,
+      );
+      if (shelves.length > 0) {
+        rails.push({ x0, x1, y: Math.min(...shelves.map((s) => s.y)) - RAIL_DROP_MM, z });
+        return;
+      }
+    }
     const upperRail = top - PANEL_MM - RAIL_DROP_MM;
     rails.push({ x0, x1, y: upperRail, z });
     if (count === 2) {
@@ -343,6 +362,7 @@ function useDoorMaterials(front: MaterialLook, open: boolean) {
 function Wardrobe({
   scene,
   columns,
+  railPositions,
   carcass,
   front,
   doorsOpen,
@@ -354,7 +374,7 @@ function Wardrobe({
   const railMat = useDisposable(
     useMemo(() => new THREE.MeshStandardMaterial({ color: "#c9cdd2", metalness: 1, roughness: 0.28 }), []),
   );
-  const rails = useMemo(() => railsFor(scene, columns), [scene, columns]);
+  const rails = useMemo(() => railsFor(scene, columns, railPositions), [scene, columns, railPositions]);
 
   // Doors run on two tracks in the zone between the carcass front face and the full depth.
   const carcassFront =
@@ -396,7 +416,7 @@ function Wardrobe({
   );
 }
 
-export default function Viewer3D({ scene, columns, carcass, front, updating }: Viewer3DProps) {
+export default function Viewer3D({ scene, columns, railPositions, carcass, front, updating }: Viewer3DProps) {
   const [doorsOpen, setDoorsOpen] = useState(false);
   const hasDoors = (scene?.doors.length ?? 0) > 0;
 
@@ -426,7 +446,7 @@ export default function Viewer3D({ scene, columns, carcass, front, updating }: V
             <planeGeometry args={[W + 6, 8]} />
             <meshStandardMaterial color="#e2ddd5" roughness={1} />
           </mesh>
-          <Wardrobe scene={scene} columns={columns} carcass={carcass} front={front} doorsOpen={doorsOpen} />
+          <Wardrobe scene={scene} columns={columns} railPositions={railPositions} carcass={carcass} front={front} doorsOpen={doorsOpen} />
           <OrbitControls
             makeDefault
             enablePan={false}

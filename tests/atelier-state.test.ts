@@ -235,3 +235,22 @@ test("setColumnDrawers: SERTARE 2-6, auto by default", () => {
   assert.equal(autoDrawers(300), 2);
   assert.equal(autoDrawers(2000), 6);
 });
+
+test("POLITE_BARA: rail SUS/JOS and shelf count, kept on width changes", () => {
+  let c = defaultConfig(catalog, "DRESSING");
+  c = atelierReducer(c, { type: "setColumnContent", index: 0, content: "POLITE_BARA" });
+  assert.equal(c.columns[0].railPosition, undefined);
+  c = atelierReducer(c, { type: "setColumnRail", index: 0, railPosition: "JOS" });
+  assert.equal(c.columns[0].railPosition, "JOS");
+  c = atelierReducer(c, { type: "setColumnShelves", index: 0, shelves: 9 });
+  assert.equal(c.columns[0].shelves, 6);
+  c = atelierReducer(c, { type: "setColumnShelves", index: 0, shelves: undefined });
+  assert.equal(c.columns[0].shelves, undefined);
+  assert.equal(c.columns[0].railPosition, "JOS");
+  c = atelierReducer(c, { type: "setColumnWidth", index: 0, widthMm: c.columns[0].widthMm - 50 });
+  assert.equal(c.columns[0].railPosition, "JOS");
+  // other contents ignore it; switching content resets it
+  const other = atelierReducer(c, { type: "setColumnContent", index: 0, content: "POLITE" });
+  assert.equal(other.columns[0].railPosition, undefined);
+  assert.equal(atelierReducer(other, { type: "setColumnRail", index: 0, railPosition: "JOS" }), other);
+});

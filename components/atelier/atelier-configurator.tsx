@@ -35,6 +35,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   if (result?.scene && result.scene !== lastScene) setLastScene(result.scene);
 
   const columnContents = useMemo(() => config.columns.map((c) => c.content), [config.columns]);
+  const railPositions = useMemo(() => config.columns.map((c) => c.railPosition), [config.columns]);
 
   const hasErrors = (result?.errors.length ?? 0) > 0;
 
@@ -44,6 +45,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
         <Viewer3D
           scene={lastScene}
           columns={columnContents}
+          railPositions={railPositions}
           carcass={carcassLook(catalog, config)}
           front={frontLook(catalog, config)}
           updating={loading}

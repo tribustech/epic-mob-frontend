@@ -6,7 +6,10 @@ export interface AtelierColumn {
   widthMm: number; content: ColumnContent;
   shelves?: number;                 // 0–15
   drawers?: 1 | 2 | 3 | 4 | 5 | 6;  // BARA_SERTARE: 1–3; SERTARE: 2–6
+  railPosition?: RailPosition;      // doar POLITE_BARA: unde stă bara (implicit SUS)
 }
+/** POLITE_BARA: SUS = bara sus și polițele jos; JOS = polițele sus și bara jos (haine scurte). */
+export type RailPosition = 'SUS' | 'JOS';
 export type FrontKind = 'PAL' | 'MDF_MELAMINAT' | 'MDF_VOPSIT';
 export interface AtelierFronts { kind: FrontKind; materialId?: string; modelId?: string; ralCode?: string; faces?: 1 | 2 }
 export type DoorType = 'NONE' | 'GLISANTE' | 'GLISANTE_OGLINDA' | 'GLISANTE_STICLA';

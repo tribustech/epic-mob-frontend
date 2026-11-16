@@ -2,10 +2,20 @@
 
 import type { Dispatch } from "react";
 import { Minus, Plus } from "lucide-react";
-import { CONTENT_LABELS, SERTARE_RANGE, autoDrawers, categoryRules } from "@/lib/atelier/categories";
+import { CONTENT_LABELS, POLITE_BARA_SHELVES, SERTARE_RANGE, autoDrawers, categoryRules } from "@/lib/atelier/categories";
 import { MAX_COL_MM, MIN_COL_MM, type AtelierAction } from "@/lib/atelier/state";
 import type { AtelierConfig, ColumnContent } from "@/lib/atelier/types";
 import { NumberField } from "./number-field";
+
+const SHELF_COUNTS = Array.from(
+  { length: POLITE_BARA_SHELVES[1] - POLITE_BARA_SHELVES[0] + 1 },
+  (_, i) => POLITE_BARA_SHELVES[0] + i,
+);
+
+const RAIL_OPTIONS = [
+  { value: "SUS", label: "Bară sus, polițe jos" },
+  { value: "JOS", label: "Polițe sus, bară jos" },
+] as const;
 
 const DRAWER_COUNTS = Array.from(
   { length: SERTARE_RANGE[1] - SERTARE_RANGE[0] + 1 },
@@ -87,6 +97,56 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                   ))}
                 </select>
               </div>
+              {col.content === "POLITE_BARA" && (
+                <>
+                  <div className="min-w-0 sm:col-span-2">
+                    <span className="atelier-label" id={`atelier-col-${index}-rail`}>
+                      Unde stă bara
+                    </span>
+                    <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-labelledby={`atelier-col-${index}-rail`}>
+                      {RAIL_OPTIONS.map((o) => (
+                        <button
+                          key={o.value}
+                          type="button"
+                          role="radio"
+                          aria-checked={(col.railPosition ?? "SUS") === o.value}
+                          className="atelier-chip"
+                          onClick={() => dispatch({ type: "setColumnRail", index, railPosition: o.value })}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs text-[var(--home-ivory)]/60">
+                      Zona de bară are ~1 m, pentru haine scurte (cămăși, sacouri).
+                    </p>
+                  </div>
+                  <div className="min-w-0 sm:col-start-2">
+                    <label htmlFor={`atelier-col-${index}-shelves`} className="atelier-label">
+                      Număr de polițe
+                    </label>
+                    <select
+                      id={`atelier-col-${index}-shelves`}
+                      className="atelier-input mt-2"
+                      value={col.shelves ?? ""}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "setColumnShelves",
+                          index,
+                          shelves: e.target.value ? Number(e.target.value) : undefined,
+                        })
+                      }
+                    >
+                      <option value="">Automat (după înălțime)</option>
+                      {SHELF_COUNTS.map((d) => (
+                        <option key={d} value={d}>
+                          {d} {d === 1 ? "poliță" : "polițe"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
               {col.content === "SERTARE" && (
                 <div className="min-w-0 sm:col-start-2">
                   <label htmlFor={`atelier-col-${index}-drawers`} className="atelier-label">

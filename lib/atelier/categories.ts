@@ -109,6 +109,9 @@ export const RAIL_COUNT: Partial<Record<ColumnContent, number>> = {
   BARA_SERTARE: 1,
 };
 
+/** POLITE_BARA: shelves the client may pick in the shelf zone (the divider shelf comes on top, in the CRM). */
+export const POLITE_BARA_SHELVES: Range = [1, 6];
+
 /** SERTARE: 2–6 Tandembox drawers (CRM drawerRange). */
 export const SERTARE_RANGE: Range = [2, 6];
 
