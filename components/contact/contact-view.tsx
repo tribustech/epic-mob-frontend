@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { trackPixel } from "@/lib/meta-pixel";
 import {
   ArrowRight,
@@ -18,6 +18,7 @@ import {
   type ContactPreference,
 } from "@/lib/quote-wizard";
 import { contactDetails } from "@/lib/site-data";
+import { newSessionId } from "@/lib/wizard-analytics";
 
 const helpfulPoints = [
   "Ai deja randări, schițe sau măsurători?",
@@ -37,6 +38,8 @@ export function ContactView() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [whatsAppUrl, setWhatsAppUrl] = useState<string | null>(null);
+  // One id per filled-in form, so a retry/double submit isn't a second lead in the CRM.
+  const requestId = useRef<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -59,6 +62,8 @@ export function ContactView() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          id: (requestId.current ??= newSessionId()),
+          origin: "contact",
           contact: {
             name: name.trim(),
             phone: phone.trim(),

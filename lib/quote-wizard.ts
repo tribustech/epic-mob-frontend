@@ -196,7 +196,8 @@ export function isValidEmail(email: string): boolean {
 
 // ── Summary (plain text — used for WhatsApp + email fallback) ────────────────
 
-export function buildQuoteSummary(answers: QuoteAnswers): string {
+/** Project answers only (no contact details), one line each. */
+export function buildProjectLines(answers: QuoteAnswers): string[] {
   const lines: string[] = [
     `Tip imobil: ${orConsult(labelFor(propertyTypes, answers.propertyType))}`,
     `Starea spațiului: ${orConsult(labelFor(spaceStates, answers.spaceState))}`,
@@ -221,6 +222,11 @@ export function buildQuoteSummary(answers: QuoteAnswers): string {
     }
   }
 
+  return lines;
+}
+
+export function buildQuoteSummary(answers: QuoteAnswers): string {
+  const lines = buildProjectLines(answers);
   lines.push(
     "",
     `Nume: ${answers.contact.name}`,
