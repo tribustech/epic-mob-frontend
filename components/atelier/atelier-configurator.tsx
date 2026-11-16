@@ -19,7 +19,7 @@ import { SizePanel } from "./size-panel";
 const Viewer3D = dynamic(() => import("./viewer-3d"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full w-full items-center justify-center rounded-[var(--image-radius)] bg-[#141414] text-sm text-[var(--home-ivory)]/60">
+    <div className="flex h-full w-full items-center justify-center rounded-[var(--image-radius)] bg-[#f1eee9] text-sm text-[var(--home-ivory)]/60">
       Se încarcă vizualizarea 3D…
     </div>
   ),

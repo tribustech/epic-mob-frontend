@@ -14,8 +14,8 @@ function IssueList({ issues, tone }: { issues: AtelierIssue[]; tone: "error" | "
   if (issues.length === 0) return null;
   const cls =
     tone === "error"
-      ? "border-red-500/40 bg-red-500/10 text-red-300"
-      : "border-amber-400/40 bg-amber-400/10 text-amber-200";
+      ? "border-red-500/40 bg-red-500/10 text-red-700"
+      : "border-amber-400/40 bg-amber-400/10 text-amber-800";
   return (
     <ul className={`mt-3 space-y-1 rounded-lg border p-3 text-sm ${cls}`}>
       {issues.map((issue, i) => (
@@ -60,7 +60,7 @@ export function PriceBar({
       </span>
     );
   } else if (errors.length > 0) {
-    main = <span className="text-base text-red-300 lg:text-lg">Configurația are nevoie de ajustări</span>;
+    main = <span className="text-base text-red-700 lg:text-lg">Configurația are nevoie de ajustări</span>;
   } else {
     main = <span className="text-base text-[var(--home-ivory)]/60 lg:text-lg">Se calculează…</span>;
   }
@@ -86,9 +86,9 @@ export function PriceBar({
             type="button"
             className={`atelier-chip shrink-0 !px-3 !py-1.5 text-xs lg:hidden ${
               errors.length > 0
-                ? "!border-red-500/60 !text-red-300"
+                ? "!border-red-500/60 !text-red-700"
                 : warnings.length > 0
-                  ? "!border-amber-400/60 !text-amber-200"
+                  ? "!border-amber-400/60 !text-amber-800"
                   : ""
             }`}
             aria-expanded={expanded}

@@ -405,7 +405,7 @@ export default function Viewer3D({ scene, columns, carcass, front, updating }: V
   const D = (scene?.depthMm ?? 600) * S;
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-[var(--image-radius)] bg-[#141414]">
+    <div className="relative h-full w-full overflow-hidden rounded-[var(--image-radius)] bg-[#f1eee9]">
       {scene ? (
         <Canvas
           frameloop="demand"
@@ -417,14 +417,14 @@ export default function Viewer3D({ scene, columns, carcass, front, updating }: V
             </p>
           }
         >
-          <color attach="background" args={["#141414"]} />
+          <color attach="background" args={["#f1eee9"]} />
           <StudioEnvironment />
           <hemisphereLight args={["#fff6ea", "#2a241f", 0.5]} />
           <directionalLight position={[3, 5, 6]} intensity={1.0} />
           <directionalLight position={[-4, 3, -2]} intensity={0.3} />
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.001, 0]}>
             <planeGeometry args={[W + 6, 8]} />
-            <meshStandardMaterial color="#1f1c19" roughness={1} />
+            <meshStandardMaterial color="#e2ddd5" roughness={1} />
           </mesh>
           <Wardrobe scene={scene} columns={columns} carcass={carcass} front={front} doorsOpen={doorsOpen} />
           <OrbitControls
@@ -445,7 +445,7 @@ export default function Viewer3D({ scene, columns, carcass, front, updating }: V
 
       {hasDoors && (
         <div
-          className="absolute left-3 top-3 flex gap-1 rounded-full bg-black/60 p-1 backdrop-blur"
+          className="absolute left-3 top-3 flex gap-1 rounded-full bg-white/85 shadow-sm p-1 backdrop-blur"
           role="radiogroup"
           aria-label="Uși glisante"
         >
@@ -461,7 +461,7 @@ export default function Viewer3D({ scene, columns, carcass, front, updating }: V
               onClick={() => setDoorsOpen(o.open)}
               className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                 doorsOpen === o.open
-                  ? "bg-[var(--home-orange)] text-[var(--home-black)]"
+                  ? "bg-[var(--home-orange)] text-white"
                   : "text-[var(--home-ivory)]/80 hover:text-[var(--home-ivory)]"
               }`}
             >
@@ -472,7 +472,7 @@ export default function Viewer3D({ scene, columns, carcass, front, updating }: V
       )}
 
       {updating && scene && (
-        <span className="absolute right-3 top-3 rounded-full bg-black/60 px-3 py-1.5 text-xs text-[var(--home-ivory)]/80 backdrop-blur">
+        <span className="absolute right-3 top-3 rounded-full bg-white/85 shadow-sm px-3 py-1.5 text-xs text-[var(--home-ivory)]/80 backdrop-blur">
           Se actualizează…
         </span>
       )}

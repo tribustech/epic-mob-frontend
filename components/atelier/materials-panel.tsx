@@ -131,7 +131,7 @@ function RalPicker({
             className={`flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors ${
               r.code === value
                 ? "bg-[var(--home-orange-soft)] text-[var(--home-ivory)]"
-                : "text-[var(--home-ivory)]/80 hover:bg-white/5"
+                : "text-[var(--home-ivory)]/80 hover:bg-black/5"
             }`}
           >
             <span

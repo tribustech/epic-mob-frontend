@@ -21,8 +21,8 @@ export function RequestForm({ config, blocked }: { config: AtelierConfig; blocke
   // the configuration brings the form back so another one can be sent.
   if (status.kind === "success" && status.key === configKey) {
     return (
-      <section className="atelier-panel border-emerald-400/40" aria-live="polite">
-        <p className="flex items-center gap-3 text-lg text-emerald-300">
+      <section className="atelier-panel border-emerald-600/40" aria-live="polite">
+        <p className="flex items-center gap-3 text-lg text-emerald-700">
           <CheckCircle2 aria-hidden="true" className="shrink-0" />
           Mulțumim! Te sunăm în curând pentru măsurători.
         </p>
@@ -142,7 +142,7 @@ export function RequestForm({ config, blocked }: { config: AtelierConfig; blocke
         </div>
 
         {status.kind === "error" && (
-          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300 sm:col-span-2" role="alert">
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 sm:col-span-2" role="alert">
             <p>{status.message}</p>
             {status.issues && (
               <ul className="mt-1 list-disc pl-5">
@@ -164,7 +164,7 @@ export function RequestForm({ config, blocked }: { config: AtelierConfig; blocke
             <ArrowRight size={16} aria-hidden="true" />
           </button>
           {blocked && (
-            <p className="mt-2 text-xs text-red-300">Corectează erorile de mai sus ca să poți trimite cererea.</p>
+            <p className="mt-2 text-xs text-red-700">Corectează erorile de mai sus ca să poți trimite cererea.</p>
           )}
         </div>
       </form>

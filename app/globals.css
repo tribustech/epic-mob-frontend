@@ -3727,8 +3727,14 @@ select {
   margin-top: 1.75rem;
 }
 
-/* ── Atelier 3D configurator (/configurator) — cinematic palette ── */
+/* ── Atelier 3D configurator (/configurator) — light palette (white) ──
+   Tokens are flipped locally so every atelier component turns light:
+   --home-black = page background, --home-ivory = text, --home-charcoal = panel. */
 .atelier-page {
+  --home-black: #ffffff;
+  --home-ivory: #1a1a1a;
+  --home-charcoal: #f7f5f1;
+  --home-orange-soft: rgba(214, 108, 0, 0.12);
   background: var(--home-black);
   color: var(--home-ivory);
 }
