@@ -182,6 +182,49 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                   </div>
                 </>
               )}
+              {col.content === "BARA_SERTARE" && (
+                <>
+                  <div className="min-w-0">
+                    <label htmlFor={`atelier-col-${index}-inner-drawers`} className="atelier-label">
+                      Sertare (jos, în interior)
+                    </label>
+                    <select
+                      id={`atelier-col-${index}-inner-drawers`}
+                      className="atelier-input mt-2"
+                      value={col.drawers ?? 1}
+                      onChange={(e) => dispatch({ type: "setColumnDrawers", index, drawers: Number(e.target.value) })}
+                    >
+                      {[1, 2, 3].map((d) => (
+                        <option key={d} value={d}>
+                          {d === 1 ? "1 sertar" : `${d} sertare`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="atelier-label" id={`atelier-col-${index}-drawer-shelf`}>
+                      Poliță peste sertare
+                    </span>
+                    <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-labelledby={`atelier-col-${index}-drawer-shelf`}>
+                      {[
+                        { v: true, label: "Da" },
+                        { v: false, label: "Nu, bară direct" },
+                      ].map((o) => (
+                        <button
+                          key={o.label}
+                          type="button"
+                          role="radio"
+                          aria-checked={(col.shelfOverDrawers ?? true) === o.v}
+                          className="atelier-chip"
+                          onClick={() => dispatch({ type: "setColumnShelfOverDrawers", index, shelfOverDrawers: o.v })}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
               {col.content === "SERTARE" && (
                 <div className="min-w-0 sm:col-start-2">
                   <label htmlFor={`atelier-col-${index}-drawers`} className="atelier-label">
