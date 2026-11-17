@@ -1,5 +1,6 @@
 "use client";
 
+import { readAttribution } from "@/lib/attribution";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -178,7 +179,7 @@ export function QuoteWizard() {
       const response = await fetch("/api/quote", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...answers, id: sessionId.current, origin: "configurator" }),
+        body: JSON.stringify({ ...answers, id: sessionId.current, origin: "configurator", attribution: readAttribution() }),
       });
       if (!response.ok) throw new Error("Cererea nu a putut fi trimisă. Verifică datele de contact.");
       const data = (await response.json()) as SubmitResult;
