@@ -15,6 +15,8 @@ export type Attribution = {
   utmContent: string | null;
   utmTerm: string | null;
   fbclid: boolean;
+  /** Meta click id in the format the Conversions API expects: fb.1.<ms>.<fbclid> */
+  fbc: string | null;
   gclid: boolean;
   ttclid: boolean;
   referrer: string | null;
@@ -55,6 +57,7 @@ export function captureAttribution(): void {
     utmContent: clip(params.get("utm_content")),
     utmTerm: clip(params.get("utm_term")),
     fbclid: params.has("fbclid"),
+    fbc: params.get("fbclid") ? `fb.1.${Date.now()}.${clip(params.get("fbclid"), 400)}` : null,
     gclid: params.has("gclid"),
     ttclid: params.has("ttclid"),
     referrer: externalReferrer(),
@@ -72,11 +75,25 @@ export function captureAttribution(): void {
   }
 }
 
+/** The Meta Pixel browser id (_fbp cookie), present only after marketing consent. */
+function readFbp(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)_fbp=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 /** What to send with a finished request. */
-export function readAttribution(): Omit<Attribution, "capturedAt"> | null {
+export function readAttribution(): (Omit<Attribution, "capturedAt"> & { fbp: string | null }) | null {
   const value = read();
-  if (!value) return null;
+  const fbp = readFbp();
+  if (!value) return fbp ? { ...emptyAttribution(), fbp } : null;
   const { capturedAt: _ignored, ...rest } = value;
   void _ignored;
-  return rest;
+  return { ...rest, fbc: rest.fbc ?? null, fbp };
+}
+
+function emptyAttribution(): Omit<Attribution, "capturedAt"> {
+  return {
+    utmSource: null, utmMedium: null, utmCampaign: null, utmContent: null, utmTerm: null,
+    fbclid: false, fbc: null, gclid: false, ttclid: false, referrer: null, landingPage: null,
+  };
 }
