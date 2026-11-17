@@ -1,5 +1,6 @@
 "use client";
 
+import { readAttribution } from "@/lib/attribution";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { trackPixel } from "@/lib/meta-pixel";
@@ -64,6 +65,7 @@ export function ContactView() {
         body: JSON.stringify({
           id: (requestId.current ??= newSessionId()),
           origin: "contact",
+          attribution: readAttribution(),
           contact: {
             name: name.trim(),
             phone: phone.trim(),

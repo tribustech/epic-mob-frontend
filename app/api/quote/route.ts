@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     id: typeof raw.id === "string" ? raw.id : null,
     origin: raw.origin === "configurator" ? "configurator" : "contact",
     answers,
+    attribution: raw.attribution,
   });
 
   // Optional legacy webhook (kept for backward compatibility).

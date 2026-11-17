@@ -10,6 +10,8 @@ export async function forwardInquiryToCrm(args: {
   id: string | null;
   origin: InquiryOrigin;
   answers: QuoteAnswers;
+  /** Where the visitor came from (lib/attribution.ts), passed through as sent; the CRM validates it. */
+  attribution: unknown;
 }): Promise<void> {
   const url = process.env.CRM_INQUIRY_URL;
   const secret = process.env.CRM_INQUIRY_SECRET;
@@ -27,6 +29,7 @@ export async function forwardInquiryToCrm(args: {
         origin: args.origin,
         contact: args.answers.contact,
         details: args.origin === "configurator" ? buildProjectLines(args.answers) : [],
+        attribution: args.attribution && typeof args.attribution === "object" ? args.attribution : null,
       }),
       signal: AbortSignal.timeout(8000),
     });
