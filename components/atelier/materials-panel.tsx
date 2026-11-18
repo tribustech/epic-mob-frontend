@@ -2,8 +2,9 @@
 
 import { useMemo, useState, type Dispatch } from "react";
 import type { AtelierAction } from "@/lib/atelier/state";
-import type { AtelierCatalog, AtelierConfig, AtelierFronts, AtelierMaterial, FrontKind } from "@/lib/atelier/types";
+import type { AtelierCatalog, AtelierConfig, AtelierFronts, FrontKind } from "@/lib/atelier/types";
 import { materialLook, swatchStyle } from "./material-look";
+import { MaterialSelect } from "./material-select";
 
 const KIND_LABELS: Record<FrontKind, string> = {
   PAL: "PAL",
@@ -29,43 +30,6 @@ export function defaultFronts(catalog: AtelierCatalog, kind: FrontKind, current:
     return { kind, modelId: defaultVopsitModelId(catalog), ralCode: ral?.code, faces: current.faces ?? 1 };
   }
   return { kind, materialId: catalog.fronts[kind][0]?.id };
-}
-
-function SwatchGrid({
-  label,
-  materials,
-  selectedId,
-  kind,
-  onSelect,
-}: {
-  label: string;
-  materials: AtelierMaterial[];
-  selectedId: string | undefined;
-  kind: "PAL" | "MDF_MELAMINAT";
-  onSelect: (id: string) => void;
-}) {
-  return (
-    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label={label}>
-      {materials.map((m) => (
-        <button
-          key={m.id}
-          type="button"
-          role="radio"
-          aria-checked={m.id === selectedId}
-          className="atelier-swatch"
-          onClick={() => onSelect(m.id)}
-        >
-          <span className="atelier-swatch__tile" style={swatchStyle(materialLook(m, kind))} aria-hidden="true" />
-          <span className="block truncate text-xs font-semibold">{m.name}</span>
-          {(m.decorCode || m.brand) && (
-            <span className="block truncate text-[0.68rem] text-[var(--home-ivory)]/60">
-              {[m.brand, m.decorCode].filter(Boolean).join(" · ")}
-            </span>
-          )}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 function RalPicker({
@@ -169,30 +133,13 @@ export function MaterialsPanel({
       </h2>
 
       <h3 className="atelier-label mt-5">Corp (interior și laterale)</h3>
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Material corp">
-        {catalog.carcass.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            role="radio"
-            aria-checked={m.id === config.carcassMaterialId}
-            className="atelier-swatch"
-            onClick={() => dispatch({ type: "setCarcass", materialId: m.id })}
-          >
-            <span
-              className="atelier-swatch__tile"
-              style={swatchStyle(materialLook(m, carcassMdf.has(m.id) ? "MDF_MELAMINAT" : "PAL"))}
-              aria-hidden="true"
-            />
-            <span className="block truncate text-xs font-semibold">{m.name}</span>
-            {(m.decorCode || m.brand) && (
-              <span className="block truncate text-[0.68rem] text-[var(--home-ivory)]/60">
-                {[m.brand, m.decorCode].filter(Boolean).join(" · ")}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <MaterialSelect
+        label="Material corp"
+        materials={catalog.carcass}
+        selectedId={config.carcassMaterialId}
+        swatch={(m) => swatchStyle(materialLook(m, carcassMdf.has(m.id) ? "MDF_MELAMINAT" : "PAL"))}
+        onSelect={(materialId) => dispatch({ type: "setCarcass", materialId })}
+      />
 
       <h3 className="atelier-label mt-7">Fronturi (sertare și uși)</h3>
       <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Tip fronturi">
@@ -211,11 +158,11 @@ export function MaterialsPanel({
       </div>
 
       {fronts.kind !== "MDF_VOPSIT" ? (
-        <SwatchGrid
+        <MaterialSelect
           label={`Decor ${KIND_LABELS[fronts.kind]}`}
           materials={catalog.fronts[fronts.kind]}
           selectedId={fronts.materialId}
-          kind={fronts.kind}
+          swatch={(m) => swatchStyle(materialLook(m, fronts.kind as "PAL" | "MDF_MELAMINAT"))}
           onSelect={(materialId) => setFronts({ kind: fronts.kind, materialId })}
         />
       ) : (
