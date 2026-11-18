@@ -7,16 +7,16 @@ import { doorFace, doorOpening, doorType, type DoorFace, type DoorOpening } from
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 import { HandlePicker } from "./handle-picker";
 
-const OPENINGS: { value: DoorOpening; label: string; hint: string }[] = [
-  { value: "NONE", label: "Fără uși", hint: "Dressing deschis" },
-  { value: "BATANTE", label: "Uși batante", hint: "Dulap clasic, pe balamale" },
-  { value: "GLISANTE", label: "Uși glisante", hint: "Glisează pe șine" },
+const OPENINGS: { value: DoorOpening; label: string }[] = [
+  { value: "NONE", label: "Fără uși" },
+  { value: "BATANTE", label: "Uși batante" },
+  { value: "GLISANTE", label: "Uși glisante" },
 ];
 
-const FACES: { value: DoorFace; label: string; hint: string }[] = [
-  { value: "PANOU", label: "Din materialul fronturilor", hint: "Decorul ales la fronturi" },
-  { value: "OGLINDA", label: "Cu oglindă", hint: "Oglindă argintie, lipită pe PAL" },
-  { value: "STICLA", label: "Cu sticlă", hint: "Sticlă lacuită, lipită pe PAL" },
+const FACES: { value: DoorFace; label: string }[] = [
+  { value: "PANOU", label: "Din materialul fronturilor" },
+  { value: "OGLINDA", label: "Cu oglindă" },
+  { value: "STICLA", label: "Cu sticlă" },
 ];
 
 export function DoorsPanel({
@@ -57,7 +57,6 @@ export function DoorsPanel({
             }
           >
             <span className="text-sm font-semibold">{o.label}</span>
-            <span className="text-xs text-[var(--home-ivory)]/55">{o.hint}</span>
           </button>
         ))}
       </div>
@@ -83,7 +82,6 @@ export function DoorsPanel({
                 }
               >
                 <span className="text-sm font-semibold">{f.label}</span>
-                <span className="text-xs text-[var(--home-ivory)]/55">{f.hint}</span>
               </button>
             ))}
           </div>
@@ -93,9 +91,6 @@ export function DoorsPanel({
       {opening === "BATANTE" && (
         <div className="mt-5 space-y-4">
           <HandlePicker catalog={catalog} config={config} dispatch={dispatch} />
-          <p className="text-xs text-[var(--home-ivory)]/60">
-            Fiecare coloană are o ușă; la fiecare coloană poți alege două uși pe lățime sau mai multe pe înălțime.
-          </p>
         </div>
       )}
 
@@ -122,9 +117,6 @@ export function DoorsPanel({
               </option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-[var(--home-ivory)]/60">
-            Ușile glisează pe două șine și se suprapun ușor, ca să nu rămână fante.
-          </p>
         </div>
       )}
     </section>

@@ -7,10 +7,10 @@ import type { AtelierCatalog, AtelierConfig, BottomType } from "@/lib/atelier/ty
 import { HandlePicker } from "./handle-picker";
 import { NumberField } from "./number-field";
 
-const TYPES: { type: BottomType; label: string; hint: string }[] = [
-  { type: "NONE", label: "Deschis până jos", hint: "Doar polițe, se vede prin el" },
-  { type: "SERTARE", label: "Sertare", hint: "Pe toată lățimea, jos" },
-  { type: "USI", label: "Uși", hint: "Câte o ușă pe coloană, jos" },
+const TYPES: { type: BottomType; label: string }[] = [
+  { type: "NONE", label: "Deschis până jos" },
+  { type: "SERTARE", label: "Sertare" },
+  { type: "USI", label: "Uși" },
 ];
 
 /** Separator: optional closed bottom (drawers or doors) under the open shelves, with a PFL back. */
@@ -42,7 +42,6 @@ export function BottomPanel({
             onClick={() => dispatch({ type: "setBottom", bottom: { ...bottom, type: t.type } })}
           >
             <span className="text-sm font-semibold">{t.label}</span>
-            <span className="text-xs text-[var(--home-ivory)]/55">{t.hint}</span>
           </button>
         ))}
       </div>
@@ -99,9 +98,6 @@ export function BottomPanel({
             )}
           </div>
           <HandlePicker catalog={catalog} config={config} dispatch={dispatch} />
-          <p className="text-xs text-[var(--home-ivory)]/60">
-            Partea de jos are PFL în spate; polițele de deasupra rămân deschise pe ambele părți.
-          </p>
         </div>
       )}
     </section>

@@ -5,12 +5,6 @@ import { currentHandle } from "@/lib/atelier/handles";
 import type { AtelierAction } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 
-const HINTS: Record<string, string> = {
-  APLICAT: "Mâner din inox; modelul îl alegem împreună la măsurători.",
-  PUSH: "Fără mâner: apeși pe front și se deschide.",
-  GOLA: "Profil de aluminiu în care prinzi frontul cu degetele.",
-};
-
 /** Handle type for every front (doors and drawers). The exact applied-handle model is settled at measuring. */
 export function HandlePicker({
   catalog,
@@ -49,9 +43,6 @@ export function HandlePicker({
           </button>
         ))}
       </div>
-      {selected && HINTS[selected] && (
-        <p className="mt-2 text-xs text-[var(--home-ivory)]/60">{HINTS[selected]}</p>
-      )}
     </div>
   );
 }
