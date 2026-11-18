@@ -47,6 +47,8 @@ export function PriceBar({
   const errors = result?.errors ?? [];
   const warnings = result?.warnings ?? [];
   const price = errors.length === 0 ? result?.sellPrice ?? null : null;
+  // the toggle only exists to fold errors / warnings on small screens; with none there is nothing to show
+  const hasIssues = errors.length + warnings.length > 0;
 
   let main: ReactNode;
   if (unavailable) {
@@ -82,14 +84,11 @@ export function PriceBar({
             <span className="text-xs text-[var(--home-ivory)]/60">se recalculează…</span>
           )}
         </div>
-        <button
+        {hasIssues && (
+          <button
             type="button"
             className={`atelier-chip shrink-0 !px-3 !py-1.5 text-xs lg:hidden ${
-              errors.length > 0
-                ? "!border-red-500/60 !text-red-700"
-                : warnings.length > 0
-                  ? "!border-amber-400/60 !text-amber-800"
-                  : ""
+              errors.length > 0 ? "!border-red-500/60 !text-red-700" : "!border-amber-400/60 !text-amber-800"
             }`}
             aria-expanded={expanded}
             aria-controls="atelier-price-details"
@@ -97,19 +96,18 @@ export function PriceBar({
           >
             {errors.length > 0
               ? plural(errors.length, "eroare", "erori")
-              : warnings.length > 0
-                ? plural(warnings.length, "avertisment", "avertismente")
-                : "Detalii"}
+              : plural(warnings.length, "avertisment", "avertismente")}
             <ChevronDown size={14} aria-hidden="true" className={expanded ? "rotate-180" : ""} />
           </button>
+        )}
       </div>
+      <p className="mt-2 hidden text-xs text-[var(--home-ivory)]/60 sm:block">
+        preț estimativ — prețul final se stabilește după măsurători
+      </p>
       <div
         id="atelier-price-details"
         className={`${expanded ? "block" : "hidden"} max-h-[40vh] overflow-y-auto lg:block lg:max-h-none lg:overflow-visible`}
       >
-        <p className="mt-2 text-xs text-[var(--home-ivory)]/60">
-          preț estimativ — prețul final se stabilește după măsurători
-        </p>
         <IssueList issues={errors} tone="error" />
         <IssueList issues={warnings} tone="warning" />
       </div>
