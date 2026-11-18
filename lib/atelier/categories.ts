@@ -109,6 +109,23 @@ export const RAIL_COUNT: Partial<Record<ColumnContent, number>> = {
   BARA_SERTARE: 1,
 };
 
+/** Comode / corpuri suspendate: the column choice is the front type, not the interior. */
+export const FRONT_LABELS: Partial<Record<ColumnContent, string>> = {
+  SERTARE: "Sertare",
+  USI: "Uși batante",
+  USA_RIDICABILA: "Ușă rabatabilă în sus",
+  DESCHIS: "Fără ușă (deschis)",
+};
+
+/** Contents whose shelves the client picks (CRM columnBody: col.shelves, 0–15). */
+export const SHELF_CONTENTS: ReadonlySet<ColumnContent> = new Set(["USI", "USA_RIDICABILA", "DESCHIS"]);
+export const SHELF_CHOICES = [0, 1, 2, 3, 4, 5, 6];
+
+/** The CRM's shelf count when the client picks none (columnBody). */
+export function autoShelves(content: ColumnContent, bodyHeightMm: number): number {
+  return content === "DESCHIS" ? Math.max(1, Math.round(bodyHeightMm / 350) - 1) : 1;
+}
+
 /** POLITE_BARA: shelves the client may pick in the shelf zone (the divider shelf comes on top, in the CRM). */
 export const POLITE_BARA_SHELVES: Range = [1, 6];
 

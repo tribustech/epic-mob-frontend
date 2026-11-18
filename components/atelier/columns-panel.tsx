@@ -2,7 +2,17 @@
 
 import type { Dispatch } from "react";
 import { Minus, Plus } from "lucide-react";
-import { CONTENT_LABELS, POLITE_BARA_SHELVES, SERTARE_RANGE, autoDrawers, categoryRules } from "@/lib/atelier/categories";
+import {
+  CONTENT_LABELS,
+  FRONT_LABELS,
+  POLITE_BARA_SHELVES,
+  SERTARE_RANGE,
+  SHELF_CHOICES,
+  SHELF_CONTENTS,
+  autoDrawers,
+  autoShelves,
+  categoryRules,
+} from "@/lib/atelier/categories";
 import { MAX_COL_MM, MIN_COL_MM, type AtelierAction } from "@/lib/atelier/state";
 import type { AtelierConfig, ColumnContent } from "@/lib/atelier/types";
 import { NumberField } from "./number-field";
@@ -28,6 +38,9 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
   const { contents } = categoryRules(config.category);
   // Same rule as the CRM: drawers share the body height (total minus legs).
   const autoCount = autoDrawers(config.heightMm - config.legsMm);
+  // comode / corpuri suspendate: the column choice is the front (door type); shelves are the interior
+  const byFront = config.category === "COMODA" || config.category === "SUSPENDAT";
+  const frontLabel = config.category === "COMODA" ? "Sertare sau uși" : "Tip ușă";
 
   return (
     <section className="atelier-panel" aria-labelledby="atelier-columns">
@@ -79,7 +92,7 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
               />
               <div className="min-w-0">
                 <label htmlFor={`atelier-col-${index}-content`} className="atelier-label">
-                  Interior
+                  {byFront ? frontLabel : "Interior"}
                 </label>
                 <select
                   id={`atelier-col-${index}-content`}
@@ -92,11 +105,30 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                 >
                   {contents.map((c) => (
                     <option key={c} value={c}>
-                      {CONTENT_LABELS[c]}
+                      {(byFront && FRONT_LABELS[c]) || CONTENT_LABELS[c]}
                     </option>
                   ))}
                 </select>
               </div>
+              {byFront && SHELF_CONTENTS.has(col.content) && (
+                <div className="min-w-0 sm:col-start-2">
+                  <label htmlFor={`atelier-col-${index}-shelves`} className="atelier-label">
+                    Interior
+                  </label>
+                  <select
+                    id={`atelier-col-${index}-shelves`}
+                    className="atelier-input mt-2"
+                    value={col.shelves ?? autoShelves(col.content, config.heightMm - config.legsMm)}
+                    onChange={(e) => dispatch({ type: "setColumnShelves", index, shelves: Number(e.target.value) })}
+                  >
+                    {SHELF_CHOICES.map((s) => (
+                      <option key={s} value={s}>
+                        {s === 0 ? "Fără polițe" : s === 1 ? "1 poliță" : `${s} polițe`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               {config.doors.type === "BATANTE" && (
                 <div className="min-w-0">
                   <label htmlFor={`atelier-col-${index}-doors-across`} className="atelier-label">

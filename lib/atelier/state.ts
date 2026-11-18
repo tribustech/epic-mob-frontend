@@ -1,4 +1,4 @@
-import { BARA_SERTARE_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, categoryRules } from "./categories";
+import { BARA_SERTARE_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
   AtelierCatalog,
   AtelierCategory,
@@ -213,11 +213,11 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
     case "setColumnShelves": {
       const { index, shelves } = action;
       const col = state.columns[index];
-      if (!col || col.content !== "POLITE_BARA") return state;
+      if (!col || (col.content !== "POLITE_BARA" && !SHELF_CONTENTS.has(col.content))) return state;
       const next: AtelierColumn = { ...col };
       delete next.shelves;
-      if (shelves !== undefined && Number.isFinite(shelves))
-        next.shelves = clamp(Math.round(shelves), ...POLITE_BARA_SHELVES);
+      const range: [number, number] = col.content === "POLITE_BARA" ? [...POLITE_BARA_SHELVES] : [0, 6];
+      if (shelves !== undefined && Number.isFinite(shelves)) next.shelves = clamp(Math.round(shelves), ...range);
       return { ...state, columns: state.columns.map((c, i) => (i === index ? next : c)) };
     }
     case "addColumn": {

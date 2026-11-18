@@ -300,3 +300,13 @@ test("bar + drawers: 1-3 interior drawers", () => {
   assert.equal(c.columns[0].drawers, 3);
   assert.equal(c.columns[0].drawers, 3);
 });
+
+test("comode / wall cabinets: shelves 0-6 on door and open columns, not on drawers", () => {
+  let c = defaultConfig(catalog, "SUSPENDAT");
+  c = atelierReducer(c, { type: "setColumnShelves", index: 0, shelves: 0 });
+  assert.equal(c.columns[0].shelves, 0);
+  c = atelierReducer(c, { type: "setColumnShelves", index: 0, shelves: 9 });
+  assert.equal(c.columns[0].shelves, 6);
+  const comoda = defaultConfig(catalog, "COMODA"); // SERTARE columns
+  assert.equal(atelierReducer(comoda, { type: "setColumnShelves", index: 0, shelves: 2 }), comoda);
+});
