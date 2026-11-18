@@ -129,7 +129,7 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                   </select>
                 </div>
               )}
-              {config.doors.type === "BATANTE" && (
+              {config.doors.type.startsWith("BATANTE") && (
                 <div className="min-w-0">
                   <label htmlFor={`atelier-col-${index}-doors-across`} className="atelier-label">
                     Uși pe lățime
@@ -147,7 +147,7 @@ export function ColumnsPanel({ config, dispatch }: { config: AtelierConfig; disp
                   </select>
                 </div>
               )}
-              {config.doors.type === "BATANTE" && (
+              {config.doors.type.startsWith("BATANTE") && (
                 <div className="min-w-0">
                   <label htmlFor={`atelier-col-${index}-door-rows`} className="atelier-label">
                     Uși pe înălțime

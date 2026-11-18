@@ -3,15 +3,20 @@
 import type { Dispatch } from "react";
 import type { AtelierAction } from "@/lib/atelier/state";
 import { autoDoorCount, doorCountOptions } from "@/lib/atelier/doors";
-import type { AtelierCatalog, AtelierConfig, DoorType } from "@/lib/atelier/types";
+import { doorFace, doorOpening, doorType, type DoorFace, type DoorOpening } from "@/lib/atelier/door-types";
+import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 import { HandlePicker } from "./handle-picker";
 
-const DOOR_TYPES: { type: DoorType; label: string; hint: string }[] = [
-  { type: "NONE", label: "Fără uși", hint: "Dressing deschis" },
-  { type: "BATANTE", label: "Uși batante", hint: "Dulap clasic, ușile se deschid pe balamale" },
-  { type: "GLISANTE", label: "Glisante", hint: "Panou din materialul fronturilor" },
-  { type: "GLISANTE_OGLINDA", label: "Glisante cu oglindă", hint: "Oglindă argintie" },
-  { type: "GLISANTE_STICLA", label: "Glisante din sticlă", hint: "Sticlă lacuită" },
+const OPENINGS: { value: DoorOpening; label: string; hint: string }[] = [
+  { value: "NONE", label: "Fără uși", hint: "Dressing deschis" },
+  { value: "BATANTE", label: "Uși batante", hint: "Dulap clasic, pe balamale" },
+  { value: "GLISANTE", label: "Uși glisante", hint: "Glisează pe șine" },
+];
+
+const FACES: { value: DoorFace; label: string; hint: string }[] = [
+  { value: "PANOU", label: "Din materialul fronturilor", hint: "Decorul ales la fronturi" },
+  { value: "OGLINDA", label: "Cu oglindă", hint: "Oglindă argintie, lipită pe PAL" },
+  { value: "STICLA", label: "Cu sticlă", hint: "Sticlă lacuită, lipită pe PAL" },
 ];
 
 export function DoorsPanel({
@@ -24,7 +29,9 @@ export function DoorsPanel({
   dispatch: Dispatch<AtelierAction>;
 }) {
   const { doors } = config;
-  const sliding = doors.type.startsWith("GLISANTE");
+  const opening = doorOpening(doors.type);
+  const face = doorFace(doors.type);
+  const sliding = opening === "GLISANTE";
   const handleTypes = catalog.handles?.types ?? [];
   const auto = autoDoorCount(config.widthMm);
   // only counts whose doors fit on a sheet (too-wide doors cannot be cut)
@@ -35,33 +42,55 @@ export function DoorsPanel({
       <h2 id="atelier-doors" className="atelier-panel__title">
         Uși
       </h2>
-      <div className="mt-4 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Tip uși">
+      <div className="mt-4 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Tip uși">
         {/* hinged doors need a handle the CRM can price; without any (old cached catalog) the option is hidden */}
-        {DOOR_TYPES.filter((d) => d.type !== "BATANTE" || handleTypes.length > 0 || doors.type === "BATANTE").map((d) => (
+        {OPENINGS.filter((o) => o.value !== "BATANTE" || handleTypes.length > 0 || opening === "BATANTE").map((o) => (
           <button
-            key={d.type}
+            key={o.value}
             type="button"
             role="radio"
-            aria-checked={doors.type === d.type}
+            aria-checked={opening === o.value}
             className="atelier-swatch !p-3"
             onClick={() =>
-              dispatch(
-                d.type === "BATANTE"
-                  ? { type: "setDoors", doors: { type: "BATANTE" } }
-                  : {
-                      type: "setDoors",
-                      doors: d.type === "NONE" || !sliding ? { type: d.type } : { ...doors, type: d.type },
-                    },
-              )
+              opening !== o.value &&
+              dispatch({ type: "setDoors", doors: { type: doorType(o.value, face) } })
             }
           >
-            <span className="text-sm font-semibold">{d.label}</span>
-            <span className="text-xs text-[var(--home-ivory)]/55">{d.hint}</span>
+            <span className="text-sm font-semibold">{o.label}</span>
+            <span className="text-xs text-[var(--home-ivory)]/55">{o.hint}</span>
           </button>
         ))}
       </div>
 
-      {doors.type === "BATANTE" && (
+      {opening !== "NONE" && (
+        <div className="mt-5">
+          <span className="atelier-label" id="atelier-door-face">
+            Fața ușilor
+          </span>
+          <div className="mt-2 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-labelledby="atelier-door-face">
+            {FACES.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                role="radio"
+                aria-checked={face === f.value}
+                className="atelier-swatch !p-3"
+                onClick={() =>
+                  dispatch({
+                    type: "setDoors",
+                    doors: sliding ? { ...doors, type: doorType(opening, f.value) } : { type: doorType(opening, f.value) },
+                  })
+                }
+              >
+                <span className="text-sm font-semibold">{f.label}</span>
+                <span className="text-xs text-[var(--home-ivory)]/55">{f.hint}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {opening === "BATANTE" && (
         <div className="mt-5 space-y-4">
           <HandlePicker catalog={catalog} config={config} dispatch={dispatch} />
           <p className="text-xs text-[var(--home-ivory)]/60">

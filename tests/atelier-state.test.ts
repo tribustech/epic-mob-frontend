@@ -333,3 +333,13 @@ test("separator bottom: one drawer, shelves behind the doors (0-4)", () => {
   c = atelierReducer(c, { type: "setBottom", bottom: { type: "USI", shelves: 7 } });
   assert.deepEqual(c.bottom, { type: "USI", shelves: 4 });
 });
+
+test("door type helpers: opening + face round-trip; hinged mirror keeps the handle", async () => {
+  const { doorOpening, doorFace, doorType } = await import("../lib/atelier/door-types.ts");
+  for (const t of ["NONE", "GLISANTE", "GLISANTE_OGLINDA", "GLISANTE_STICLA", "BATANTE", "BATANTE_OGLINDA", "BATANTE_STICLA"] as const)
+    assert.equal(doorType(doorOpening(t), doorFace(t)), t);
+  let c = atelierReducer(defaultConfig(catalog, "DRESSING"), { type: "setDoors", doors: { type: "BATANTE" } });
+  c = atelierReducer(c, { type: "setHandle", handle: { type: "PUSH" } });
+  c = atelierReducer(c, { type: "setDoors", doors: { type: "BATANTE_OGLINDA" } });
+  assert.deepEqual(c.handle, { type: "PUSH" });
+});

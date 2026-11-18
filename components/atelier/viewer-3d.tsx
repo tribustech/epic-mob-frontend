@@ -436,6 +436,8 @@ function Wardrobe({
   const backMat = useLookMaterial(carcass, 0.9);
   const frontMat = useLookMaterial(front, 0.55);
   const doorMats = useDoorMaterials(front, doorsOpen);
+  // hinged mirror / glass doors swing open, so they stay solid (no "ghost" look)
+  const hingedMats = useDoorMaterials(front, false);
   const railMat = useDisposable(
     useMemo(() => new THREE.MeshStandardMaterial({ color: "#c9cdd2", metalness: 1, roughness: 0.28 }), []),
   );
@@ -453,7 +455,13 @@ function Wardrobe({
     <group>
       {scene.pieces.map((piece, i) =>
         piece.hinge ? (
-          <HingedFront key={`${i}-${piece.hinge}`} piece={piece} scene={scene} material={frontMat} open={doorsOpen} />
+          <HingedFront
+            key={`${i}-${piece.hinge}`}
+            piece={piece}
+            scene={scene}
+            material={piece.fill ? hingedMats[piece.fill] : frontMat}
+            open={doorsOpen}
+          />
         ) : (
           <Piece
             key={i}

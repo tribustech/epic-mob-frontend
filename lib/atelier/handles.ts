@@ -12,7 +12,7 @@ export function categoryDefaultHandle(category: AtelierCategory): HandleKind | n
 
 /** Does this configuration have fronts whose handle the client can choose? */
 export function hasHandledFronts(config: AtelierConfig): boolean {
-  if (config.category === "DRESSING") return config.doors.type === "BATANTE";
+  if (config.category === "DRESSING") return config.doors.type.startsWith("BATANTE");
   if (config.category === "SEPARATOR") return !!config.bottom && config.bottom.type !== "NONE";
   if (config.category === "COMODA" || config.category === "SUSPENDAT")
     return config.columns.some((c) => FRONT_CONTENTS.has(c.content));

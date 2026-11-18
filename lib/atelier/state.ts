@@ -245,14 +245,14 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       if (!rules.slidingDoors) return state;
       const next: AtelierConfig = { ...state, doors: action.doors };
       // the handle belongs to hinged doors only; keep the last choice while switching between them
-      if (action.doors.type === "BATANTE") next.handle = action.handle ?? state.handle;
+      if (action.doors.type.startsWith("BATANTE")) next.handle = action.handle ?? state.handle;
       else delete next.handle;
       return next;
     }
     case "setHandle":
       // every front can take a handle (doors and drawers); open separators and open / sliding wardrobes have none
       return (state.category === "SEPARATOR" && (!state.bottom || state.bottom.type === "NONE")) ||
-        (state.category === "DRESSING" && state.doors.type !== "BATANTE")
+        (state.category === "DRESSING" && !state.doors.type.startsWith("BATANTE"))
         ? state
         : { ...state, handle: action.handle };
     case "setBottom": {

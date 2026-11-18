@@ -22,7 +22,10 @@ export interface AtelierBottom {
 }
 export type FrontKind = 'PAL' | 'MDF_MELAMINAT' | 'MDF_VOPSIT';
 export interface AtelierFronts { kind: FrontKind; materialId?: string; modelId?: string; ralCode?: string; faces?: 1 | 2 }
-export type DoorType = 'NONE' | 'GLISANTE' | 'GLISANTE_OGLINDA' | 'GLISANTE_STICLA' | 'BATANTE';
+export type DoorType =
+  | 'NONE'
+  | 'GLISANTE' | 'GLISANTE_OGLINDA' | 'GLISANTE_STICLA'
+  | 'BATANTE' | 'BATANTE_OGLINDA' | 'BATANTE_STICLA';   // oglinda / sticla: lipite pe o foaie de PAL din materialul corpului
 /** Mânerul fronturilor (uși și sertare). Modelul exact al mânerului aplicat se stabilește la măsurători. */
 export type HandleKind = 'APLICAT' | 'PUSH' | 'GOLA';
 export interface AtelierHandle { type: HandleKind }
@@ -42,6 +45,8 @@ export interface ScenePiece {
   x: number; y: number; z: number; w: number; h: number; d: number; role: 'CORP' | 'FRONT' | 'SPATE' | 'PLINTA';
   /** doar ușile batante: latura cu balamale (L/R) sau sus (T, ușă rabatabilă) — pentru animația de deschidere */
   hinge?: 'L' | 'R' | 'T';
+  /** ușile batante cu oglindă / sticlă (lipite pe PAL) */
+  fill?: 'OGLINDA' | 'STICLA';
 }
 export interface SceneDoor { x: number; w: number; h: number; fill: 'PANOU' | 'OGLINDA' | 'STICLA'; track: 0 | 1 }
 export interface AtelierScene { pieces: ScenePiece[]; doors: SceneDoor[]; widthMm: number; heightMm: number; depthMm: number }
