@@ -72,7 +72,7 @@ export const CATEGORY_RULES: Record<AtelierCategory, SiteCategory> = {
   },
   SUSPENDAT: {
     label: "Corpuri suspendate",
-    intro: "Corpuri prinse pe perete, cu uși batante, uși Aventos (se ridică) sau deschise.",
+    intro: "Corpuri prinse pe perete, cu uși batante, uși Aventos sau deschise.",
     sizeHint: "Măsurile totale ale corpurilor suspendate.",
     legs: [0],
     width: [300, 3000], height: [300, 1000], depth: [250, 450], column: COLUMN,
@@ -98,7 +98,7 @@ export const CONTENT_LABELS: Record<ColumnContent, string> = {
   SERTARE: "Sertare",
   USI: "Uși",
   DESCHIS: "Deschis (polițe)",
-  USA_RIDICABILA: "Ușă Aventos (se ridică)",
+  USA_RIDICABILA: "Ușă Aventos",
 };
 
 /** Contents that hang clothes (drawn as rails in the 3D view). */
@@ -117,7 +117,7 @@ export const BOTTOM_DEFAULT_HEIGHT_MM = 700;
 export const FRONT_LABELS: Partial<Record<ColumnContent, string>> = {
   SERTARE: "Sertare",
   USI: "Uși batante",
-  USA_RIDICABILA: "Ușă Aventos (se ridică)",
+  USA_RIDICABILA: "Ușă Aventos",
   DESCHIS: "Fără ușă (deschis)",
 };
 
