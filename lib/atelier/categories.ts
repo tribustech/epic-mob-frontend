@@ -109,6 +109,10 @@ export const RAIL_COUNT: Partial<Record<ColumnContent, number>> = {
   BARA_SERTARE: 1,
 };
 
+/** Separator bottom (CRM categories.ts): height from the floor, its limits and the default. */
+export const BOTTOM_HEIGHT_RANGE: Range = [400, 1000];
+export const BOTTOM_DEFAULT_HEIGHT_MM = 700;
+
 /** Comode / corpuri suspendate: the column choice is the front type, not the interior. */
 export const FRONT_LABELS: Partial<Record<ColumnContent, string>> = {
   SERTARE: "Sertare",

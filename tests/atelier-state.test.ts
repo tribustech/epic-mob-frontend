@@ -310,3 +310,18 @@ test("comode / wall cabinets: shelves 0-6 on door and open columns, not on drawe
   const comoda = defaultConfig(catalog, "COMODA"); // SERTARE columns
   assert.equal(atelierReducer(comoda, { type: "setColumnShelves", index: 0, shelves: 2 }), comoda);
 });
+
+test("separator bottom: drawers or doors, height clamped, NONE removes it, handle allowed only with it", () => {
+  let c = defaultConfig(catalog, "SEPARATOR");
+  assert.equal(atelierReducer(c, { type: "setHandle", handle: { type: "PUSH" } }), c);
+  c = atelierReducer(c, { type: "setBottom", bottom: { type: "SERTARE", heightMm: 2000, drawers: 3 } });
+  assert.deepEqual(c.bottom, { type: "SERTARE", heightMm: 1000, drawers: 3 });
+  c = atelierReducer(c, { type: "setHandle", handle: { type: "PUSH" } });
+  assert.deepEqual(c.handle, { type: "PUSH" });
+  c = atelierReducer(c, { type: "setBottom", bottom: { type: "USI", heightMm: 700 } });
+  assert.deepEqual(c.bottom, { type: "USI", heightMm: 700 });
+  c = atelierReducer(c, { type: "setBottom", bottom: { type: "NONE" } });
+  assert.equal(c.bottom, undefined);
+  const dressing = defaultConfig(catalog, "DRESSING");
+  assert.equal(atelierReducer(dressing, { type: "setBottom", bottom: { type: "SERTARE" } }), dressing);
+});

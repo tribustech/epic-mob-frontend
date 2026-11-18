@@ -12,6 +12,9 @@ export interface AtelierColumn {
 }
 /** POLITE_BARA: SUS = bara sus și polițele jos; JOS = polițele sus și bara jos (haine scurte). */
 export type RailPosition = 'SUS' | 'JOS';
+/** Separator: partea de jos, pe toată lățimea — sertare Tandembox sau o ușă batantă pe coloană, cu PFL în spate. */
+export type BottomType = 'NONE' | 'SERTARE' | 'USI';
+export interface AtelierBottom { type: BottomType; heightMm?: number; drawers?: 2 | 3 }  // heightMm de la podea (cu picioare); implicit 700
 export type FrontKind = 'PAL' | 'MDF_MELAMINAT' | 'MDF_VOPSIT';
 export interface AtelierFronts { kind: FrontKind; materialId?: string; modelId?: string; ralCode?: string; faces?: 1 | 2 }
 export type DoorType = 'NONE' | 'GLISANTE' | 'GLISANTE_OGLINDA' | 'GLISANTE_STICLA' | 'BATANTE';
@@ -26,6 +29,7 @@ export interface AtelierConfig {
   fronts: AtelierFronts;
   legsMm: 0 | 100 | 150;           // 0 doar la SUSPENDAT; 100 | 150 la restul
   doors: { type: DoorType; count?: number };   // în afara DRESSING: { type: 'NONE' }; count doar la glisante
+  bottom?: AtelierBottom;          // doar SEPARATOR: partea de jos (lipsă = deschis până jos)
   handle?: AtelierHandle;          // fronturile cu mâner (comodă, suspendat, dressing cu uși batante); lipsă = implicitul categoriei
 }
 export interface AtelierIssue { code: string; message: string; column?: number }

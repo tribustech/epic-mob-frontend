@@ -12,6 +12,7 @@ import { DoorsPanel } from "./doors-panel";
 import { carcassLook, frontLook } from "./material-look";
 import { MaterialsPanel } from "./materials-panel";
 import { HandlePicker } from "./handle-picker";
+import { BottomPanel } from "./bottom-panel";
 import { hasHandledFronts } from "@/lib/atelier/handles";
 import { PriceBar } from "./price-bar";
 import { RequestForm } from "./request-form";
@@ -60,7 +61,8 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
         <ColumnsPanel config={config} dispatch={dispatch} />
         <MaterialsPanel catalog={catalog} config={config} dispatch={dispatch} />
         {categoryRules(config.category).slidingDoors && <DoorsPanel catalog={catalog} config={config} dispatch={dispatch} />}
-        {config.category !== "DRESSING" && hasHandledFronts(config) && (
+        {config.category === "SEPARATOR" && <BottomPanel catalog={catalog} config={config} dispatch={dispatch} />}
+        {(config.category === "COMODA" || config.category === "SUSPENDAT") && hasHandledFronts(config) && (
           <section className="atelier-panel" aria-labelledby="atelier-handles">
             <h2 id="atelier-handles" className="atelier-panel__title">
               Mânere

@@ -7,13 +7,13 @@ const FRONT_CONTENTS = new Set(["SERTARE", "USI", "USA_RIDICABILA"]);
  *  wall cabinets, an applied handle on a hinged-door wardrobe. null = no handled fronts. */
 export function categoryDefaultHandle(category: AtelierCategory): HandleKind | null {
   if (category === "COMODA" || category === "SUSPENDAT") return "PUSH";
-  if (category === "DRESSING") return "APLICAT";
-  return null;
+  return "APLICAT"; // dressing with hinged doors, separator with a closed bottom
 }
 
 /** Does this configuration have fronts whose handle the client can choose? */
 export function hasHandledFronts(config: AtelierConfig): boolean {
   if (config.category === "DRESSING") return config.doors.type === "BATANTE";
+  if (config.category === "SEPARATOR") return !!config.bottom && config.bottom.type !== "NONE";
   if (config.category === "COMODA" || config.category === "SUSPENDAT")
     return config.columns.some((c) => FRONT_CONTENTS.has(c.content));
   return false;

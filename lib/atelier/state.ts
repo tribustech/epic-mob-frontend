@@ -1,9 +1,10 @@
-import { BARA_SERTARE_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
+import { BARA_SERTARE_RANGE, BOTTOM_HEIGHT_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
   AtelierCatalog,
   AtelierCategory,
   AtelierColumn,
   AtelierConfig,
+  AtelierBottom,
   AtelierFronts,
   AtelierHandle,
   ColumnContent,
@@ -30,7 +31,8 @@ export type AtelierAction =
   | { type: "setDoors"; doors: AtelierConfig["doors"]; handle?: AtelierHandle }
   | { type: "setHandle"; handle: AtelierHandle }
   | { type: "setColumnDoorRows"; index: number; doorRows: number }
-  | { type: "setColumnDoorsAcross"; index: number; doorsAcross: number };
+  | { type: "setColumnDoorsAcross"; index: number; doorsAcross: number }
+  | { type: "setBottom"; bottom: AtelierBottom };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const sumOf = (a: number[]) => a.reduce((x, y) => x + y, 0);
@@ -152,6 +154,7 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       // New category starts from its own defaults; the chosen materials stay.
       const next: AtelierConfig = { ...state, ...categoryDefaults(action.category) };
       delete next.handle;
+      delete next.bottom;
       return next;
     }
     case "setSize": {
@@ -247,10 +250,25 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       return next;
     }
     case "setHandle":
-      // every front can take a handle (doors and drawers); the separator and open wardrobes have none
-      return state.category === "SEPARATOR" || (state.category === "DRESSING" && state.doors.type !== "BATANTE")
+      // every front can take a handle (doors and drawers); open separators and open / sliding wardrobes have none
+      return (state.category === "SEPARATOR" && (!state.bottom || state.bottom.type === "NONE")) ||
+        (state.category === "DRESSING" && state.doors.type !== "BATANTE")
         ? state
         : { ...state, handle: action.handle };
+    case "setBottom": {
+      if (state.category !== "SEPARATOR") return state;
+      const b = action.bottom;
+      if (b.type === "NONE") {
+        const next: AtelierConfig = { ...state };
+        delete next.bottom;
+        return next;
+      }
+      const bottom: AtelierBottom = { type: b.type === "USI" ? "USI" : "SERTARE" };
+      if (b.heightMm !== undefined && Number.isFinite(b.heightMm))
+        bottom.heightMm = clamp(Math.round(b.heightMm), ...BOTTOM_HEIGHT_RANGE);
+      if (b.drawers === 3) bottom.drawers = 3;
+      return { ...state, bottom };
+    }
     case "setColumnDoorsAcross": {
       const col = state.columns[action.index];
       if (!col) return state;
