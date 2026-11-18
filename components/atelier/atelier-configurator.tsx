@@ -59,9 +59,9 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
         <CategoryPicker category={config.category} dispatch={dispatch} />
         <SizePanel config={config} dispatch={dispatch} />
         <ColumnsPanel config={config} dispatch={dispatch} />
+        {config.category === "SEPARATOR" && <BottomPanel catalog={catalog} config={config} dispatch={dispatch} />}
         <MaterialsPanel catalog={catalog} config={config} dispatch={dispatch} />
         {categoryRules(config.category).slidingDoors && <DoorsPanel catalog={catalog} config={config} dispatch={dispatch} />}
-        {config.category === "SEPARATOR" && <BottomPanel catalog={catalog} config={config} dispatch={dispatch} />}
         {(config.category === "COMODA" || config.category === "SUSPENDAT") && hasHandledFronts(config) && (
           <section className="atelier-panel" aria-labelledby="atelier-handles">
             <h2 id="atelier-handles" className="atelier-panel__title">
