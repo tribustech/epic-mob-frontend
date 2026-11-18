@@ -4,9 +4,6 @@ import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 
 import { ChevronDown, Search } from "lucide-react";
 import type { AtelierMaterial } from "@/lib/atelier/types";
 
-/** Show the search box once the list gets long (the CRM catalog can hold dozens of decors). */
-const SEARCH_FROM = 8;
-
 const subtitle = (m: AtelierMaterial) => [m.brand, m.decorCode].filter(Boolean).join(" · ");
 
 function Swatch({ style }: { style: CSSProperties }) {
@@ -98,19 +95,18 @@ export function MaterialSelect({
 
       {open && (
         <div className="absolute inset-x-0 z-20 mt-1 rounded-xl border border-[var(--home-ivory)]/15 bg-[var(--home-black)] p-1 shadow-lg">
-          {materials.length >= SEARCH_FROM && (
-            <label className="flex items-center gap-2 border-b border-[var(--home-ivory)]/10 px-2 pb-1">
-              <Search size={16} aria-hidden="true" className="text-[var(--home-ivory)]/50" />
-              <input
-                type="search"
-                className="w-full bg-transparent py-2 text-sm outline-none"
-                placeholder="Caută după nume sau cod"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                autoFocus
-              />
-            </label>
-          )}
+          <label className="flex items-center gap-2 border-b border-[var(--home-ivory)]/10 px-2 pb-1">
+            <Search size={16} aria-hidden="true" className="text-[var(--home-ivory)]/50" />
+            <input
+              type="search"
+              className="w-full bg-transparent py-2 text-sm outline-none"
+              placeholder="Caută după nume sau cod (ex. stejar, H1145)"
+              aria-label={`Caută ${label.toLowerCase()}`}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoFocus
+            />
+          </label>
           <ul id={listId} role="listbox" aria-labelledby={labelId} className="max-h-72 overflow-y-auto py-1">
             {matches.length === 0 && (
               <li className="px-3 py-2 text-sm text-[var(--home-ivory)]/55">Niciun material nu se potrivește.</li>
