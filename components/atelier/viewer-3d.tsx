@@ -179,7 +179,8 @@ function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierSc
 
 /** Open angle of hinged doors (side hinges) and lift-up doors (top hinge), radians. */
 const SWING_OPEN_RAD = (100 * Math.PI) / 180;
-const LIFT_OPEN_RAD = (75 * Math.PI) / 180;
+// lift-up (Aventos HK): the flap ends above the cabinet, roughly level, like an awning
+const LIFT_OPEN_RAD = (95 * Math.PI) / 180;
 
 /**
  * A hinged front (piece.hinge set by the CRM): a pivot group sits on the hinge edge and the
@@ -217,6 +218,9 @@ function HingedFront({
     const g = ref.current;
     if (!g) return;
     const axis = hinge === "T" ? "x" : "y";
+    // the other axis always rests at 0 (a front that changed hinge type must not keep an old swing)
+    const other = axis === "x" ? "y" : "x";
+    if (g.rotation[other] !== 0) g.rotation[other] = 0;
     const cur = g.rotation[axis];
     const diff = target - cur;
     if (Math.abs(diff) < 0.001) {
@@ -449,7 +453,7 @@ function Wardrobe({
     <group>
       {scene.pieces.map((piece, i) =>
         piece.hinge ? (
-          <HingedFront key={i} piece={piece} scene={scene} material={frontMat} open={doorsOpen} />
+          <HingedFront key={`${i}-${piece.hinge}`} piece={piece} scene={scene} material={frontMat} open={doorsOpen} />
         ) : (
           <Piece
             key={i}
