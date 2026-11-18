@@ -88,7 +88,7 @@ export default function FaqPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-3">
-            <Link href="/configurator" className="btn-warm btn-warm--primary">
+            <Link href="/cere-oferta" className="btn-warm btn-warm--primary">
               Cere ofertă
               <ArrowRight size={18} strokeWidth={2} />
             </Link>

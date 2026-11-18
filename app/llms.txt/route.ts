@@ -39,7 +39,7 @@ ${materials
 - [Portofoliu (${rooms})](${SITE_URL}/portfolio)
 - [Materiale și accesorii](${SITE_URL}/materiale)
 - [Întrebări frecvente](${SITE_URL}/intrebari-frecvente)
-- [Cere ofertă (configurator)](${SITE_URL}/configurator)
+- [Cere ofertă](${SITE_URL}/cere-oferta)
 - [Contact](${SITE_URL}/contact)
 
 ## Întrebări frecvente

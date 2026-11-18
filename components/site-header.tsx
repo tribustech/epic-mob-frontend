@@ -27,11 +27,12 @@ function BrandWordmark() {
 export function SiteHeader() {
   const pathname = usePathname();
   // Warm palette applies to the homepage, the portfolio (list + case study),
-  // the contact page, the FAQ and the privacy policy.
+  // the contact page, the FAQ, the privacy policy and the Atelier 3D configurator.
   const isWarm =
     pathname === "/" ||
     pathname.startsWith("/portfolio") ||
     pathname.startsWith("/materiale") ||
+    pathname === "/configurator" ||
     pathname === "/contact" ||
     pathname === "/politica-confidentialitate" ||
     pathname === "/intrebari-frecvente";

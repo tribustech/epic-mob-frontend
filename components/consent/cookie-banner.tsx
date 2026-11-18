@@ -32,7 +32,7 @@ export function CookieBanner() {
   // Clear the fixed bottom bars: the configurator's action bar (all sizes) and
   // the mobile bars on the homepage and contact page.
   const offset =
-    pathname === "/configurator"
+    pathname === "/cere-oferta" || pathname === "/configurator"
       ? "bottom-28"
       : pathname === "/" || pathname === "/contact"
         ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom))] lg:bottom-6"

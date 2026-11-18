@@ -9,7 +9,7 @@ export function SiteFooter() {
   const pathname = usePathname();
   // The quote wizard is a focused, full-screen flow — no footer, so the sticky
   // action bar has nothing to overlap.
-  if (pathname === "/configurator") return null;
+  if (pathname === "/cere-oferta" || pathname === "/configurator") return null;
 
   // The warm footer is the site-wide footer. Pages with a fixed mobile action
   // bar (homepage warm-tabbar, contact action bar) reserve bottom padding for
