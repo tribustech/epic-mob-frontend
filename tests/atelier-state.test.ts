@@ -325,3 +325,11 @@ test("separator bottom: drawers or doors, height clamped, NONE removes it, handl
   const dressing = defaultConfig(catalog, "DRESSING");
   assert.equal(atelierReducer(dressing, { type: "setBottom", bottom: { type: "SERTARE" } }), dressing);
 });
+
+test("separator bottom: one drawer, shelves behind the doors (0-4)", () => {
+  let c = defaultConfig(catalog, "SEPARATOR");
+  c = atelierReducer(c, { type: "setBottom", bottom: { type: "SERTARE", drawers: 1 } });
+  assert.equal(c.bottom?.drawers, 1);
+  c = atelierReducer(c, { type: "setBottom", bottom: { type: "USI", shelves: 7 } });
+  assert.deepEqual(c.bottom, { type: "USI", shelves: 4 });
+});

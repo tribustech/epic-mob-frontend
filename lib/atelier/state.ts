@@ -266,7 +266,9 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       const bottom: AtelierBottom = { type: b.type === "USI" ? "USI" : "SERTARE" };
       if (b.heightMm !== undefined && Number.isFinite(b.heightMm))
         bottom.heightMm = clamp(Math.round(b.heightMm), ...BOTTOM_HEIGHT_RANGE);
-      if (b.drawers === 3) bottom.drawers = 3;
+      if (bottom.type === "SERTARE" && (b.drawers === 1 || b.drawers === 3)) bottom.drawers = b.drawers;
+      if (bottom.type === "USI" && b.shelves !== undefined && Number.isFinite(b.shelves))
+        bottom.shelves = clamp(Math.round(b.shelves), 0, 4);
       return { ...state, bottom };
     }
     case "setColumnDoorsAcross": {

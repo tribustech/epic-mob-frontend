@@ -14,7 +14,12 @@ export interface AtelierColumn {
 export type RailPosition = 'SUS' | 'JOS';
 /** Separator: partea de jos, pe toată lățimea — sertare Tandembox sau o ușă batantă pe coloană, cu PFL în spate. */
 export type BottomType = 'NONE' | 'SERTARE' | 'USI';
-export interface AtelierBottom { type: BottomType; heightMm?: number; drawers?: 2 | 3 }  // heightMm de la podea (cu picioare); implicit 700
+export interface AtelierBottom {
+  type: BottomType;
+  heightMm?: number;      // de la podea (cu picioare); implicit 700
+  drawers?: 1 | 2 | 3;    // SERTARE; implicit 2
+  shelves?: number;       // USI: polițe în spatele ușilor, 0–4; implicit 1
+}
 export type FrontKind = 'PAL' | 'MDF_MELAMINAT' | 'MDF_VOPSIT';
 export interface AtelierFronts { kind: FrontKind; materialId?: string; modelId?: string; ralCode?: string; faces?: 1 | 2 }
 export type DoorType = 'NONE' | 'GLISANTE' | 'GLISANTE_OGLINDA' | 'GLISANTE_STICLA' | 'BATANTE';

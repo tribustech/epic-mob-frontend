@@ -69,11 +69,31 @@ export function BottomPanel({
                   className="atelier-input mt-2"
                   value={bottom.drawers ?? 2}
                   onChange={(e) =>
-                    dispatch({ type: "setBottom", bottom: { ...bottom, drawers: Number(e.target.value) === 3 ? 3 : 2 } })
+                    dispatch({ type: "setBottom", bottom: { ...bottom, drawers: Number(e.target.value) as 1 | 2 | 3 } })
                   }
                 >
+                  <option value={1}>1 sertar</option>
                   <option value={2}>2 sertare</option>
                   <option value={3}>3 sertare</option>
+                </select>
+              </div>
+            )}
+            {bottom.type === "USI" && (
+              <div className="min-w-0">
+                <label htmlFor="atelier-bottom-shelves" className="atelier-label">
+                  Polițe în spatele ușilor
+                </label>
+                <select
+                  id="atelier-bottom-shelves"
+                  className="atelier-input mt-2"
+                  value={bottom.shelves ?? 1}
+                  onChange={(e) => dispatch({ type: "setBottom", bottom: { ...bottom, shelves: Number(e.target.value) } })}
+                >
+                  {[0, 1, 2, 3, 4].map((n) => (
+                    <option key={n} value={n}>
+                      {n === 0 ? "Fără polițe" : n === 1 ? "1 poliță" : `${n} polițe`}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
