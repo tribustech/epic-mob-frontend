@@ -35,8 +35,11 @@ export function ProductView({
 
   // ?culoare=<palette> opens that colour (links from the home page, shared links)
   useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get("culoare");
-    if (wanted && item.variants.some((v) => v.paletteId === wanted)) setPaletteId(wanted);
+    const fromUrl = () => {
+      const wanted = new URLSearchParams(window.location.search).get("culoare");
+      if (wanted && item.variants.some((v) => v.paletteId === wanted)) setPaletteId(wanted);
+    };
+    fromUrl();
   }, [item.variants]);
 
   const variant = item.variants.find((v) => v.paletteId === paletteId) ?? item.variants[0];
@@ -100,7 +103,6 @@ export function ProductView({
             </button>
           </div>
         )}
-        {!showPhoto && scene && <p className="shop-viewer__hint">Rotește cu degetul sau cu mouse-ul. Atinge o ușă sau un sertar ca să-l deschizi.</p>}
       </div>
 
       <div className="shop-product__info">
@@ -126,6 +128,7 @@ export function ProductView({
                 type="button"
                 className={`shop-colour ${v.paletteId === variant.paletteId ? "is-active" : ""}`}
                 aria-pressed={v.paletteId === variant.paletteId}
+                data-palette={v.paletteId}
                 onClick={() => choose(v.paletteId)}
                 title={v.name}
               >

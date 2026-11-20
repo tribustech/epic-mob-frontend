@@ -14,6 +14,7 @@ export async function WarmShop() {
   const picks = [...offers, ...items.filter((i) => !i.offer && i.badge), ...items.filter((i) => !i.offer && !i.badge)].slice(0, 8);
   const top = offers[0]?.offer ?? null;
   const maxPct = Math.max(0, ...offers.map((o) => o.offer?.percent ?? 0));
+  const minPct = Math.min(...offers.map((o) => o.offer?.percent ?? 0));
 
   return (
     <section className="home-shop" aria-labelledby="home-shop-title">
@@ -25,7 +26,7 @@ export async function WarmShop() {
               Dulapuri, comode și biblioteci gata gândite
             </h2>
             <p className="shop-section-head__note">
-              Alegi modelul și culoarea, vezi prețul pe loc. {DELIVERY_TEXT}, cu montaj inclus.
+              Alegi modelul și culoarea și vezi prețul pe loc. {DELIVERY_TEXT}, montajul e inclus.
             </p>
           </div>
           <Link href="/magazin" className="btn-warm btn-warm--ghost">
@@ -38,7 +39,7 @@ export async function WarmShop() {
             <div>
               <p className="eyebrow-warm">{top.label}</p>
               <h3 className="display-font home-shop__banner-title">
-                Până la −{maxPct}% la {offers.length} modele preferate
+                {minPct === maxPct ? "" : "Până la "}−{maxPct}% la {offers.length} modele preferate
               </h3>
               <p>Reducere față de prețul obișnuit, la toate culorile, până pe {offerEndText(top)}.</p>
             </div>

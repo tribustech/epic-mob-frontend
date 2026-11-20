@@ -2,6 +2,7 @@ import { CONTENT_LABELS } from "../atelier/categories";
 import { hasMirror } from "../atelier/door-types";
 import { LAYOUT_PRESETS, type LayoutPreset } from "../atelier/presets";
 import type { AtelierCategory } from "../atelier/types.ts";
+import RENDERS from "./renders.json";
 
 /**
  * The shop („Magazin"): ready-made pieces built from the configurator's models (lib/atelier/presets.ts)
@@ -99,6 +100,12 @@ const CATEGORY_OF: Record<AtelierCategory, ShopCategory> = {
   SUSPENDAT: "suspendate",
 };
 const DEFAULT_ROOM: Record<AtelierCategory, ShopRoom> = { DRESSING: "dormitor", COMODA: "dormitor", SEPARATOR: "living", SUSPENDAT: "living" };
+
+/** 3D renders of each colour (scripts/render-shop-images.cjs): public/magazin/randari/<slug>/<palette>.webp */
+export function renderOf(slug: string, paletteId: string): string | null {
+  const list = (RENDERS as Record<string, string[]>)[slug];
+  return list?.includes(paletteId) ? `/magazin/randari/${slug}/${paletteId}.webp` : null;
+}
 
 /** Photos already generated (public/magazin/foto/<slug>.webp). Kept in code so the build needs no fs. */
 export const PHOTOS: ReadonlySet<string> = new Set<string>([]);

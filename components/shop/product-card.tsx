@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MiniPreview } from "@/components/atelier/mini-preview";
 import { swatchStyle } from "@/components/atelier/material-look";
 import { presetById } from "@/lib/atelier/presets";
+import { renderOf } from "@/lib/shop/products";
 import type { ShopItem, ShopVariant } from "@/lib/shop/server";
 import { formatPrice } from "./price";
 
@@ -12,6 +13,11 @@ export function ProductPicture({ item, variant, sizes, priority = false }: { ite
   if (item.photo && isDefault) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={item.photo} alt={`${item.name}, ${variant.name}`} className="shop-pic__photo" sizes={sizes} loading={priority ? "eager" : "lazy"} />;
+  }
+  const render = renderOf(item.slug, variant.paletteId);
+  if (render) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={render} alt={`${item.name}, ${variant.name}`} className="shop-pic__photo" sizes={sizes} loading={priority ? "eager" : "lazy"} width={800} height={600} />;
   }
   return (
     <div className="shop-pic__studio" role="img" aria-label={`${item.name}, ${variant.name}`}>
