@@ -108,7 +108,47 @@ export function renderOf(slug: string, paletteId: string): string | null {
 }
 
 /** Photos already generated (public/magazin/foto/<slug>.webp). Kept in code so the build needs no fs. */
-export const PHOTOS: ReadonlySet<string> = new Set<string>([]);
+export const PHOTOS: ReadonlySet<string> = new Set<string>([
+  "comoda-4-sertare-100",
+  "comoda-clasica-160",
+  "comoda-hol-120",
+  "comoda-inalta-80",
+  "comoda-mixta-180",
+  "comoda-nisa-140",
+  "comoda-tv-200",
+  "comoda-tv-240",
+  "dressing-clasic-240",
+  "dressing-copii-150",
+  "dressing-deschis-280",
+  "dressing-dormitor-180",
+  "dressing-familie-300",
+  "dressing-hol-120",
+  "dressing-hol-oglinda-160",
+  "dressing-ingust-90",
+  "dressing-mare-360",
+  "dressing-oglinda-240",
+  "dressing-oglinda-mijloc-240",
+  "dressing-oglinda-una-180",
+  "dressing-oglinzi-300",
+  "dressing-sertare-200",
+  "dressing-sticla-300",
+  "dressing-tavan-270",
+  "noptiera-50",
+  "separator-biblioteca-120",
+  "separator-inalt-240",
+  "separator-ingust-90",
+  "separator-scund-200",
+  "separator-sertare-160",
+  "separator-usi-180",
+  "suspendat-aventos-180",
+  "suspendat-baie-60",
+  "suspendat-clasic-120",
+  "suspendat-etajera-150",
+  "suspendat-hol-90",
+  "suspendat-mixt-200",
+  "suspendat-tv-180",
+  "suspendat-tv-240",
+]);
 
 function variantsOf(preset: LayoutPreset): string[] {
   const own = preset.paletteId ?? "alb-total";
