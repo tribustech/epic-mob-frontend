@@ -3,8 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AtelierConfigurator } from "@/components/atelier/atelier-configurator";
 import { getAtelierCatalog } from "@/lib/atelier/crm";
-import { isHandleKind } from "@/lib/atelier/handles";
-import type { AtelierCatalog, AtelierGlass, AtelierMaterial } from "@/lib/atelier/types";
+import { publicCatalog } from "@/lib/atelier/public-catalog";
 
 // The catalog comes from the CRM (cached 10 minutes); regenerate on the same cadence
 // so a page built while the CRM was unreachable recovers on its own.
@@ -25,42 +24,6 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
-
-/** Only the public fields reach the client bundle / RSC payload, whatever else the CRM sends. */
-function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
-  const material = (m: AtelierMaterial): AtelierMaterial => ({
-    id: m.id,
-    name: m.name,
-    decorCode: m.decorCode ?? null,
-    brand: m.brand ?? null,
-    imageUrl: m.imageUrl ?? null,
-  });
-  // mirror / glass types for the doors: only how they look, never a price
-  const glass = (g: AtelierGlass): AtelierGlass => ({
-    id: String(g.id),
-    name: String(g.name ?? ""),
-    tint: typeof g.tint === "string" && /^#[0-9a-f]{6}$/i.test(g.tint) ? g.tint : "#cfd8de",
-    ...(g.matte === true ? { matte: true } : {}),
-    ...(g.opaque === true ? { opaque: true } : {}),
-  });
-  const glassOf = (list: unknown): AtelierGlass[] =>
-    (Array.isArray(list) ? (list as AtelierGlass[]) : []).filter((g) => g && typeof g.id === "string" && g.id).map(glass);
-  return {
-    carcass: (catalog.carcass ?? []).map(material),
-    fronts: {
-      PAL: (catalog.fronts?.PAL ?? []).map(material),
-      MDF_MELAMINAT: (catalog.fronts?.MDF_MELAMINAT ?? []).map(material),
-      MDF_VOPSIT: (catalog.fronts?.MDF_VOPSIT ?? []).map((m) => ({ id: m.id, name: m.name })),
-    },
-    ral: (catalog.ral ?? []).map((r) => ({ code: r.code, name: r.name, hex: r.hex })),
-    // only the handle types this site knows how to show
-    handles: {
-      types: (catalog.handles?.types ?? []).filter((t) => t && isHandleKind(t.type)).map((t) => ({ type: t.type, label: String(t.label ?? "") })),
-    },
-    // absent on an older CRM: the configurator then keeps the one-face-for-all-doors choice
-    ...(catalog.glass ? { glass: { mirrors: glassOf(catalog.glass.mirrors), glasses: glassOf(catalog.glass.glasses) } } : {}),
-  };
-}
 
 function CatalogUnavailable() {
   return (
