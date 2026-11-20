@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight, PhoneCall, Ruler, ShieldCheck, Wrench } from "lucide-react";
+import { withAllPrices } from "@/components/shop/all-prices";
 import { ProductCard } from "@/components/shop/product-card";
 import { ProductView } from "@/components/shop/product-view";
 import { SITE_URL } from "@/lib/business-data";
@@ -42,6 +43,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .filter((i) => i.slug !== slug && (i.category === item.category || i.rooms.some((r) => item.rooms.includes(r))))
     .sort((a, b) => Number(b.category === item.category) - Number(a.category === item.category))
     .slice(0, 4);
+  const relatedPriced = await withAllPrices(related);
 
   const priced = item.variants.filter((v) => v.finalPrice != null);
   const jsonLd = priced.length
@@ -67,12 +69,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <main className="home-warm shop-page">
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />}
       <div className="section-shell">
-        <nav className="shop-crumbs" aria-label="Navigare">
-          <Link href="/magazin">Magazin</Link>
-          <ChevronRight size={14} aria-hidden="true" />
-          {category && <Link href={`/magazin?categorie=${category.id}#produse`}>{category.label}</Link>}
-          <ChevronRight size={14} aria-hidden="true" />
-          <span aria-current="page">{item.name}</span>
+        <nav className="shop-crumbs" aria-label="Unde te afli">
+          <ol>
+            <li>
+              <Link href="/magazin">Magazin</Link>
+            </li>
+            {category && (
+              <li>
+                <ChevronRight size={14} aria-hidden="true" />
+                <Link href={`/magazin?categorie=${category.id}#produse`}>{category.label}</Link>
+              </li>
+            )}
+            <li className="shop-crumbs__here">
+              <ChevronRight size={14} aria-hidden="true" />
+              <span aria-current="page">{item.name}</span>
+            </li>
+          </ol>
         </nav>
 
         <ProductView item={item} scenes={scenes} configs={configs} />
@@ -113,8 +125,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         {related.length > 0 && (
           <section className="shop-related">
             <h2 className="shop-details__title">S-ar putea să-ți placă și</h2>
-            <ul className="shop-grid">
-              {related.map((r) => (
+            <ul className="shop-grid shop-grid--four">
+              {relatedPriced.map((r) => (
                 <li key={r.slug}>
                   <ProductCard item={r} />
                 </li>
