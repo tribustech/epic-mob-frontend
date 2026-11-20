@@ -15,6 +15,13 @@
     "alb-gri-matase",
     "alb-stejar-deschis"
   ],
+  "comoda-clasica-160": [
+    "stejar-alb",
+    "alb-total",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "nuc-crem"
+  ],
   "comoda-tv-240": [
     "alb-total"
   ],
@@ -91,6 +98,7 @@
   "dressing-oglinda-una-180": [
     "alb-casmir",
     "alb-total",
+    "alb-stejar-natur",
     "alb-antracit",
     "alb-gri-matase",
     "alb-stejar-deschis"
@@ -119,7 +127,22 @@
   ],
   "dressing-ingust-90": [
     "alb-total",
-    "stejar-natur"
+    "stejar-natur",
+    "alb-stejar-natur",
+    "antracit-stejar",
+    "nuc-crem"
+  ],
+  "comoda-4-sertare-100": [
+    "alb-total",
+    "stejar-natur",
+    "alb-stejar-natur",
+    "nuc-crem",
+    "salvie-stejar"
+  ],
+  "comoda-tv-200": [
+    "alb-total",
+    "stejar-natur",
+    "gri-casmir"
   ],
   "noptiera-50": [
     "stejar-casmir"

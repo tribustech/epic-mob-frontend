@@ -356,3 +356,61 @@ Reviewed: `/tmp/claude-0/batch5/<slug>/<paletteId>.webp`, same method and standa
 
 - dressing-sticla-300: add the no-lighting line to all remaining colours; antracit-stejar already shows faint light bars.
 - dressing-oglinzi-300: add `Every object in the reflection also exists in the room` and `no framed photographs of people` to remaining mirror prompts.
+
+---
+
+# Batch 6 (20 photos; dressing-oglinzi-300/alb-stejar-natur and dressing-sticla-300/gri-casmir skipped as instructed)
+
+Reviewed: `/tmp/claude-0/batch6/<slug>/<paletteId>.webp`, same method and standard. First chests of drawers. None is black or dark; all fronts and bodies match the light palettes of the renders.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-4-sertare-100 / alb-stejar-natur | ACCEPT | 8.5 | 4 oak drawers, white body, steel channel above each; top just below door-handle height (~95–100 cm) |
+| comoda-4-sertare-100 / alb-total | ACCEPT | 9 | Matches render; lamp, tote bag |
+| comoda-4-sertare-100 / gri-casmir | REJECT (borderline) | 8 | Chest is right, but a large wardrobe in the same cashmere decor with bar handles fills the left third of the photo |
+| comoda-4-sertare-100 / nuc-crem | ACCEPT | 8.5 | Cream fronts, walnut body and plinth |
+| comoda-4-sertare-100 / salvie-stejar | ACCEPT | 9 | Sage fronts, light oak body |
+| comoda-4-sertare-100 / stejar-natur | ACCEPT | 8.5 | All oak; child's room |
+| comoda-clasica-160 / alb-stejar-natur | ACCEPT | 9 | 2 × 3 oak drawers, black knobs centred, white body; three prints above |
+| comoda-clasica-160 / alb-total | ACCEPT | 8.5 | Matches render; mirror above; knobs slightly small |
+| comoda-clasica-160 / gri-casmir | ACCEPT | 9 | Greige; mirror reflects bed and lamp plausibly |
+| comoda-clasica-160 / nuc-crem | ACCEPT | 8.5 | Cream fronts, walnut body |
+| comoda-clasica-160 / stejar-alb | ACCEPT | 9 | White fronts, oak body; round mirror |
+| comoda-clasica-160 / stejar-natur | REJECT | 7 | A TV on legs stands on the chest in front of the wall mirror; a second wardrobe with black handles is beside it |
+| comoda-tv-200 / alb-total | ACCEPT | 8.5 | 2 drawers, niche with shelf, 2 drawers; black channels as in the render; TV ~130 cm, narrower than the unit, ~18 cm above it |
+| comoda-tv-200 / gri-casmir | ACCEPT | 9 | Matches render; TV ~115 cm |
+| comoda-tv-200 / stejar-natur | ACCEPT | 9 | Matches render; TV ~120 cm |
+| dressing-ingust-90 / alb-stejar-natur | ACCEPT | 8.5 | Slim (about 2.5 : 1), beside the room door, taller than it |
+| dressing-ingust-90 / antracit-stejar | ACCEPT | 8 | Fills the end of a narrow hall; anthracite edge and plinth; reads slightly wide |
+| dressing-ingust-90 / gri-casmir | REJECT | 8 | Front is 2.0 : 1 instead of 2.7 : 1; next to the 80 cm door it reads about 125–130 cm wide |
+| dressing-ingust-90 / nuc-crem | ACCEPT | 8.5 | Correct slim proportion (2.8 : 1); walnut side |
+| dressing-oglinda-una-180 / alb-stejar-natur (redo) | ACCEPT | 8.5 | Bed in the foreground and in the mirror, door closed, no second room |
+
+## Rejects
+
+### comoda-4-sertare-100 / gri-casmir
+- The chest matches the render. The wardrobe beside it is not part of the product and is in the same decor, so the photo reads as a set.
+- Prompt additions:
+  - `The chest of drawers is the only cabinet furniture in the photo: no wardrobe, no second chest, no shelving unit.`
+  - `Plain wall on both sides of the chest for at least 40 cm.`
+
+### comoda-clasica-160 / stejar-natur
+- The chest matches the render. A TV on its own legs stands on top, directly in front of the mirror, which makes no sense; a wardrobe with black bar handles stands at the left.
+- Prompt additions:
+  - `No TV. On the chest only a lamp or a plant and one small object.`
+  - `Above the chest one mirror OR one picture, fully visible, nothing in front of it.`
+  - `The chest of drawers is the only cabinet furniture in the photo: no wardrobe.`
+
+### dressing-ingust-90 / gri-casmir
+- Two doors and black knobs are right, but the wardrobe is as wide as the dressing-hol-120 model.
+- Prompt additions:
+  - `The wardrobe is narrow: only slightly wider than the interior door beside it (90 cm against 80 cm), and 2.7 times taller than wide.`
+  - `Each door is 45 cm wide, half the width of the interior door leaf.`
+
+## Rules for the remaining comode
+
+1. `The chest is the only cabinet furniture in the photo: no wardrobe, no second chest, no TV on a bedroom chest.`
+2. `The top of the chest is below the door handle of the room door (95 cm chest: just below; 80 cm chest: a hand's width below).`
+3. `GOLA: one straight metal channel above each drawer front, full width, same thickness on every drawer; nothing else on the fronts.`
+4. `Knobs: one small round knob centred on each drawer front, 3 cm, all identical.`
+5. `Body, plinth and fronts in exactly the light colours named; no black or dark grey panels anywhere on the chest.`
