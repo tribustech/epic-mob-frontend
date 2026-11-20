@@ -1,5 +1,5 @@
-import { hasMirror, missingGlassIds } from "./door-types.ts";
-import { categoryDefaultHandle, handleUnavailable, hasHandledFronts } from "./handles.ts";
+import { hasMirror, missingGlassIds } from "./door-types";
+import { categoryDefaultHandle, handleUnavailable, hasHandledFronts } from "./handles";
 import type { AtelierAction } from "./state.ts";
 import type { AtelierCatalog, AtelierConfig } from "./types.ts";
 

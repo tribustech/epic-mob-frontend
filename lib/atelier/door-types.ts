@@ -1,4 +1,4 @@
-import { autoDoorCount } from "./doors.ts";
+import { autoDoorCount } from "./doors";
 import type { AtelierCatalog, AtelierConfig, AtelierDoors, AtelierGlass, DoorFill, DoorType } from "./types.ts";
 
 /** The doors panel asks two things: how the doors open, then what their face is. */

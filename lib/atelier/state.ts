@@ -1,5 +1,5 @@
-import { doorFills, doorOpening, isDoorFill, normalizeDoors } from "./door-types.ts";
-import { cleanHandle, hasHandledFronts } from "./handles.ts";
+import { doorFills, doorOpening, isDoorFill, normalizeDoors } from "./door-types";
+import { cleanHandle, hasHandledFronts } from "./handles";
 import { BARA_SERTARE_RANGE, BOTTOM_HEIGHT_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
   AtelierCatalog,

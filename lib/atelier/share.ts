@@ -1,6 +1,6 @@
-import { BOTTOM_HEIGHT_RANGE, CATEGORY_ORDER, CATEGORY_RULES } from "./categories.ts";
-import { doorOpening, isDoorFill, normalizeDoors } from "./door-types.ts";
-import { HANDLE_FINISHES, HANDLE_KINDS, cleanHandle } from "./handles.ts";
+import { BOTTOM_HEIGHT_RANGE, CATEGORY_ORDER, CATEGORY_RULES } from "./categories";
+import { doorOpening, isDoorFill, normalizeDoors } from "./door-types";
+import { HANDLE_FINISHES, HANDLE_KINDS, cleanHandle } from "./handles";
 import type {
   AtelierBottom,
   AtelierCatalog,
