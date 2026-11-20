@@ -48,6 +48,7 @@
   "dressing-familie-300": [
     "stejar-casmir",
     "alb-total",
+    "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
     "antracit-stejar"
@@ -68,7 +69,33 @@
     "nuc-crem"
   ],
   "dressing-copii-150": [
-    "denim-alb"
+    "denim-alb",
+    "alb-total",
+    "stejar-natur",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "antracit-stejar"
+  ],
+  "dressing-tavan-270": [
+    "supermat-crem",
+    "alb-total",
+    "stejar-natur",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "antracit-stejar"
+  ],
+  "dressing-hol-oglinda-160": [
+    "alb-casmir"
+  ],
+  "dressing-oglinda-una-180": [
+    "alb-casmir",
+    "alb-total",
+    "alb-antracit",
+    "alb-gri-matase",
+    "alb-stejar-deschis"
+  ],
+  "dressing-oglinda-mijloc-240": [
+    "alb-casmir"
   ],
   "noptiera-50": [
     "stejar-casmir"

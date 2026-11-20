@@ -260,3 +260,49 @@ Reviewed: `/tmp/claude-0/batch3/<slug>/<paletteId>.webp`, same method and standa
 - Felt slippers appear in about 15 of the 22 photos and a closed book in about 8. Rule A10 is being satisfied with the same two props, and side by side on the site it will show. Replace with a rotating list, one per photo: `One personal object only, chosen for this photo: <a folded blanket | a tote bag | a phone charger on the nightstand | a child's toy | a pair of sneakers | a laundry basket>. No slippers, no book.`
 - dressing-deschis-280: two of six (antracit-stejar, gri-casmir) are alcoves inside a bedroom with the bed corner in frame. They make sense, so accepted, but for the remaining colours add: `Separate dressing room with no bed in the frame.`
 - dressing-mare-360: two of six do not fill the wall. Add: `Both ends of the wardrobe touch the side walls; no free wall beside it.`
+
+---
+
+# Batch 4 (20 photos; dressing-mare-360/stejar-natur skipped as instructed)
+
+Reviewed: `/tmp/claude-0/batch4/<slug>/<paletteId>.webp`, same method and standard. Repeated slippers/book (old A10) noted, not used as a reason to reject.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-copii-150 / alb-stejar-natur | ACCEPT | 9 | 2 oak doors, steel knobs, white body; storage boxes on top; child's bed, toy, play rug |
+| dressing-copii-150 / alb-total | ACCEPT | 8.5 | Matches render; desk, backpack, toy; knobs small but present |
+| dressing-copii-150 / antracit-stejar | ACCEPT | 8 | Anthracite body and plinth; reads about 10% too wide for its height; wall map has no lettering |
+| dressing-copii-150 / gri-casmir | ACCEPT | 8.5 | Greige; bunk bed, children's drawings |
+| dressing-copii-150 / stejar-natur | ACCEPT | 8.5 | All oak; bookcase, bean bag; book covers are pictures without text |
+| dressing-familie-300 / stejar-natur (redo) | ACCEPT | 8.5 | Stretching gone, plinth visible, floor in front is clear; ratio 1.15 as real |
+| dressing-hol-oglinda-160 / alb-casmir | ACCEPT | 8.5 | 2 mirror doors, centre strips, black bars; reflection shows the hall (hooks, room door, entrance door), no camera |
+| dressing-oglinda-mijloc-240 / alb-casmir | ACCEPT | 8 | Plain, mirror, plain; 3 gold bars as in the render; white body; reflection shows a bed, loosely consistent with the room |
+| dressing-oglinda-una-180 / alb-antracit | ACCEPT | 8 | Mirror left, anthracite right, white body; reflection matches window, radiator and bed |
+| dressing-oglinda-una-180 / alb-casmir | ACCEPT | 8.5 | Reflection matches curtains and bed corner |
+| dressing-oglinda-una-180 / alb-gri-matase | ACCEPT | 8.5 | Reflection shows bed, wall lamp and window, plausible |
+| dressing-oglinda-una-180 / alb-stejar-deschis | ACCEPT | 8.5 | Light oak panel; reflection matches balcony door and curtains |
+| dressing-oglinda-una-180 / alb-stejar-natur | REJECT | 7 | Empty room without a bed; mirror reflects a doorway into a different bedroom that cannot be opposite |
+| dressing-oglinda-una-180 / alb-total | ACCEPT | 8.5 | Reflection matches bed and knitted throw |
+| dressing-tavan-270 / alb-stejar-natur | ACCEPT | 9 | 3 × 2 doors, no handles, closes against the ceiling with a white filler |
+| dressing-tavan-270 / alb-total | ACCEPT | 8.5 | Reaches the ceiling; joint at mid-height |
+| dressing-tavan-270 / antracit-stejar | ACCEPT | 8 | Reaches the ceiling with a small shadow gap; room has no bed and reads as a spare room |
+| dressing-tavan-270 / gri-casmir | ACCEPT | 9 | Built in floor to ceiling, wall to wall |
+| dressing-tavan-270 / stejar-natur | ACCEPT | 8.5 | About 5 cm shadow gap under the ceiling, as the brief allows |
+| dressing-tavan-270 / supermat-crem | ACCEPT | 8.5 | Cream fronts, white body, meets the ceiling cornice |
+
+## Reject
+
+### dressing-oglinda-una-180 / alb-stejar-natur
+- The wardrobe is right (mirror left, oak panel right, white body). The room is not: it is empty apart from a rug, with a real bedroom visible through an open door on the right.
+- The mirror shows three framed pictures and a second doorway with another bed and window. That doorway would have to be on the opposite wall, so the photo shows two different bedrooms.
+- The oak mirror frame is also thicker than in the render.
+- Prompt additions:
+  - `The wardrobe stands in the bedroom itself: a double bed is in the lower corner of the frame, and the same bed appears in the mirror.`
+  - `The mirror reflects only this room: the bed, the window with its curtains and the opposite wall. No doorway, no second room and no second bed in the reflection.`
+  - `The room door is closed.`
+  - `The mirror covers the whole left door, with only a 1 cm edge around it.`
+
+## Patterns
+
+- dressing-tavan-270: all six reach the ceiling and have no handles. Nothing to change.
+- dressing-oglinda-una-180: the five accepted ones follow the rule that the mirror shows the room's own bed and window. Keep that line in every mirror prompt.
