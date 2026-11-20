@@ -1,7 +1,7 @@
 import { CONTENT_LABELS } from "../atelier/categories";
 import { hasMirror } from "../atelier/door-types";
 import { LAYOUT_PRESETS, type LayoutPreset } from "../atelier/presets";
-import type { AtelierCategory } from "../atelier/types.ts";
+import type { AtelierCategory, AtelierHandle } from "../atelier/types.ts";
 import RENDERS from "./renders.json";
 
 /**
@@ -89,6 +89,8 @@ export interface ShopProduct {
   rooms: ShopRoom[];
   /** palette ids, the first is the one shown by default */
   paletteIds: string[];
+  /** the shop's own handle for this model (variety across the shop); dropped where the fronts or the catalog cannot take it */
+  handle?: AtelierHandle;
   /** AI photo of the default variant in a room (public/magazin/foto/<slug>.webp), when generated */
   photo?: string;
 }
@@ -106,6 +108,12 @@ export function renderOf(slug: string, paletteId: string): string | null {
   const list = (RENDERS as Record<string, string[]>)[slug];
   return list?.includes(paletteId) ? `/magazin/randari/${slug}/${paletteId}.webp` : null;
 }
+
+/**
+ * Handles per model, so the shop does not show the same bar handle everywhere. Applied only where the model
+ * has handled fronts, the CRM catalog offers the type and the fronts can take it (lib/shop/server.ts).
+ */
+export const HANDLES: Record<string, AtelierHandle> = {};
 
 /** Photos already generated (public/magazin/foto/<slug>.webp). Kept in code so the build needs no fs. */
 export const PHOTOS: ReadonlySet<string> = new Set<string>([
@@ -165,6 +173,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = LAYOUT_PRESETS.map((preset) => {
     rooms: ROOMS[preset.id] ?? [DEFAULT_ROOM[preset.category]],
     paletteIds: variantsOf(preset),
   };
+  if (HANDLES[slug]) product.handle = HANDLES[slug];
   if (PHOTOS.has(slug)) product.photo = `/magazin/foto/${slug}.webp`;
   return product;
 });

@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { carcassLook, frontLook, type MaterialLook } from "@/components/atelier/material-look";
 import { crmFetch, getAtelierCatalog } from "@/lib/atelier/crm";
+import { handleUnavailable, hasHandledFronts } from "@/lib/atelier/handles";
 import { followUps } from "@/lib/atelier/house-rules";
 import { resolvePalettes, type ResolvedPalette } from "@/lib/atelier/palettes";
 import { presetAvailable } from "@/lib/atelier/presets";
@@ -51,6 +52,11 @@ export function variantConfig(product: ShopProduct, palette: ResolvedPalette, ca
     fronts: { ...palette.fronts },
   } as AtelierConfig;
   config = atelierReducer(config, { type: "applyPreset", shape: product.preset.shape });
+  const h = product.handle;
+  const offered = !catalog.handles || catalog.handles.types.some((t) => t.type === h?.type);
+  if (h && offered && hasHandledFronts(config) && !handleUnavailable(config, h.type)) {
+    config = atelierReducer(config, { type: "setHandle", handle: h });
+  }
   return followUps(config, config, catalog).actions.reduce(atelierReducer, config);
 }
 
