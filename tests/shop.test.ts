@@ -62,3 +62,16 @@ test("renders are listed per colour and only for known colours", () => {
   }
   assert.equal(renderOf("nu-exista", "alb-total"), null);
 });
+
+test("every listed room photo is a colour the shop sells and exists on disk", async () => {
+  const { existsSync } = await import("node:fs");
+  const PHOTOS = (await import("../lib/shop/photos.json", { with: { type: "json" } })).default as Record<string, string[]>;
+  for (const [slug, ids] of Object.entries(PHOTOS)) {
+    const product = SHOP_PRODUCTS.find((p) => p.slug === slug);
+    assert.ok(product, `photo for unknown model ${slug}`);
+    for (const id of ids) {
+      assert.ok(product.paletteIds.includes(id), `${slug}: photo for a colour not sold (${id})`);
+      assert.ok(existsSync(`public/magazin/foto/${slug}/${id}.webp`), `${slug}/${id}.webp missing`);
+    }
+  }
+});

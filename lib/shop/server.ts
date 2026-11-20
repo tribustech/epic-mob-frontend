@@ -10,7 +10,7 @@ import { encodeShare } from "@/lib/atelier/share";
 import { atelierReducer } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig, AtelierPriceResult, AtelierScene } from "@/lib/atelier/types";
 import { offerFor, offerPrice, type ShopOffer } from "./offers";
-import { SHOP_PRODUCTS, productBySlug, type ShopProduct } from "./products";
+import { SHOP_PRODUCTS, pictureOf, productBySlug, type ShopProduct } from "./products";
 
 /** One colour combination of a product, ready for the page (serializable). */
 export interface ShopVariant {
@@ -35,6 +35,7 @@ export interface ShopItem {
   badge: string | null;
   category: ShopProduct["category"];
   rooms: ShopProduct["rooms"];
+  /** the best picture of the default colour (room photo, else 3D render) */
   photo: string | null;
   offer: ShopOffer | null;
   variants: ShopVariant[];
@@ -129,7 +130,7 @@ async function buildItem(
     badge: product.preset.badge ?? null,
     category: product.category,
     rooms: product.rooms,
-    photo: product.photo ?? null,
+    photo: pictureOf(product.slug, chosen[0].id),
     offer,
     variants,
   };

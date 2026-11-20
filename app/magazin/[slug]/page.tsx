@@ -6,7 +6,7 @@ import { withAllPrices } from "@/components/shop/all-prices";
 import { ProductCard } from "@/components/shop/product-card";
 import { ProductView } from "@/components/shop/product-view";
 import { SITE_URL } from "@/lib/business-data";
-import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, productBySlug, productFacts } from "@/lib/shop/products";
+import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, pictureOf, productBySlug, productFacts } from "@/lib/shop/products";
 import { getShopItems, getShopProduct } from "@/lib/shop/server";
 
 export const revalidate = 600;
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: { absolute: title },
     description,
     alternates: { canonical: `/magazin/${slug}` },
-    openGraph: { title, description, url: `/magazin/${slug}`, type: "website", ...(product.photo ? { images: [product.photo] } : {}) },
+    openGraph: { title, description, url: `/magazin/${slug}`, type: "website", ...(pictureOf(slug, product.paletteIds[0]) ? { images: [pictureOf(slug, product.paletteIds[0])!] } : {}) },
   };
 }
 

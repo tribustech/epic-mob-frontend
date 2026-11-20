@@ -4,6 +4,7 @@ import { hasHandledFronts } from "../atelier/handles";
 import { PALETTES } from "../atelier/palettes";
 import { LAYOUT_PRESETS, type LayoutPreset } from "../atelier/presets";
 import type { AtelierCategory, AtelierHandle } from "../atelier/types.ts";
+import PHOTOS from "./photos.json";
 import RENDERS from "./renders.json";
 
 /**
@@ -93,8 +94,6 @@ export interface ShopProduct {
   paletteIds: string[];
   /** the shop's own handle for this model (variety across the shop); dropped where the fronts or the catalog cannot take it */
   handle?: AtelierHandle;
-  /** AI photo of the default variant in a room (public/magazin/foto/<slug>.webp), when generated */
-  photo?: string;
 }
 
 const CATEGORY_OF: Record<AtelierCategory, ShopCategory> = {
@@ -109,6 +108,20 @@ const DEFAULT_ROOM: Record<AtelierCategory, ShopRoom> = { DRESSING: "dormitor", 
 export function renderOf(slug: string, paletteId: string): string | null {
   const list = (RENDERS as Record<string, string[]>)[slug];
   return list?.includes(paletteId) ? `/magazin/randari/${slug}/${paletteId}.webp` : null;
+}
+
+/**
+ * Room photo of one colour (public/magazin/foto/<slug>/<palette>.webp), listed in photos.json by
+ * `node scripts/shop-photos-manifest.cjs` once the photo has been checked against the render and the brief.
+ */
+export function photoOf(slug: string, paletteId: string): string | null {
+  const list = (PHOTOS as Record<string, string[]>)[slug];
+  return list?.includes(paletteId) ? `/magazin/foto/${slug}/${paletteId}.webp` : null;
+}
+
+/** The best picture of one colour: its room photo, else its 3D render. */
+export function pictureOf(slug: string, paletteId: string): string | null {
+  return photoOf(slug, paletteId) ?? renderOf(slug, paletteId);
 }
 
 /**
@@ -144,48 +157,6 @@ export const HANDLES: Record<string, AtelierHandle> = {
   "suspendat-hol-90": { type: "BUTON", finish: "AURIU" },
 };
 
-/** Photos already generated (public/magazin/foto/<slug>.webp). Kept in code so the build needs no fs. */
-export const PHOTOS: ReadonlySet<string> = new Set<string>([
-  "comoda-4-sertare-100",
-  "comoda-clasica-160",
-  "comoda-hol-120",
-  "comoda-inalta-80",
-  "comoda-mixta-180",
-  "comoda-nisa-140",
-  "comoda-tv-200",
-  "comoda-tv-240",
-  "dressing-clasic-240",
-  "dressing-copii-150",
-  "dressing-deschis-280",
-  "dressing-dormitor-180",
-  "dressing-familie-300",
-  "dressing-hol-120",
-  "dressing-hol-oglinda-160",
-  "dressing-ingust-90",
-  "dressing-mare-360",
-  "dressing-oglinda-240",
-  "dressing-oglinda-mijloc-240",
-  "dressing-oglinda-una-180",
-  "dressing-oglinzi-300",
-  "dressing-sertare-200",
-  "dressing-sticla-300",
-  "dressing-tavan-270",
-  "noptiera-50",
-  "separator-biblioteca-120",
-  "separator-inalt-240",
-  "separator-ingust-90",
-  "separator-scund-200",
-  "separator-sertare-160",
-  "separator-usi-180",
-  "suspendat-aventos-180",
-  "suspendat-baie-60",
-  "suspendat-clasic-120",
-  "suspendat-etajera-150",
-  "suspendat-hol-90",
-  "suspendat-mixt-200",
-  "suspendat-tv-180",
-  "suspendat-tv-240",
-]);
 
 /** Extra body colours for open models, after USUAL (their fronts do not show, so only the body counts). */
 const OPEN_EXTRA: string[] = ["sonoma-alb", "tabac-negru", "beton-grafit"];
@@ -239,7 +210,6 @@ export const SHOP_PRODUCTS: ShopProduct[] = LAYOUT_PRESETS.map((preset) => {
     paletteIds: variantsOf(preset),
   };
   if (HANDLES[slug]) product.handle = HANDLES[slug];
-  if (PHOTOS.has(slug)) product.photo = `/magazin/foto/${slug}.webp`;
   return product;
 });
 
