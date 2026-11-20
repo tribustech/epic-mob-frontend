@@ -21,15 +21,15 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem"
   ],
   "comoda-tv-240": [
-    "nuc-negru-mat",
     "alb-total",
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "separator-sertare-160": [
     "stejar-alb",
@@ -40,12 +40,12 @@
     "antracit-stejar"
   ],
   "suspendat-tv-180": [
-    "stejar-negru",
     "alb-total",
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "dressing-deschis-280": [
     "stejar-natur",
@@ -164,16 +164,16 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar",
-    "nuc-crem"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "comoda-tv-200": [
-    "antracit-stejar",
     "alb-total",
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "nuc-crem"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "noptiera-50": [
     "stejar-casmir",
@@ -181,7 +181,7 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem"
   ],
   "comoda-hol-120": [
     "casmir-alb",
@@ -189,7 +189,7 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem"
   ],
   "comoda-mixta-180": [
     "nuc-crem",
@@ -197,15 +197,15 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "salvie-stejar"
   ],
   "comoda-inalta-80": [
     "gri-casmir",
     "alb-total",
     "stejar-natur",
     "alb-stejar-natur",
-    "antracit-stejar",
-    "nuc-crem"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "comoda-nisa-140": [
     "salvie-stejar",
@@ -213,7 +213,7 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem"
   ],
   "separator-biblioteca-120": [
     "stejar-natur",
@@ -260,16 +260,16 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar",
-    "nuc-crem"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "suspendat-tv-240": [
-    "nuc-negru-mat",
     "alb-total",
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "suspendat-baie-60": [
     "alb-casmir",
@@ -277,7 +277,7 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem"
   ],
   "suspendat-aventos-180": [
     "supermat-alb",
@@ -285,15 +285,15 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem"
   ],
   "suspendat-etajera-150": [
     "stejar-natur",
     "alb-total",
     "gri-casmir",
-    "antracit-stejar",
     "nuc-crem",
-    "salvie-stejar"
+    "salvie-stejar",
+    "sonoma-alb"
   ],
   "suspendat-mixt-200": [
     "casmir-alb",
@@ -301,14 +301,14 @@
     "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
-    "antracit-stejar"
+    "nuc-crem"
   ],
   "suspendat-hol-90": [
     "gri-casmir",
     "alb-total",
     "stejar-natur",
     "alb-stejar-natur",
-    "antracit-stejar",
-    "nuc-crem"
+    "nuc-crem",
+    "salvie-stejar"
   ]
 }

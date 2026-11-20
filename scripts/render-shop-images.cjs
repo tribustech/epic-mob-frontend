@@ -21,9 +21,11 @@ const manifestPath = path.join(__dirname, "..", "lib", "shop", "renders.json");
   const page = await browser.newPage({ viewport: { width: 1200, height: 1000 }, deviceScaleFactor: 1 });
   const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, "utf8")) : {};
 
-  await page.goto(`${base}/magazin`, { waitUntil: "networkidle", timeout: 120000 });
-  let slugs = await page.$$eval('.shop-card a[href^="/magazin/"]', (as) => [...new Set(as.map((a) => a.getAttribute("href").split("/")[2].split("?")[0]))]);
-  if (only.length) slugs = slugs.filter((s) => only.includes(s));
+  let slugs = only;
+  if (!slugs.length) {
+    await page.goto(`${base}/magazin`, { waitUntil: "networkidle", timeout: 300000 });
+    slugs = await page.$$eval('.shop-card a[href^="/magazin/"]', (as) => [...new Set(as.map((a) => a.getAttribute("href").split("/")[2].split("?")[0]))]);
+  }
 
   for (const slug of slugs) {
     for (let attempt = 1; ; attempt++) {
