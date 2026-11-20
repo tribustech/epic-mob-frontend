@@ -376,7 +376,14 @@ export function MiniPreview({
         patternTransform={look.grainHorizontal ? "rotate(90)" : undefined}
       >
         <rect width={TILE_MM} height={TILE_MM} fill={look.color} />
-        <image href={look.imageUrl} width={TILE_MM} height={TILE_MM} preserveAspectRatio="xMidYMid slice" />
+        {look.crop ? (
+          // only the clean region of the photo (no supplier label)
+          <svg width={TILE_MM} height={TILE_MM} viewBox={look.crop.join(" ")} preserveAspectRatio="none">
+            <image href={look.imageUrl} width={1} height={1} preserveAspectRatio="none" />
+          </svg>
+        ) : (
+          <image href={look.imageUrl} width={TILE_MM} height={TILE_MM} preserveAspectRatio="xMidYMid slice" />
+        )}
       </pattern>
     ) : null;
 

@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import { MOOD_LABELS, defaultVopsitModelId, type PaletteMood, type ResolvedPalette } from "@/lib/atelier/palettes";
 import type { AtelierCatalog, AtelierConfig, AtelierFronts, AtelierMaterial, FrontKind } from "@/lib/atelier/types";
-import { materialLook, paletteLooks, swatchStyle, type MaterialLook } from "./material-look";
+import { cropBox, materialLook, paletteLooks, swatchStyle, type MaterialLook } from "./material-look";
 
 import type { Act } from "./session";
 import { ralLabel, ralNameRo } from "@/lib/atelier/ral-names";
@@ -64,6 +64,7 @@ function materialItem(m: AtelierMaterial, kind: "PAL" | "MDF_MELAMINAT"): Swatch
 }
 
 function SwatchTile({ item, selected, onPick }: { item: SwatchItem; selected: boolean; onPick: () => void }) {
+  const crop = item.look.crop ? cropBox(item.look.crop) : null;
   return (
     <button
       type="button"
@@ -83,6 +84,11 @@ function SwatchTile({ item, selected, onPick }: { item: SwatchItem; selected: bo
             alt=""
             loading="lazy"
             decoding="async"
+            style={
+              crop
+                ? { inset: "auto", left: `${crop.left}%`, top: `${crop.top}%`, width: `${crop.width}%`, height: `${crop.height}%`, objectFit: "fill" }
+                : undefined
+            }
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}

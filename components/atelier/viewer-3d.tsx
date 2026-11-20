@@ -64,18 +64,39 @@ const subscribeTextures = (fn: () => void) => {
 /** One repeat of a decor photo covers this much board across the grain (they show ~3 planks). */
 const TILE_WIDTH_M = 0.62;
 
-function requestTexture(url: string, grainHorizontal: boolean) {
-  if (textureCache.has(url)) return;
-  textureCache.set(url, "loading");
+type Crop = readonly [number, number, number, number];
+const textureKey = (url: string, crop?: Crop) => (crop ? `${url}#${crop.join(",")}` : url);
+
+/** Only the clean region of a decor photo (no supplier label), as its own texture. */
+function croppedTexture(source: THREE.Texture, crop: Crop): THREE.Texture {
+  const image = source.image as HTMLImageElement | undefined;
+  if (!image?.width || !image.height) return source;
+  const canvas = document.createElement("canvas");
+  const sx = Math.round(crop[0] * image.width);
+  const sy = Math.round(crop[1] * image.height);
+  canvas.width = Math.max(1, Math.round(crop[2] * image.width));
+  canvas.height = Math.max(1, Math.round(crop[3] * image.height));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return source;
+  ctx.drawImage(image, sx, sy, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+  source.dispose();
+  return new THREE.CanvasTexture(canvas);
+}
+
+function requestTexture(url: string, grainHorizontal: boolean, crop?: Crop) {
+  const cacheKey = textureKey(url, crop);
+  if (textureCache.has(cacheKey)) return;
+  textureCache.set(cacheKey, "loading");
   const loader = new THREE.TextureLoader();
   loader.setCrossOrigin("anonymous");
   const settle = (entry: TextureEntry) => {
-    textureCache.set(url, entry);
+    textureCache.set(cacheKey, entry);
     textureListeners.forEach((fn) => fn());
   };
   loader.load(
     url,
-    (t) => {
+    (loaded) => {
+      const t = crop ? croppedTexture(loaded, crop) : loaded;
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = 8;
       // Geometry UVs are in metres (see grainBox): the photo tiles at its real scale instead of
@@ -85,6 +106,7 @@ function requestTexture(url: string, grainHorizontal: boolean) {
       t.wrapS = grainHorizontal ? THREE.MirroredRepeatWrapping : THREE.RepeatWrapping;
       t.wrapT = grainHorizontal ? THREE.RepeatWrapping : THREE.MirroredRepeatWrapping;
       const image = t.image as { width?: number; height?: number } | undefined;
+      // (a cropped texture reports the size of its clean region here)
       const aspect = image?.width && image?.height ? image.height / image.width : 1;
       t.repeat.set(1 / TILE_WIDTH_M, 1 / (TILE_WIDTH_M * aspect));
       if (grainHorizontal) t.rotation = Math.PI / 2; // photo taken with the grain lying down
@@ -100,12 +122,12 @@ function useOptionalTexture(look: MaterialLook): THREE.Texture | null {
   const url = look.imageUrl;
   const entry = useSyncExternalStore(
     subscribeTextures,
-    () => (url ? textureCache.get(url) : undefined),
+    () => (url ? textureCache.get(textureKey(url, look.crop)) : undefined),
     () => undefined,
   );
   useEffect(() => {
-    if (url) requestTexture(url, look.grainHorizontal === true);
-  }, [url, look.grainHorizontal]);
+    if (url) requestTexture(url, look.grainHorizontal === true, look.crop);
+  }, [url, look.grainHorizontal, look.crop]);
   return entry instanceof THREE.Texture ? entry : null;
 }
 
