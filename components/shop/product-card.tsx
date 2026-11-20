@@ -19,6 +19,11 @@ export function ProductPicture({ item, variant, sizes, priority = false }: { ite
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={render} alt={`${item.name}, ${variant.name}`} className="shop-pic__photo" sizes={sizes} loading={priority ? "eager" : "lazy"} width={800} height={600} />;
   }
+  if (item.photo) {
+    // a colour without its own render: the room photo is still better than a drawing
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={item.photo} alt={`${item.name}, ${variant.name}`} className="shop-pic__photo" sizes={sizes} loading={priority ? "eager" : "lazy"} />;
+  }
   return (
     <div className="shop-pic__studio" role="img" aria-label={`${item.name}, ${variant.name}`}>
       {preset && <MiniPreview shape={preset.shape} carcass={variant.carcass} front={variant.front} className="shop-pic__drawing" />}
