@@ -215,6 +215,9 @@ function variantsOf(preset: LayoutPreset): string[] {
     return out.slice(0, MAX_VARIANTS);
   }
   const own = preset.paletteId ?? "alb-total";
+  // hinged doors that are all mirror and no drawers: only the white body shows, so one colour only
+  const sh = preset.shape;
+  if (sh.category === "DRESSING" && sh.doors.type === "BATANTE_OGLINDA" && !sh.columns.some((c) => c.content === "SERTARE" || c.content === "BARA_SERTARE")) return [own];
   if (isOpen(preset.shape)) {
     const out: string[] = [];
     for (const id of [own, ...USUAL, ...OPEN_EXTRA]) {
