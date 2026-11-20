@@ -56,6 +56,7 @@
   "dressing-mare-360": [
     "gri-casmir",
     "alb-total",
+    "stejar-natur",
     "alb-stejar-natur",
     "antracit-stejar",
     "nuc-crem"
@@ -95,7 +96,30 @@
     "alb-stejar-deschis"
   ],
   "dressing-oglinda-mijloc-240": [
-    "alb-casmir"
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-antracit",
+    "alb-gri-matase",
+    "alb-stejar-deschis"
+  ],
+  "dressing-oglinzi-300": [
+    "alb-casmir",
+    "alb-total",
+    "alb-antracit",
+    "alb-gri-matase",
+    "alb-stejar-deschis"
+  ],
+  "dressing-sticla-300": [
+    "grafit-total",
+    "alb-total",
+    "stejar-natur",
+    "alb-stejar-natur",
+    "antracit-stejar"
+  ],
+  "dressing-ingust-90": [
+    "alb-total",
+    "stejar-natur"
   ],
   "noptiera-50": [
     "stejar-casmir"

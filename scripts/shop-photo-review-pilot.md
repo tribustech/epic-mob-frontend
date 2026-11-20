@@ -306,3 +306,53 @@ Reviewed: `/tmp/claude-0/batch4/<slug>/<paletteId>.webp`, same method and standa
 
 - dressing-tavan-270: all six reach the ceiling and have no handles. Nothing to change.
 - dressing-oglinda-una-180: the five accepted ones follow the rule that the mirror shows the room's own bed and window. Keep that line in every mirror prompt.
+
+---
+
+# Batch 5 (20 photos; dressing-oglinda-una-180/alb-stejar-natur skipped as instructed)
+
+Reviewed: `/tmp/claude-0/batch5/<slug>/<paletteId>.webp`, same method and standard. Mirror-reflection rule was not yet in these prompts, so reflections were judged pragmatically.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-ingust-90 / alb-total | ACCEPT | 8.5 | 2 narrow doors, black knobs; built into a hall niche; reads slightly wide (about 2.4 : 1 against 2.7) |
+| dressing-ingust-90 / stejar-natur | ACCEPT | 8.5 | Correct slim proportion; beside the room door and taller than it |
+| dressing-mare-360 / stejar-natur (redo) | ACCEPT | 8.5 | Wall to wall, floor in front empty, no desk or radiator; room is bare |
+| dressing-oglinda-mijloc-240 / alb-antracit | ACCEPT | 8.5 | Plain, mirror, plain; 3 gold bars as in the render; mirror shows wall lamp and floor |
+| dressing-oglinda-mijloc-240 / alb-gri-matase | ACCEPT | 8.5 | Mirror shows curtains and bed corner |
+| dressing-oglinda-mijloc-240 / alb-stejar-deschis | ACCEPT | 8.5 | Mirror shows an armchair, plausible |
+| dressing-oglinda-mijloc-240 / alb-stejar-natur | ACCEPT | 9 | Mirror shows window, curtains and bed |
+| dressing-oglinda-mijloc-240 / alb-total | ACCEPT | 8.5 | Mirror shows a door and chest of drawers; sun patches on the floor |
+| dressing-oglinzi-300 / alb-antracit | ACCEPT | 8.5 | Thin anthracite frames; one continuous reflection, same blue bed and curtain |
+| dressing-oglinzi-300 / alb-casmir | ACCEPT | 9 | Reflection repeats the bed and the tote bag on it |
+| dressing-oglinzi-300 / alb-gri-matase | ACCEPT | 8.5 | Reflection shows balcony door, bed, room door |
+| dressing-oglinzi-300 / alb-stejar-deschis | ACCEPT | 8 | Reflection plausible; small framed family portraits and a ceiling lamp in the reflection |
+| dressing-oglinzi-300 / alb-stejar-natur | REJECT (borderline) | 7.5 | A red toy truck is in the reflection but not on the real floor in front of the mirror; right mirror shows a skewed wall |
+| dressing-oglinzi-300 / alb-total | ACCEPT | 8.5 | Reflection shows dressing table, bed, window |
+| dressing-sticla-300 / alb-stejar-natur | ACCEPT | 9 | Oak frames, white interior, 4 compartments as in the render; real glass reflections |
+| dressing-sticla-300 / alb-total | ACCEPT | 8.5 | White frames and interior |
+| dressing-sticla-300 / antracit-stejar | ACCEPT | 8 | Oak frames, anthracite interior; faint light bars at the top of each section |
+| dressing-sticla-300 / grafit-total | ACCEPT | 8.5 | Graphite frames and interior |
+| dressing-sticla-300 / gri-casmir | REJECT | 8 | Lit LED strips under the top of three sections; the product has no lighting |
+| dressing-sticla-300 / stejar-natur | ACCEPT | 8.5 | All oak; leaning wall mirror reflects the wardrobe correctly |
+
+## Rejects
+
+### dressing-oglinzi-300 / alb-stejar-natur
+- Wardrobe is right (3 mirror doors, oak frames, wall to wall). The reflection shows a bright toy truck about 1.5 m from the mirror; the real floor at that spot is empty. The right mirror also shows the side wall at an impossible angle.
+- Prompt additions:
+  - `Every object in the reflection also exists in the room in front of the mirror; nothing appears only in the mirror.`
+  - `The floor in front of the wardrobe is empty; no toys.`
+  - `The three mirrors show one continuous reflection: the bed that is in the foreground, the window and the opposite wall, with straight wall and ceiling lines.`
+
+### dressing-sticla-300 / gri-casmir
+- Wardrobe matches the render, but warm LED strips glow under the top panel of three sections. A client would expect interior lighting.
+- Prompt additions:
+  - `No lighting inside the wardrobe: no LED strips, no glowing lines. The interior is lit only by daylight from the room.`
+  - `The only metal inside is the chrome hanging rails, which do not glow.`
+  - `Table lamp switched off.`
+
+## Patterns
+
+- dressing-sticla-300: add the no-lighting line to all remaining colours; antracit-stejar already shows faint light bars.
+- dressing-oglinzi-300: add `Every object in the reflection also exists in the room` and `no framed photographs of people` to remaining mirror prompts.
