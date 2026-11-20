@@ -1,10 +1,18 @@
 import type { CSSProperties } from "react";
 import type { AtelierCatalog, AtelierConfig, AtelierMaterial } from "@/lib/atelier/types";
+import type { ResolvedPalette } from "@/lib/atelier/palettes";
+import { DECOR_TONES, HORIZONTAL_GRAIN_DECORS, PLAIN_DECORS } from "@/lib/atelier/decor-tones";
 
-/** How a material is drawn: a texture image when the CRM has one, otherwise a flat tone. */
+/**
+ * How a material is drawn: its real average tone, plus the decor photo as a texture for
+ * woods / stones. Uni decors have no image on purpose (their photo is a flat colour, often
+ * with a supplier sticker on it), so they are always the exact flat tone.
+ */
 export interface MaterialLook {
   color: string;
   imageUrl: string | null;
+  /** the photo shows the grain lying down: turn it 90° when it is used as a texture */
+  grainHorizontal?: boolean;
 }
 
 /** Neutral fallback tones per board kind. */
@@ -27,13 +35,22 @@ const NAME_TONES: [RegExp, string][] = [
 
 function toneFor(material: AtelierMaterial | undefined, fallback: string): string {
   if (!material) return fallback;
+  // the measured tone of the decor photo first, then a guess from the name
+  const known = material.decorCode ? DECOR_TONES[material.decorCode] : undefined;
+  if (known) return known;
   const text = `${material.name} ${material.decorCode ?? ""}`;
   for (const [re, tone] of NAME_TONES) if (re.test(text)) return tone;
   return fallback;
 }
 
 function lookOf(material: AtelierMaterial | undefined, fallback: string): MaterialLook {
-  return { color: toneFor(material, fallback), imageUrl: material?.imageUrl ?? null };
+  const code = material?.decorCode ?? "";
+  const look: MaterialLook = {
+    color: toneFor(material, fallback),
+    imageUrl: PLAIN_DECORS.has(code) ? null : (material?.imageUrl ?? null),
+  };
+  if (look.imageUrl && HORIZONTAL_GRAIN_DECORS.has(code)) look.grainHorizontal = true;
+  return look;
 }
 
 /** Background CSS for a swatch tile. */
@@ -66,4 +83,13 @@ export function frontLook(catalog: AtelierCatalog, config: AtelierConfig): Mater
   }
   const material = catalog.fronts[fronts.kind].find((m) => m.id === fronts.materialId);
   return lookOf(material, KIND_TONE[fronts.kind]);
+}
+
+/** Looks of a palette's two decors (for palette swatches and MiniPreview). */
+export function paletteLooks(
+  catalog: AtelierCatalog,
+  palette: ResolvedPalette,
+): { carcass: MaterialLook; front: MaterialLook } {
+  const colours = { carcassMaterialId: palette.carcassMaterialId, fronts: palette.fronts } as AtelierConfig;
+  return { carcass: carcassLook(catalog, colours), front: frontLook(catalog, colours) };
 }

@@ -47,6 +47,22 @@ const cookies = [
     type: "Strict necesar",
   },
   {
+    name: "epicmob_atelier_sid",
+    provider: "Epic Mob (stocare de sesiune în browser)",
+    purpose:
+      "Un cod aleatoriu care leagă între ei pașii unei vizite în configuratorul 3D. Nu te identifică decât dacă trimiți o cerere din configurator.",
+    duration: "Până închizi fila",
+    type: "Statistici — fără cookies",
+  },
+  {
+    name: "epicmob_atelier_vid",
+    provider: "Epic Mob (stocare locală în browser)",
+    purpose:
+      "Un cod aleatoriu care ne arată dacă o vizită în configurator este una repetată.",
+    duration: "Până îți retragi acordul",
+    type: "Statistici — doar cu acordul tău",
+  },
+  {
     name: "_fbp",
     provider: "Meta (epicmob.ro)",
     purpose:
@@ -130,6 +146,19 @@ export default function PrivacyPolicyPage() {
                 colectate fără cookies. Cu acordul tău, și date despre
                 interacțiunea cu site-ul prin Meta Pixel (vezi secțiunea
                 Cookies).
+              </li>
+              <li>
+                <strong>Pașii din configuratorul 3D:</strong> ce model, ce
+                culori și ce pași ai parcurs în configurator, tipul
+                dispozitivului, țara și sursa vizitei (de exemplu reclama din
+                care ai venit). Le folosim ca statistici, ca să vedem unde se încurcă lumea și
+                să îmbunătățim configuratorul: fără nume și fără adresă IP. Nu
+                folosim cookies pentru asta, dar pașii unei vizite sunt legați
+                între ei printr-un cod aleatoriu, ținut în stocarea de sesiune a
+                browserului până închizi fila. Codul nu spune cine ești; doar
+                dacă trimiți o cerere din configurator, pașii acelei vizite se
+                atașează cererii tale. Păstrăm aceste statistici cel mult 13
+                luni, apoi se șterg.
               </li>
             </ul>
           </section>

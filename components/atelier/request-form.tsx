@@ -1,64 +1,105 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { useEffect, useRef, type FormEvent } from "react";
+import { CheckCircle2 } from "lucide-react";
+import { getFunnelSessionId, trackFunnel, trackFunnelOnce } from "@/lib/atelier/funnel";
 import type { AtelierConfig, AtelierIssue } from "@/lib/atelier/types";
+import { trackPixel } from "@/lib/meta-pixel";
+import type { LeadContact } from "./session";
 
-type Status =
+export type LeadStatus =
   | { kind: "idle" }
   | { kind: "sending" }
   | { kind: "success"; key: string }
   | { kind: "error"; message: string; issues?: AtelierIssue[] };
 
+/** The submit button lives in the configurator's footer and points at this form by id. */
+export const REQUEST_FORM_ID = "atelier-request-form";
+
 const UNAVAILABLE_MESSAGE =
   "Momentan nu putem primi cererea online. Te rugăm să încerci din nou puțin mai târziu sau să ne scrii din pagina Cere ofertă.";
 
-export function RequestForm({ config, blocked }: { config: AtelierConfig; blocked: boolean }) {
-  const [status, setStatus] = useState<Status>({ kind: "idle" });
-  const configKey = JSON.stringify(config);
+/** A sent request only „sticks" for the configuration it was sent with. */
+export function leadSentFor(status: LeadStatus, config: AtelierConfig): boolean {
+  return status.kind === "success" && status.key === JSON.stringify(config);
+}
 
-  // A sent request only "sticks" for the configuration it was sent with; changing
-  // the configuration brings the form back so another one can be sent.
-  if (status.kind === "success" && status.key === configKey) {
-    return (
-      <section className="atelier-panel border-emerald-600/40" aria-live="polite">
-        <p className="flex items-center gap-3 text-lg text-emerald-700">
-          <CheckCircle2 aria-hidden="true" className="shrink-0" />
-          Mulțumim! Te sunăm în curând pentru măsurători.
-        </p>
-        <button
-          type="button"
-          className="atelier-chip mt-4"
-          onClick={() => setStatus({ kind: "idle" })}
-        >
+export function LeadSent({ onAgain }: { onAgain: () => void }) {
+  return (
+    <div className="atelier-sent" role="status">
+      <CheckCircle2 size={28} aria-hidden="true" className="shrink-0" />
+      <div>
+        <p className="atelier-sent__title">Mulțumim! Am primit configurația.</p>
+        <p className="atelier-sent__text">Te sunăm în curând ca să stabilim măsurătorile.</p>
+        <button type="button" className="atelier-textbtn mt-2" onClick={onAgain}>
           Trimite altă configurație
         </button>
-      </section>
-    );
-  }
+      </div>
+    </div>
+  );
+}
+
+export function RequestForm({
+  config,
+  blocked,
+  unavailable,
+  contact: typed,
+  onContact,
+  price,
+  status,
+  onStatus,
+}: {
+  config: AtelierConfig;
+  blocked: boolean;
+  /** the price service is down: nothing can be sent for now */
+  unavailable: boolean;
+  /** the fields live in the configurator, so leaving this step does not lose them */
+  contact: LeadContact;
+  onContact: (contact: LeadContact) => void;
+  /** the estimate on screen when the request is sent (funnel only) */
+  price: number | null;
+  status: LeadStatus;
+  onStatus: (status: LeadStatus) => void;
+}) {
+  const configKey = JSON.stringify(config);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const errorMessage = status.kind === "error" ? status.message : null;
+
+  // the submit button sits in the footer: bring a fresh error into view
+  useEffect(() => {
+    if (errorMessage) errorRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [errorMessage]);
+
+  // Sent: the confirmation (LeadSent) takes the form's place at the top of the step.
+  // Changing the configuration brings the form back so another one can be sent.
+  if (status.kind === "success" && status.key === configKey) return null;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (blocked || status.kind === "sending") return;
-    const data = new FormData(event.currentTarget);
-    const field = (name: string) => String(data.get(name) ?? "").trim();
+    if (blocked || unavailable || status.kind === "sending") return;
+    const website = String(new FormData(event.currentTarget).get("website") ?? "").trim();
+    const notes = typed.notes.trim();
     const contact = {
-      name: field("name"),
-      phone: field("phone"),
-      city: field("city"),
-      ...(field("notes") ? { notes: field("notes") } : {}),
+      name: typed.name.trim(),
+      phone: typed.phone.trim(),
+      city: typed.city.trim(),
+      ...(notes ? { notes } : {}),
     };
     if (!contact.name || !contact.city || contact.phone.replace(/\D/g, "").length < 6) {
-      setStatus({ kind: "error", message: "Completează numele, un număr de telefon valid și orașul." });
+      onStatus({ kind: "error", message: "Completează numele, un număr de telefon valid și orașul." });
       return;
     }
 
-    setStatus({ kind: "sending" });
+    onStatus({ kind: "sending" });
+    const fail = (next: LeadStatus) => {
+      trackFunnel("lead_failed");
+      onStatus(next);
+    };
     try {
       const res = await fetch("/api/atelier/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config, contact, website: field("website") }),
+        body: JSON.stringify({ config, contact, website, sessionId: getFunnelSessionId() }),
       });
       const body = (await res.json().catch(() => null)) as {
         ok?: boolean;
@@ -66,108 +107,129 @@ export function RequestForm({ config, blocked }: { config: AtelierConfig; blocke
         errors?: AtelierIssue[];
       } | null;
       if (res.ok && body?.ok) {
-        setStatus({ kind: "success", key: configKey });
+        trackFunnel("lead_submitted", { price: price == null ? null : Math.round(price) });
+        try {
+          trackPixel("Lead", { content_name: "atelier" });
+        } catch {
+          // the pixel must never break a sent request
+        }
+        onStatus({ kind: "success", key: configKey });
       } else if (res.status === 422 && Array.isArray(body?.errors)) {
-        setStatus({ kind: "error", message: "Configurația are nevoie de ajustări:", issues: body.errors });
+        fail({ kind: "error", message: "Configurația are nevoie de ajustări:", issues: body.errors });
       } else if (res.status === 429) {
-        setStatus({ kind: "error", message: "Prea multe cereri. Încearcă din nou mai târziu." });
+        fail({ kind: "error", message: "Prea multe cereri. Încearcă din nou mai târziu." });
       } else if (res.status === 503) {
-        setStatus({ kind: "error", message: UNAVAILABLE_MESSAGE });
+        fail({ kind: "error", message: UNAVAILABLE_MESSAGE });
       } else {
-        setStatus({
+        fail({
           kind: "error",
           message: typeof body?.error === "string" ? body.error : "Cererea nu a putut fi trimisă. Verifică datele și încearcă din nou.",
         });
       }
     } catch {
-      setStatus({ kind: "error", message: UNAVAILABLE_MESSAGE });
+      fail({ kind: "error", message: UNAVAILABLE_MESSAGE });
     }
   }
 
-  const sending = status.kind === "sending";
-
   return (
-    <section className="atelier-panel" aria-labelledby="atelier-request">
-      <h2 id="atelier-request" className="atelier-panel__title">
-        Trimite configurația
-      </h2>
-      <p className="mt-1 text-sm text-[var(--home-ivory)]/60">
-        Te sunăm, venim la măsurători și îți confirmăm prețul final. Fără obligații.
-      </p>
-      <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={onSubmit} noValidate>
-        <div className="min-w-0">
-          <label htmlFor="atelier-name" className="atelier-label">
-            Nume
-          </label>
-          <input id="atelier-name" name="name" required maxLength={100} autoComplete="name" className="atelier-input mt-2" />
-        </div>
-        <div className="min-w-0">
-          <label htmlFor="atelier-phone" className="atelier-label">
-            Telefon
-          </label>
-          <input
-            id="atelier-phone"
-            name="phone"
-            type="tel"
-            required
-            maxLength={30}
-            autoComplete="tel"
-            inputMode="tel"
-            className="atelier-input mt-2"
-          />
-        </div>
-        <div className="min-w-0 sm:col-span-2">
-          <label htmlFor="atelier-city" className="atelier-label">
-            Oraș
-          </label>
-          <input
-            id="atelier-city"
-            name="city"
-            required
-            maxLength={80}
-            autoComplete="address-level2"
-            className="atelier-input mt-2"
-          />
-        </div>
-        <div className="min-w-0 sm:col-span-2">
-          <label htmlFor="atelier-notes" className="atelier-label">
-            Observații (opțional)
-          </label>
-          <textarea id="atelier-notes" name="notes" rows={3} maxLength={1000} className="atelier-input mt-2 resize-y" />
-        </div>
-        {/* Honeypot: hidden from people, bots tend to fill it. */}
-        <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
-          <label htmlFor="atelier-website">Website</label>
-          <input id="atelier-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
-        </div>
+    <form
+      id={REQUEST_FORM_ID}
+      className="atelier-form"
+      onSubmit={onSubmit}
+      onFocus={() => trackFunnelOnce("form_started")}
+      noValidate
+    >
+      <div className="atelier-form__field">
+        <label htmlFor="atelier-name" className="atelier-label">
+          Nume
+        </label>
+        <input
+          id="atelier-name"
+          name="name"
+          value={typed.name}
+          onChange={(e) => onContact({ ...typed, name: e.target.value })}
+          required
+          maxLength={100}
+          autoComplete="name"
+          className="atelier-input"
+        />
+      </div>
+      <div className="atelier-form__field">
+        <label htmlFor="atelier-phone" className="atelier-label">
+          Telefon
+        </label>
+        <input
+          id="atelier-phone"
+          name="phone"
+          type="tel"
+          value={typed.phone}
+          onChange={(e) => onContact({ ...typed, phone: e.target.value })}
+          required
+          maxLength={30}
+          autoComplete="tel"
+          inputMode="tel"
+          className="atelier-input"
+        />
+      </div>
+      <div className="atelier-form__field atelier-form__wide">
+        <label htmlFor="atelier-city" className="atelier-label">
+          Oraș
+        </label>
+        <input
+          id="atelier-city"
+          name="city"
+          value={typed.city}
+          onChange={(e) => onContact({ ...typed, city: e.target.value })}
+          required
+          maxLength={80}
+          autoComplete="address-level2"
+          className="atelier-input"
+        />
+      </div>
+      <div className="atelier-form__field atelier-form__wide">
+        <label htmlFor="atelier-notes" className="atelier-label">
+          Observații <span className="font-normal opacity-70">(opțional)</span>
+        </label>
+        <textarea
+          id="atelier-notes"
+          name="notes"
+          value={typed.notes}
+          onChange={(e) => onContact({ ...typed, notes: e.target.value })}
+          rows={2}
+          maxLength={1000}
+          className="atelier-input resize-y"
+          placeholder="Ex.: nișă între doi pereți, tavan înclinat…"
+        />
+      </div>
+      {/* Honeypot: hidden from people, bots tend to fill it. */}
+      <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+        <label htmlFor="atelier-website">Website</label>
+        <input id="atelier-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
 
-        {status.kind === "error" && (
-          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 sm:col-span-2" role="alert">
-            <p>{status.message}</p>
-            {status.issues && (
-              <ul className="mt-1 list-disc pl-5">
-                {status.issues.map((issue, i) => (
-                  <li key={`${issue.code}-${i}`}>{issue.message}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-
-        <div className="sm:col-span-2">
-          <button
-            type="submit"
-            className="portfolio-btn portfolio-btn--primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-            disabled={blocked || sending}
-          >
-            {sending ? "Se trimite…" : "Trimite cererea"}
-            <ArrowRight size={16} aria-hidden="true" />
-          </button>
-          {blocked && (
-            <p className="mt-2 text-xs text-red-700">Corectează erorile de mai sus ca să poți trimite cererea.</p>
+      {status.kind === "error" && (
+        <div ref={errorRef} className="atelier-issue atelier-issue--error atelier-form__wide" role="alert">
+          <p>{status.message}</p>
+          {status.issues && (
+            <ul className="mt-1 list-disc pl-5">
+              {status.issues.map((issue, i) => (
+                <li key={`${issue.code}-${i}`}>{issue.message}</li>
+              ))}
+            </ul>
           )}
         </div>
-      </form>
-    </section>
+      )}
+      {unavailable && !blocked && (
+        <p className="atelier-issue atelier-issue--error atelier-form__wide">
+          Momentan nu putem calcula prețul, așa că cererea nu poate fi trimisă de aici. Încearcă din nou peste câteva
+          minute sau scrie-ne din pagina Cere ofertă.
+        </p>
+      )}
+      {blocked && (
+        <p className="atelier-issue atelier-issue--error atelier-form__wide">
+          Corectează mai întâi configurația (vezi mesajul de lângă preț), apoi poți trimite cererea.
+        </p>
+      )}
+    </form>
   );
 }

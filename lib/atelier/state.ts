@@ -10,6 +10,7 @@ import type {
   ColumnContent,
   RailPosition,
 } from "./types.ts";
+import type { PresetShape } from "./presets.ts";
 
 /** Column limits are the same for every category (CATEGORY_RULES[*].column). */
 export const MIN_COL_MM = CATEGORY_RULES.DRESSING.column[0];
@@ -17,6 +18,8 @@ export const MAX_COL_MM = CATEGORY_RULES.DRESSING.column[1];
 
 export type AtelierAction =
   | { type: "setCategory"; category: AtelierCategory }
+  | { type: "applyPreset"; shape: PresetShape }
+  | { type: "applyPalette"; carcassMaterialId: string; fronts: AtelierFronts }
   | { type: "setSize"; widthMm?: number; heightMm?: number; depthMm?: number }
   | { type: "setColumnWidth"; index: number; widthMm: number }
   | { type: "setColumnContent"; index: number; content: ColumnContent }
@@ -157,6 +160,23 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       delete next.bottom;
       return next;
     }
+    case "applyPreset": {
+      // A ready-made model: its whole shape replaces the current one; the colours stay.
+      const shape = action.shape;
+      if (!CATEGORY_RULES[shape.category] || shape.columns.length === 0) return state;
+      const next: AtelierConfig = {
+        ...shape,
+        columns: shape.columns.map((c) => ({ ...c })),
+        doors: { ...shape.doors },
+        carcassMaterialId: state.carcassMaterialId,
+        fronts: state.fronts,
+      };
+      if (shape.bottom) next.bottom = { ...shape.bottom };
+      if (shape.handle) next.handle = { ...shape.handle };
+      return next;
+    }
+    case "applyPalette":
+      return { ...state, carcassMaterialId: action.carcassMaterialId, fronts: { ...action.fronts } };
     case "setSize": {
       let next = state;
       if (action.heightMm !== undefined && Number.isFinite(action.heightMm))
