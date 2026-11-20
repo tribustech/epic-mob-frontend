@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import type { HandleFinish } from "@/lib/atelier/types";
-import type { EffectiveHandle, FrontMode, FrontPlan, GripEdge, Rect } from "./plan";
+import type { EffectiveHandle, FrontClass, FrontMode, FrontPlan, GripEdge, Rect } from "./plan";
 
 /** Scene units are millimetres; three.js works in metres. */
 export const S = 0.001;
@@ -53,17 +53,21 @@ const HANDLE_INSET_MM = 46;
 /** a mirror / glass face leaves this strip of board free for the handle */
 export const HANDLE_STRIP_MM = 86;
 
-/** Where the middle of a handle of length `lenMm` sits on a front, relative to its centre (mm). */
-function anchor(mode: FrontMode, w: number, h: number, yMm: number, wallHung: boolean, lenMm: number): [number, number] {
-  if (mode === "DRAWER") return [0, 0];
-  // lift-up door: along the bottom edge
-  if (mode === "T") return [0, -h / 2 + Math.min(60, h * 0.2)];
-  // side-hung door: by the edge that opens, where the hand reaches (low on a wall cabinet)
+/**
+ * Where the middle of a handle of length `lenMm` sits on a front, relative to its centre (mm).
+ * Drawer: centred. Lift-up door: centred, near the bottom edge. Side-hung doors: by the edge that
+ * opens — a tall door at hand height, a base door near its top corner, an upper door near its bottom corner.
+ */
+function anchor(cls: FrontClass, mode: FrontMode, w: number, h: number, yMm: number, lenMm: number): [number, number] {
+  if (cls === "DRAWER") return [0, 0];
+  if (cls === "LIFT") return [0, -h / 2 + Math.min(60, h * 0.2)];
   const x = (mode === "R" ? -1 : 1) * (w / 2 - Math.min(HANDLE_INSET_MM, w * 0.2));
   const margin = Math.min(60, h * 0.15);
   const lo = yMm + lenMm / 2 + margin;
   const hi = yMm + h - lenMm / 2 - margin;
-  const y = Math.min(hi, Math.max(lo, wallHung ? lo : HANDLE_HEIGHT_MM));
+  // an upper door: its bottom corner. Any other: as near hand height as the door allows
+  // (the top corner of a base door, about 1050 mm up a tall one)
+  const y = cls === "WALL" ? lo : Math.min(hi, Math.max(lo, HANDLE_HEIGHT_MM));
   return [x, y - (yMm + h / 2)];
 }
 
@@ -77,15 +81,15 @@ function barLength(mode: FrontMode, w: number, h: number): number {
  * Where the hand goes on a front, relative to its centre (mm): the middle of its handle, or of
  * the edge it is pulled by. The camera looks here when the client is choosing handles.
  */
-export function gripPoint(plan: FrontPlan, handle: EffectiveHandle, wallHung: boolean): [number, number] {
+export function gripPoint(plan: FrontPlan, handle: EffectiveHandle): [number, number] {
   const { w, h, y } = plan.piece;
   if (handle === "PROFIL_J" || handle === "GOLA") {
     if (plan.edge === "TOP") return [0, h / 2];
     if (plan.edge === "BOTTOM") return [0, -h / 2];
-    const [, ay] = anchor(plan.mode, w, h, y, wallHung, HANDLE_LEN_MM);
+    const [, ay] = anchor(plan.cls, plan.mode, w, h, y, HANDLE_LEN_MM);
     return [plan.edge === "RIGHT" ? w / 2 : -w / 2, ay];
   }
-  return anchor(plan.mode, w, h, y, wallHung, handle === "BUTON" ? 42 : barLength(plan.mode, w, h));
+  return anchor(plan.cls, plan.mode, w, h, y, handle === "BUTON" ? 42 : barLength(plan.mode, w, h));
 }
 
 /** A slim bar on two posts. */
@@ -173,7 +177,7 @@ export function FrontHardware({
   h,
   d,
   yMm,
-  wallHung,
+  cls,
   mats,
 }: {
   kind: EffectiveHandle;
@@ -185,14 +189,14 @@ export function FrontHardware({
   d: number;
   /** its bottom edge above the floor, mm */
   yMm: number;
-  wallHung: boolean;
+  cls: FrontClass;
   mats: HardwareMaterials;
 }) {
   const vertical = mode === "L" || mode === "R";
   const face = (d / 2) * S;
   if (kind === "APLICAT") {
     const len = barLength(mode, w, h);
-    const [x, y] = anchor(mode, w, h, yMm, wallHung, len);
+    const [x, y] = anchor(cls, mode, w, h, yMm, len);
     return (
       <group position={[x * S, y * S, face]}>
         <Bar vertical={vertical} lengthMm={len} material={mats.metal} />
@@ -200,7 +204,7 @@ export function FrontHardware({
     );
   }
   if (kind === "BUTON") {
-    const [x, y] = anchor(mode, w, h, yMm, wallHung, 42);
+    const [x, y] = anchor(cls, mode, w, h, yMm, 42);
     return (
       <group position={[x * S, y * S, face]}>
         <Knob material={mats.metal} />
@@ -209,7 +213,7 @@ export function FrontHardware({
   }
   if (kind === "INGROPAT") {
     if ((vertical ? h : w) < RECESS_LONG_MM + 40 || (vertical ? w : h) < RECESS_SHORT_MM + 16) return null;
-    const [x, y] = anchor(mode, w, h, yMm, wallHung, RECESS_LONG_MM);
+    const [x, y] = anchor(cls, mode, w, h, yMm, RECESS_LONG_MM);
     return (
       <group position={[x * S, y * S, face]}>
         <Recessed vertical={vertical} mats={mats} />
