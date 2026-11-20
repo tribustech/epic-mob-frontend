@@ -1126,7 +1126,7 @@ export default function Viewer3D({
           <p
             className={`pointer-events-none text-[0.7rem] text-[var(--home-ivory)]/60 ${interacted ? "max-sm:hidden" : ""}`}
           >
-            Trage pentru a roti<span className="max-sm:hidden"> · scroll / ciupește pentru zoom</span>
+            Trage pentru a roti<span className="max-lg:hidden"> · scroll / ciupește pentru zoom</span>
           </p>
         </div>
       )}
