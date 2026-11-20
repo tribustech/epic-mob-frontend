@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import "@/components/shop/shop.css";
+import { withAllPrices } from "@/components/shop/all-prices";
 import { ProductCard } from "@/components/shop/product-card";
+import { ShopRail } from "@/components/shop/rail";
 import { offerEndText } from "@/lib/shop/offers";
 import { DELIVERY_TEXT } from "@/lib/shop/products";
 import { getShopItems } from "@/lib/shop/server";
@@ -12,6 +14,7 @@ export async function WarmShop() {
   if (items.length === 0) return null;
   const offers = items.filter((i) => i.offer);
   const picks = [...offers, ...items.filter((i) => !i.offer && i.badge), ...items.filter((i) => !i.offer && !i.badge)].slice(0, 8);
+  const priced = await withAllPrices(picks);
   const top = offers[0]?.offer ?? null;
   const maxPct = Math.max(0, ...offers.map((o) => o.offer?.percent ?? 0));
   const minPct = Math.min(...offers.map((o) => o.offer?.percent ?? 0));
@@ -29,7 +32,7 @@ export async function WarmShop() {
               Alegi modelul și culoarea și vezi prețul pe loc. {DELIVERY_TEXT}, montajul e inclus.
             </p>
           </div>
-          <Link href="/magazin" className="btn-warm btn-warm--ghost">
+          <Link href="/magazin" className="btn-warm btn-warm--ghost shop-section-head__more">
             Vezi tot magazinul <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
@@ -49,13 +52,21 @@ export async function WarmShop() {
           </div>
         )}
 
-        <ul className="shop-rail">
-          {picks.map((item) => (
+        <ShopRail label="Produse din magazin">
+          {priced.map((item) => (
             <li key={item.slug}>
               <ProductCard item={item} />
             </li>
           ))}
-        </ul>
+          <li className="shop-rail__last">
+            <Link href="/magazin" className="shop-rail__all">
+              <span className="display-font">Toate cele {items.length} modele</span>
+              <span className="shop-rail__all-cta">
+                Vezi magazinul <ArrowRight size={16} aria-hidden="true" />
+              </span>
+            </Link>
+          </li>
+        </ShopRail>
       </div>
     </section>
   );

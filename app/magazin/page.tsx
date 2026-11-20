@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, PencilRuler, ShieldCheck, Truck, Wrench } from "lucide-react";
+import { withAllPrices } from "@/components/shop/all-prices";
 import { ProductCard } from "@/components/shop/product-card";
-import { ShopBrowser } from "@/components/shop/shop-browser";
+import { ShopRail } from "@/components/shop/rail";
+import { ShopBrowser, ShopFilterLink } from "@/components/shop/shop-browser";
 import { offerEndText } from "@/lib/shop/offers";
-import { DELIVERY_TEXT, SHOP_CATEGORIES } from "@/lib/shop/products";
+import { DELIVERY_TEXT } from "@/lib/shop/products";
 import { getShopItems } from "@/lib/shop/server";
 
 // prices come from the CRM (cached 10 minutes); offers start and end on their own
@@ -22,20 +24,24 @@ export const metadata: Metadata = {
 };
 
 export default async function ShopPage() {
-  const { items } = await getShopItems();
+  const items = await withAllPrices((await getShopItems()).items);
   const offers = items.filter((i) => i.offer);
   const offerEnd = offers[0]?.offer ? offerEndText(offers[0].offer) : null;
+
+  const count = items.reduce((n, i) => n + i.variants.length, 0);
 
   return (
     <main className="home-warm shop-page">
       <section className="shop-hero">
         <div className="section-shell shop-hero__inner">
-          <p className="eyebrow-warm">Magazin EpicMob</p>
-          <h1 className="display-font shop-hero__title">Mobilier gata gândit, în culorile tale</h1>
-          <p className="shop-hero__lede">
-            Dulapuri, comode, biblioteci și corpuri suspendate în peste {items.reduce((n, i) => n + i.variants.length, 0) || 100} de
-            combinații. Alegi modelul și culoarea, iar dacă vrei altă mărime sau alt interior îl schimbi în Atelierul 3D.
-          </p>
+          <div className="shop-hero__text">
+            <p className="eyebrow-warm">Magazin EpicMob</p>
+            <h1 className="display-font shop-hero__title">Mobilier gata gândit, în culorile tale</h1>
+            <p className="shop-hero__lede">
+              {items.length > 0 ? `${items.length} modele` : "Dulapuri, comode și biblioteci"} în peste {count > 10 ? Math.floor(count / 10) * 10 : 100} de combinații de
+              culori. Alegi modelul și culoarea și vezi prețul pe loc.
+            </p>
+          </div>
           <ul className="shop-usp">
             <li>
               <Truck size={18} aria-hidden="true" /> {DELIVERY_TEXT}
@@ -54,49 +60,30 @@ export default async function ShopPage() {
       </section>
 
       {offers.length > 0 && (
-        <section className="shop-offers">
+        <section className="shop-offers" aria-labelledby="shop-offers-title">
           <div className="section-shell">
             <div className="shop-section-head">
               <div>
                 <p className="eyebrow-warm">{offers[0].offer?.label}</p>
-                <h2 className="display-font shop-section-head__title">
+                <h2 id="shop-offers-title" className="display-font shop-section-head__title">
                   −{Math.max(...offers.map((o) => o.offer?.percent ?? 0))}% la modelele preferate
                 </h2>
                 {offerEnd && <p className="shop-section-head__note">Până pe {offerEnd}, la toate culorile.</p>}
               </div>
-              <Link href="/magazin?oferte=1#produse" className="btn-warm btn-warm--ghost">
+              <ShopFilterLink filter={{ oferte: true }} className="btn-warm btn-warm--ghost shop-section-head__more">
                 Toate ofertele <ArrowRight size={16} aria-hidden="true" />
-              </Link>
+              </ShopFilterLink>
             </div>
-            <ul className="shop-rail">
+            <ShopRail label="Produse la ofertă">
               {offers.map((item, i) => (
                 <li key={item.slug}>
                   <ProductCard item={item} priority={i < 2} />
                 </li>
               ))}
-            </ul>
+            </ShopRail>
           </div>
         </section>
       )}
-
-      <section className="section-shell shop-cats">
-        <ul className="shop-cats__list">
-          {SHOP_CATEGORIES.map((c) => {
-            const count = items.filter((i) => i.category === c.id).length;
-            return (
-              <li key={c.id}>
-                <Link href={`/magazin?categorie=${c.id}#produse`} className="shop-cat">
-                  <span className="shop-cat__label">{c.label}</span>
-                  <span className="shop-cat__blurb">{c.blurb}</span>
-                  <span className="shop-cat__count">
-                    {count} {count === 1 ? "model" : "modele"}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
 
       <section className="section-shell shop-all">
         {items.length > 0 ? (
@@ -118,7 +105,7 @@ export default async function ShopPage() {
             <p className="eyebrow-warm">Nu e exact ce cauți?</p>
             <h2 className="display-font shop-section-head__title">Pornește de la orice produs și fă-l al tău</h2>
             <p className="shop-section-head__note">
-              Schimbi lățimea, înălțimea, interiorul, ușile, mânerele și culorile în Atelierul 3D, cu prețul actualizat pe loc.
+              Schimbi lățimea, înălțimea, interiorul, ușile, mânerele și culorile în Atelierul 3D. Prețul se schimbă pe loc.
             </p>
           </div>
           <Link href="/configurator" className="btn-warm btn-warm--primary">

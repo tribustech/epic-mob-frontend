@@ -1,10 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { MiniPreview } from "@/components/atelier/mini-preview";
 import { swatchStyle } from "@/components/atelier/material-look";
+import { PALETTES, type PaletteMood } from "@/lib/atelier/palettes";
 import { presetById } from "@/lib/atelier/presets";
 import { renderOf } from "@/lib/shop/products";
 import type { ShopItem, ShopVariant } from "@/lib/shop/server";
 import { formatPrice } from "./price";
+
+const MOOD_OF = new Map(PALETTES.map((p) => [p.id, p.mood]));
+
+/** The colour family („Luminoase", „Lemn cald"…) of a variant. */
+export function moodOf(variant: ShopVariant): PaletteMood | undefined {
+  return MOOD_OF.get(variant.paletteId);
+}
 
 /** The picture of a product: its room photo when we have one, else a front drawing in its colours. */
 export function ProductPicture({ item, variant, sizes, priority = false }: { item: ShopItem; variant: ShopVariant; sizes?: string; priority?: boolean }) {
@@ -42,47 +53,70 @@ export function Swatch({ variant, size = 18 }: { variant: ShopVariant; size?: nu
 
 export function PriceLine({ variant, offer, size = "md" }: { variant: ShopVariant; offer: ShopItem["offer"]; size?: "md" | "lg" }) {
   if (variant.finalPrice == null || variant.price == null) {
-    return <p className={`shop-price shop-price--${size} shop-price--ask`}>Preț pe loc în configurator</p>;
+    return <p className={`shop-price shop-price--${size} shop-price--ask`}>Vezi prețul în Atelierul 3D</p>;
   }
   return (
     <p className={`shop-price shop-price--${size}`}>
       <span className={offer ? "shop-price__now shop-price__now--offer" : "shop-price__now"}>{formatPrice(variant.finalPrice)}</span>
       {offer && (
         <>
-          <s className="shop-price__was" aria-label={`Preț obișnuit ${formatPrice(variant.price)}`}>
+          <s className="shop-price__was">
+            <span className="shop-sr">Preț obișnuit: </span>
             {formatPrice(variant.price)}
           </s>
-          <span className="shop-price__pct">−{offer.percent}%</span>
+          {size === "lg" && <span className="shop-price__pct">−{offer.percent}%</span>}
         </>
       )}
     </p>
   );
 }
 
-export function ProductCard({ item, priority = false }: { item: ShopItem; priority?: boolean }) {
-  const variant = item.variants[0];
+/**
+ * One product in a grid or rail. The whole card opens the product. With a mouse, the small colour dots
+ * also switch the picture and the price, and the card then opens the product in that colour.
+ * `mood` (the colour family chosen in the filters) decides which colour is shown first.
+ */
+export function ProductCard({ item, priority = false, mood = null }: { item: ShopItem; priority?: boolean; mood?: PaletteMood | null }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const first = (mood && item.variants.find((v) => moodOf(v) === mood)) || item.variants[0];
+  const variant = item.variants.find((v) => v.paletteId === picked) ?? first;
+  const isDefault = variant.paletteId === item.variants[0].paletteId;
+  const href = isDefault ? `/magazin/${item.slug}` : `/magazin/${item.slug}?culoare=${variant.paletteId}`;
+
   return (
-    <Link href={`/magazin/${item.slug}`} className="shop-card">
-      <div className="shop-pic">
-        <ProductPicture item={item} variant={variant} priority={priority} sizes="(max-width: 640px) 50vw, 25vw" />
-        <div className="shop-card__tags">
-          {item.offer && <span className="shop-tag shop-tag--offer">{item.offer.label}</span>}
-          {!item.offer && item.badge && <span className="shop-tag">{item.badge}</span>}
+    <article className="shop-card">
+      <Link href={href} className="shop-card__link">
+        <div className="shop-pic">
+          <ProductPicture item={item} variant={variant} priority={priority} sizes="(max-width: 640px) 50vw, 25vw" />
+          <div className="shop-card__tags">
+            {item.offer ? <span className="shop-tag shop-tag--offer">{item.offer.label}</span> : item.badge ? <span className="shop-tag">{item.badge}</span> : <span />}
+            {item.offer && <span className="shop-tag shop-tag--pct">−{item.offer.percent}%</span>}
+          </div>
         </div>
-      </div>
-      <div className="shop-card__body">
-        <h3 className="shop-card__name">{item.name}</h3>
-        <p className="shop-card__colour">{variant.name}</p>
-        <PriceLine variant={variant} offer={item.offer} />
-        {item.variants.length > 1 && (
-          <p className="shop-card__swatches">
-            {item.variants.slice(0, 6).map((v) => (
-              <Swatch key={v.paletteId} variant={v} size={16} />
-            ))}
-            <span className="shop-card__more">{item.variants.length} culori</span>
-          </p>
-        )}
-      </div>
-    </Link>
+        <div className="shop-card__body">
+          <h3 className="shop-card__name">{item.name}</h3>
+          <p className="shop-card__colour">{variant.name}</p>
+          <PriceLine variant={variant} offer={item.offer} />
+        </div>
+      </Link>
+      {item.variants.length > 1 && (
+        <div className="shop-card__swatches">
+          {item.variants.slice(0, 6).map((v) => (
+            <button
+              key={v.paletteId}
+              type="button"
+              className={`shop-card__dot ${v.paletteId === variant.paletteId ? "is-active" : ""}`}
+              aria-pressed={v.paletteId === variant.paletteId}
+              aria-label={`Arată în culoarea ${v.name}`}
+              title={v.name}
+              onClick={() => setPicked(v.paletteId)}
+            >
+              <Swatch variant={v} size={18} />
+            </button>
+          ))}
+          <span className="shop-card__more">{item.variants.length} culori</span>
+        </div>
+      )}
+    </article>
   );
 }
