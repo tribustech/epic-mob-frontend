@@ -168,3 +168,49 @@ For the remaining colours of this product add: `No ceiling lamp in the frame.` `
   - `The unit is short: only 4 times as long as the distance from its top to the floor (65 cm).`
   - `The soundbar is 90 cm long and covers exactly one flap's width, half of the unit.`
   - `The unit spans no more than 50% of the frame width.`
+
+---
+
+# Batch 2 (20 photos)
+
+Reviewed: `/tmp/claude-0/batch2/<slug>/<paletteId>.webp`, same method and standard. Generated with rules A1–A7; ceiling lamps, mild wide-angle and empty rooms (A8–A10) were noted but not used alone as a reason to reject.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-dormitor-180 / alb-stejar-natur | ACCEPT | 8.5 | 2 equal oak doors, white body; corner by the window wall, open room door gives scale |
+| dressing-dormitor-180 / alb-total | ACCEPT | 8 | Matches render; in the corner; room is bare |
+| dressing-dormitor-180 / antracit-stejar | ACCEPT | 8.5 | Anthracite body, oak doors; corner, door beside it; book spines plain |
+| dressing-dormitor-180 / gri-casmir | ACCEPT | 8.5 | Greige, not pink; stands between room door and nightstand, not in a corner |
+| dressing-dormitor-180 / nuc-crem | ACCEPT | 8.5 | Walnut body, cream doors; mid-wall between door and armchair; drum pendant again |
+| dressing-dormitor-180 / stejar-natur | ACCEPT | 8 | Matches render; perspective a bit strong (far end 77% of near end); mid-wall |
+| dressing-familie-300 / alb-stejar-natur | ACCEPT | 8.5 | 3 equal oak doors, white body; corner, vanity table on the right |
+| dressing-familie-300 / alb-total | ACCEPT | 8 | Matches render; perspective a bit strong (77%); plinth low |
+| dressing-familie-300 / gri-casmir | ACCEPT | 8.5 | Matches render; reads slightly wide (about 1.2 : 1 against 1.15) |
+| dressing-familie-300 / stejar-casmir | ACCEPT | 9 | Oak body, cashmere doors; corner by the window wall, bench at the bed foot |
+| dressing-familie-300 / stejar-natur | REJECT | 7.5 | Wide-angle stretching (far end 70% of near end), bed corner stands ~30–40 cm in front of the right door, plinth almost missing |
+| dressing-hol-120 / alb-stejar-natur | ACCEPT | 8.5 | Oak doors, white body, steel bars; corner beside the entrance door; top nearly at the ceiling |
+| dressing-hol-120 / antracit-stejar | ACCEPT | 8.5 | Anthracite body and plinth; hall with coat, console, room door; entrance door not in frame |
+| dressing-hol-120 / stejar-natur | ACCEPT | 8.5 | All oak; entrance door, intercom, shoes; round mirror reflects the wardrobe correctly; top at the ceiling |
+| dressing-oglinda-240 / alb-antracit | ACCEPT | 8 | Thin anthracite frames; reflection matches window, radiator, bed and throw; a rug appears only in the reflection |
+| dressing-oglinda-240 / alb-casmir | ACCEPT | 8.5 | Pale cashmere frames; reflection matches curtains and linen bed |
+| dressing-oglinda-240 / alb-gri-matase | ACCEPT | 8.5 | Light grey frames; reflection matches drapes, bed and green throw |
+| dressing-oglinda-240 / alb-stejar-deschis | ACCEPT | 8.5 | Light oak frames; reflection matches balcony glazing and white bed |
+| dressing-oglinda-240 / alb-stejar-natur | ACCEPT | 8 | Golden oak frames, slightly thicker than the render's; reflection plausible |
+| dressing-oglinda-240 / alb-total | ACCEPT | 9 | White frames; reflection matches curtains, bed, throw and rug |
+
+## Reject
+
+### dressing-familie-300 / stejar-natur
+- Near end is 610 px high, far end 425 px: the wardrobe looks like it leans into the room.
+- The bed's corner overlaps the right door with only a narrow strip of floor between them; the brief asks for an 80–90 cm passage.
+- The base is a thin flush strip, not the 10 cm recessed plinth of the render.
+- Prompt additions:
+  - `Camera 4.5 m back with a 35 mm lens, about 15° off the wardrobe wall; the far end of the wardrobe is at least 80% as high in the picture as the near end.`
+  - `A clear strip of floor 85 cm wide runs along the whole front of the wardrobe; the bed stands parallel to the wardrobe and no part of the bed overlaps the doors.`
+  - `The wardrobe stands on a 10 cm high plinth set back 3 cm behind the doors, visible along the whole bottom.`
+
+## Patterns
+
+- dressing-oglinda-240: all six use one layout (window on the left wall, bed at lower left, room door with switch and socket on the right, flush ceiling lamp in the reflection). Mirrors show no camera, no person and no second room, and frame tones match each palette. Since the palettes differ only in frame colour the similarity is defensible, but for variety add to half of the remaining colours: `Window on the right wall, room door on the left, bed at lower right.`
+- dressing-hol-120: two of three photos have the wardrobe reaching the ceiling. Add: `A clear 20 cm strip of wall is visible between the top of the wardrobe and the ceiling.`
+- dressing-dormitor-180: three of six stand mid-wall instead of in a corner. Each still makes sense. Add if the corner matters: `One side of the wardrobe touches the side wall of the room.`

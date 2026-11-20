@@ -6,13 +6,38 @@
     "antracit-stejar",
     "nuc-crem"
   ],
+  "dressing-oglinda-240": [
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-antracit",
+    "alb-gri-matase",
+    "alb-stejar-deschis"
+  ],
   "comoda-tv-240": [
     "alb-total"
   ],
   "dressing-hol-120": [
     "casmir-alb",
     "alb-total",
-    "gri-casmir"
+    "stejar-natur",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "antracit-stejar"
+  ],
+  "dressing-dormitor-180": [
+    "alb-total",
+    "stejar-natur",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "antracit-stejar",
+    "nuc-crem"
+  ],
+  "dressing-familie-300": [
+    "stejar-casmir",
+    "alb-total",
+    "gri-casmir",
+    "alb-stejar-natur"
   ],
   "noptiera-50": [
     "stejar-casmir"
