@@ -14,7 +14,8 @@ test("every shop product has a unique slug, a known category and known colours",
     assert.match(p.slug, /^[a-z0-9-]+$/);
     assert.ok(SHOP_CATEGORIES.some((c) => c.id === p.category));
     assert.ok(p.rooms.length > 0);
-    assert.ok(p.paletteIds.length >= 2, `${p.slug} has one colour only`);
+    // all-mirror hinged doors show only the white body: one colour is honest there
+    if (!(p.preset.shape.category === "DRESSING" && p.preset.shape.doors.type === "BATANTE_OGLINDA")) assert.ok(p.paletteIds.length >= 2, `${p.slug} has one colour only`);
     assert.equal(new Set(p.paletteIds).size, p.paletteIds.length);
     for (const id of p.paletteIds) assert.ok(PALETTES.some((pal) => pal.id === id), `${p.slug}: unknown palette ${id}`);
     assert.ok(productFacts(p.preset).length >= 3);
