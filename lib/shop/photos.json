@@ -23,7 +23,12 @@
     "nuc-crem"
   ],
   "comoda-tv-240": [
-    "alb-total"
+    "alb-total",
+    "stejar-natur",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "suspendat-tv-180": [
     "alb-total"
@@ -114,6 +119,7 @@
   "dressing-oglinzi-300": [
     "alb-casmir",
     "alb-total",
+    "alb-stejar-natur",
     "alb-antracit",
     "alb-gri-matase",
     "alb-stejar-deschis"
@@ -122,6 +128,7 @@
     "grafit-total",
     "alb-total",
     "stejar-natur",
+    "gri-casmir",
     "alb-stejar-natur",
     "antracit-stejar"
   ],
@@ -142,10 +149,25 @@
   "comoda-tv-200": [
     "alb-total",
     "stejar-natur",
-    "gri-casmir"
+    "gri-casmir",
+    "alb-stejar-natur",
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "noptiera-50": [
-    "stejar-casmir"
+    "stejar-casmir",
+    "alb-total",
+    "stejar-natur",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "nuc-crem"
+  ],
+  "comoda-hol-120": [
+    "casmir-alb",
+    "alb-total",
+    "stejar-natur",
+    "gri-casmir",
+    "alb-stejar-natur"
   ],
   "separator-biblioteca-120": [
     "stejar-natur"

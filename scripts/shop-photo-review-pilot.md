@@ -414,3 +414,43 @@ Reviewed: `/tmp/claude-0/batch6/<slug>/<paletteId>.webp`, same method and standa
 3. `GOLA: one straight metal channel above each drawer front, full width, same thickness on every drawer; nothing else on the fronts.`
 4. `Knobs: one small round knob centred on each drawer front, 3 cm, all identical.`
 5. `Body, plinth and fronts in exactly the light colours named; no black or dark grey panels anywhere on the chest.`
+
+---
+
+# Batch 7 (20 photos; comoda-4-sertare-100/gri-casmir, comoda-clasica-160/stejar-natur and dressing-ingust-90/gri-casmir skipped as instructed)
+
+Reviewed: `/tmp/claude-0/batch7/<slug>/<paletteId>.webp`, same method and standard. All 20 accepted.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| noptiera-50 / alb-stejar-natur | ACCEPT | 9 | 2 oak drawers, gold knobs, white body and plinth; top level with the mattress; second nightstand visible |
+| noptiera-50 / alb-total | ACCEPT | 9 | Matches render; lamp, phone, glasses; second nightstand visible |
+| noptiera-50 / gri-casmir | ACCEPT | 8.5 | Greige, not pink; top ~5 cm above a low mattress; fruit bowl on a nightstand is an odd prop |
+| noptiera-50 / nuc-crem | ACCEPT | 9 | Cream fronts, walnut body and plinth |
+| noptiera-50 / stejar-natur | ACCEPT | 8.5 | All oak; reads slightly large (about 55–60 cm) |
+| comoda-hol-120 / alb-stejar-natur | ACCEPT | 8.5 | 2 oak doors, black bars high at the centre as in the render; entrance door, hooks, mat |
+| comoda-hol-120 / alb-total | ACCEPT | 9 | Matches render; hooks with jacket and bag, shoes on a tray |
+| comoda-hol-120 / casmir-alb | ACCEPT | 8.5 | White fronts, cashmere body and top; round mirror |
+| comoda-hol-120 / gri-casmir | ACCEPT | 8.5 | Matches render; mirror, wall lamp, living room through the doorway |
+| comoda-hol-120 / stejar-natur | ACCEPT | 8.5 | All oak; top at entrance-door handle height |
+| comoda-tv-200 / alb-stejar-natur | ACCEPT | 8.5 | Oak drawers, white body and niche, black channels; TV ~112 cm |
+| comoda-tv-200 / nuc-crem | ACCEPT | 9 | Cream drawers, walnut body; TV ~115 cm |
+| comoda-tv-200 / salvie-stejar | ACCEPT | 9 | Sage drawers, light oak body; TV ~120 cm |
+| comoda-tv-240 / alb-stejar-natur | ACCEPT | 9 | 2 doors + 2 drawers + 2 doors, no handles; TV ~143 cm, 23 cm above the top |
+| comoda-tv-240 / gri-casmir | ACCEPT | 8.5 | Matches render; a coat hangs on a single hook beside the room door |
+| comoda-tv-240 / nuc-crem | ACCEPT | 9 | Cream fronts, walnut body and plinth |
+| comoda-tv-240 / salvie-stejar | ACCEPT | 8.5 | Sage fronts, light oak body; TV ~134 cm |
+| comoda-tv-240 / stejar-natur | ACCEPT | 8.5 | All oak; sun patches on the floor |
+| dressing-oglinzi-300 / alb-stejar-natur (redo) | ACCEPT | 9 | Reflection now repeats the real desk, bed and toy; straight lines |
+| dressing-sticla-300 / gri-casmir (redo) | ACCEPT | 9 | No interior lighting, lamp off |
+
+## Noptiere
+
+All five are small pieces beside the bed head with the top at mattress height, two drawers, one small gold knob on each, plinth set back, a second nightstand on the far side. None looks like a chest and none has the protruding plinth block of the old photos.
+
+## New general rule
+
+The single rotating object (A10) now repeats in new forms. Across batches 5–7: a coat on one wall hook 6 times (twice in a living room, twice in a bedroom), a fruit bowl 5 times, a phone charger 4 times.
+- `Coats and bags hang only in an entrance hall, never in a living room or bedroom.`
+- `No fruit bowl in a bedroom or hall.`
+- Extend the A10 list and pick by product index so the same object is not used twice within one product: `a folded blanket | a pair of sneakers | a tote bag (hall only) | a book on the bed | a plant on the floor | a laundry basket | reading glasses | a mug | a toy | an umbrella (hall only)`.
