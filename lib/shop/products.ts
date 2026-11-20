@@ -198,7 +198,22 @@ function isOpen(shape: LayoutPreset["shape"]): boolean {
 
 const bodyOf = (id: string) => PALETTES.find((p) => p.id === id)?.carcassCodes[0] ?? id;
 
+/** No black or dark chests of drawers and wall units (owner, 2026-11-20): light, wood and colour palettes only. */
+const NO_DARK: ReadonlySet<AtelierCategory> = new Set<AtelierCategory>(["COMODA", "SUSPENDAT"]);
+const LIGHT_EXTRA: string[] = ["stejar-alb", "alb-casmir", "nuc-alb", "alb-stejar-deschis"];
+const isDark = (id: string) => PALETTES.find((p) => p.id === id)?.mood === "INCHIS";
+
 function variantsOf(preset: LayoutPreset): string[] {
+  if (NO_DARK.has(preset.category)) {
+    const own = preset.paletteId && !isDark(preset.paletteId) ? preset.paletteId : "alb-total";
+    const pool = [own, ...USUAL, ...LIGHT_EXTRA, ...OPEN_EXTRA].filter((id) => !isDark(id));
+    const out: string[] = [];
+    for (const id of pool) {
+      if (out.includes(id) || (isOpen(preset.shape) && out.some((o) => bodyOf(o) === bodyOf(id)))) continue;
+      out.push(id);
+    }
+    return out.slice(0, MAX_VARIANTS);
+  }
   const own = preset.paletteId ?? "alb-total";
   if (isOpen(preset.shape)) {
     const out: string[] = [];
