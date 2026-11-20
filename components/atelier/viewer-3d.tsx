@@ -755,7 +755,6 @@ interface FrontProps {
   material: THREE.Material;
   handle: EffectiveHandle;
   mats: HardwareMaterials;
-  wallHung: boolean;
   /** 0 = closed … 1 = fully open */
   amount: number;
   hovered: boolean;
@@ -765,7 +764,7 @@ interface FrontProps {
  * A hinged front (piece.hinge set by the CRM): a pivot group sits on the hinge edge and the
  * door hangs off it, so rotating the group swings the door outwards (towards +z).
  */
-function HingedFront({ plan, scene, material, face, handle, mats, wallHung, amount, hovered }: FrontProps & { face: Face | null }) {
+function HingedFront({ plan, scene, material, face, handle, mats, amount, hovered }: FrontProps & { face: Face | null }) {
   const ref = useRef<THREE.Group>(null);
   const { x, y, z, w, h, d } = plan.piece;
   const hinge = plan.mode;
@@ -801,7 +800,7 @@ function HingedFront({ plan, scene, material, face, handle, mats, wallHung, amou
           </mesh>
         )}
         {face && <FaceSheet w={w} h={h} d={d} margins={margins} face={face} />}
-        {plan.hardware && <FrontHardware kind={handle} mode={hinge} edge={plan.edge} w={w} h={h} d={d} yMm={y} wallHung={wallHung} mats={mats} />}
+        {plan.hardware && <FrontHardware kind={handle} mode={hinge} edge={plan.edge} w={w} h={h} d={d} yMm={y} cls={plan.cls} mats={mats} />}
         {hovered && <HoverGlow w={w} h={h} d={d} />}
       </group>
     </group>
@@ -837,7 +836,7 @@ function DrawerBox({ plan, material }: { plan: FrontPlan; material: THREE.Materi
 }
 
 /** A drawer front: it slides straight out, with its box behind it. */
-function DrawerFront({ plan, scene, material, carcassMaterial, handle, mats, wallHung, amount, hovered }: FrontProps & { carcassMaterial: THREE.Material }) {
+function DrawerFront({ plan, scene, material, carcassMaterial, handle, mats, amount, hovered }: FrontProps & { carcassMaterial: THREE.Material }) {
   const ref = useRef<THREE.Group>(null);
   const { x, y, z, w, h, d } = plan.piece;
   const baseZ = (z + d / 2 - scene.depthMm / 2) * S;
@@ -857,7 +856,7 @@ function DrawerFront({ plan, scene, material, carcassMaterial, handle, mats, wal
       <mesh material={material} geometry={geometry} castShadow receiveShadow>
         <Edges threshold={20} color={frontEdge.color} transparent opacity={frontEdge.opacity} raycast={noRaycast} />
       </mesh>
-      {plan.hardware && <FrontHardware kind={handle} mode="DRAWER" edge={plan.edge} w={w} h={h} d={d} yMm={y} wallHung={wallHung} mats={mats} />}
+      {plan.hardware && <FrontHardware kind={handle} mode="DRAWER" edge={plan.edge} w={w} h={h} d={d} yMm={y} cls={plan.cls} mats={mats} />}
       {boxed && <DrawerBox plan={plan} material={carcassMaterial} />}
       {hovered && <HoverGlow w={w} h={h} d={d} />}
     </group>
@@ -1265,7 +1264,7 @@ function Wardrobe({
             );
           const fill = piece.fill === "OGLINDA" || piece.fill === "STICLA" ? piece.fill : null;
           const face = fill ? (faces.get(faceKey(fill, piece)) ?? null) : null;
-          const common = { plan: f, scene, handle, mats, wallHung: plan.wallHung, amount: open.amount[i] ?? 0, hovered: hover === f.key };
+          const common = { plan: f, scene, handle, mats, amount: open.amount[i] ?? 0, hovered: hover === f.key };
           return f.kind === "door" ? (
             // a mirror / lacquered glass is glued on a board of the carcass material; a glass pane sits in a frame of the fronts' board
             <HingedFront key={`${i}-${f.mode}`} {...common} material={face && !face.pane ? carcassMat : frontMat} face={face} />
@@ -1619,7 +1618,7 @@ export default function Viewer3D({
     }
     if (!best) return null;
     const p = best.piece;
-    const [gx, gy] = gripPoint(best, handleKind, plan.wallHung);
+    const [gx, gy] = gripPoint(best, handleKind);
     return {
       kind: "handles",
       point: [(p.x + p.w / 2 + gx - scene.widthMm / 2) * S, (p.y + p.h / 2 + gy) * S, (p.z + p.d - scene.depthMm / 2) * S],
