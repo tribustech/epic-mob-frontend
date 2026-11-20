@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- plain Node script; playwright is the machine-wide install */
 /**
  * Renders the shop's card pictures from the product pages' 3D view, one per product colour:
  * public/magazin/randari/<slug>/<palette>.webp + lib/shop/renders.json (the list the site uses).
