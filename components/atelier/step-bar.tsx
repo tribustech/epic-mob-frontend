@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { Check } from "lucide-react";
 import type { AtelierConfig } from "@/lib/atelier/types";
 import { STEP_IDS, stepLabel, type StepId } from "./session";
 
@@ -49,6 +50,7 @@ export function StepBar({
     >
       {STEP_IDS.map((id, i) => {
         const selected = id === step;
+        const done = i < STEP_IDS.indexOf(step);
         return (
           <button
             key={id}
@@ -58,7 +60,7 @@ export function StepBar({
             aria-selected={selected}
             aria-controls="atelier-step-panel"
             tabIndex={selected ? 0 : -1}
-            className="atelier-steps__tab"
+            className={`atelier-steps__tab ${done ? "is-done" : ""}`}
             onClick={() => onStep(id)}
           >
             {selected && (
@@ -69,7 +71,7 @@ export function StepBar({
               />
             )}
             <span className="atelier-steps__num" aria-hidden="true">
-              {i + 1}
+              {done ? <Check size={11} strokeWidth={3.5} /> : i + 1}
             </span>
             <span className="relative">{stepLabel(id, config)}</span>
             {flagged === id && !selected && (

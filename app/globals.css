@@ -3746,7 +3746,8 @@ select {
   --at-accent-soft: rgba(214, 108, 0, 0.09);
   --at-radius: 14px;
   --at-shadow: 0 1px 2px rgba(40, 30, 15, 0.05), 0 3px 10px rgba(40, 30, 15, 0.04);
-  --at-viewer-h: clamp(12rem, 38svh, 21rem);
+  /* phones: one steady height per step (no shrinking on scroll, so nothing jumps under the finger) */
+  --at-viewer-h: clamp(10.25rem, 27svh, 15rem);
   background: var(--home-black);
   color: var(--at-ink);
   font-size: 0.9rem;
@@ -3787,9 +3788,9 @@ body:has(.atelier-page) .site-header {
   position: relative;
 }
 
-/* phones: the pinned viewer shrinks once the client scrolls into a step */
-.atelier-app.is-compact {
-  --at-viewer-h: clamp(9.5rem, 25svh, 14rem);
+/* the interior step is about the 3D view: a taller viewer there */
+.atelier-app[data-step="interior"] {
+  --at-viewer-h: clamp(11rem, 33svh, 19rem);
 }
 
 .atelier-app__viewer {
@@ -4009,6 +4010,7 @@ body:has(.atelier-page) .site-header {
 
 /* ── step bar ── */
 .atelier-steps {
+  position: relative;
   display: flex;
   gap: 0.15rem;
   overflow-x: auto;
@@ -4062,8 +4064,13 @@ body:has(.atelier-page) .site-header {
   justify-content: center;
   border-radius: 999px;
   background: rgba(26, 26, 26, 0.07);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
+}
+
+.atelier-steps__tab.is-done .atelier-steps__num {
+  background: var(--at-accent-soft);
+  color: var(--at-accent-dark);
 }
 
 .atelier-steps__tab[aria-selected="true"] .atelier-steps__num {
@@ -4151,25 +4158,11 @@ body:has(.atelier-page) .site-header {
   gap: 0.65rem;
 }
 
-/* horizontal swipe row (phones); becomes a grid in the desktop panel */
+/* the ready-made combinations: two per row, like the models */
 .atelier-rail {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.65rem;
-  overflow-x: auto;
-  margin-inline: -1rem;
-  padding: 0.15rem 1rem 0.5rem;
-  scroll-padding-inline: 1rem;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.atelier-rail::-webkit-scrollbar {
-  display: none;
-}
-
-.atelier-rail > * {
-  flex: 0 0 9.4rem;
-  scroll-snap-align: start;
 }
 
 .atelier-scrollrow {
@@ -4354,10 +4347,27 @@ body:has(.atelier-page) .site-header {
 }
 
 .atelier-model .atelier-card__name {
+  display: -webkit-box;
   overflow: hidden;
   font-size: 0.82rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* the size a model starts from: its own badge, so the name can wrap without losing it */
+.atelier-model__size {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.05rem 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--at-ink);
+  box-shadow: 0 1px 2px rgba(40, 30, 15, 0.14);
 }
 
 .atelier-model .atelier-card__sub {
@@ -4766,18 +4776,24 @@ body:has(.atelier-page) .site-header {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--at-accent);
 }
 
-.atelier-tile__label,
 .atelier-tile__sub {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* two lines: „Stejar Halifax natur" and „Stejar Halifax tabac" must not look the same */
 .atelier-tile__label {
+  display: -webkit-box;
+  overflow: hidden;
   margin-top: 0.4rem;
   font-size: 0.74rem;
   font-weight: 600;
   line-height: 1.2;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .atelier-tile__sub {
@@ -5117,8 +5133,8 @@ body:has(.atelier-page) .site-header {
   cursor: pointer;
 }
 
-/* ── desktop: two panes filling the screen under the site header ── */
-@media (min-width: 1024px) {
+/* ── desktop: two panes filling the screen under the site header (needs the height for it too) ── */
+@media (min-width: 1024px) and (min-height: 560px) {
   .atelier-app {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 28.75rem;
@@ -5194,7 +5210,14 @@ body:has(.atelier-page) .site-header {
   }
 
   .atelier-steps__num {
-    display: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    font-size: 0.7rem;
+  }
+
+  .atelier-steps__tab {
+    gap: 0.3rem;
+    font-size: 0.8rem;
   }
 
   .atelier-app__scroll {
@@ -5215,14 +5238,6 @@ body:has(.atelier-page) .site-header {
 
   .atelier-price__value {
     font-size: 2rem;
-  }
-
-  .atelier-rail {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow: visible;
-    margin-inline: 0;
-    padding: 0;
   }
 
   .atelier-scrollrow--wrap {
@@ -5264,7 +5279,7 @@ body:has(.atelier-page) .site-header {
 
   /* little room under the pinned viewer: keep the first screen of each step tight */
   .atelier-app__scroll {
-    padding-top: 0.8rem;
+    padding-top: 0.55rem;
   }
 
   .atelier-section__head {
@@ -5275,13 +5290,54 @@ body:has(.atelier-page) .site-header {
     font-size: 1.25rem;
   }
 
+  /* first screen: the type picker is one slim row, the cards follow right away */
+  .atelier-section--cats .atelier-section__head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .atelier-cats {
+    gap: 0.4rem;
+  }
+
   .atelier-cat {
-    padding: 0.4rem 0.2rem 0.45rem;
-    gap: 0.2rem;
+    padding: 0.3rem 0.15rem 0.3rem;
+    gap: 0.1rem;
+    border-radius: 0.7rem;
   }
 
   .atelier-cat__art {
-    height: 2.1rem;
+    height: 1.6rem;
+  }
+
+  .atelier-cat__name {
+    font-size: 0.74rem;
+    line-height: 1.2;
+  }
+
+  .atelier-list-hint {
+    display: none;
+  }
+
+  .atelier-switch {
+    margin-bottom: 0.55rem;
+  }
+
+  .atelier-model__art {
+    height: clamp(4.6rem, 12svh, 6.4rem);
+  }
+
+  .atelier-model .atelier-card__sub {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+
+  .atelier-stack > .atelier-section--cats + * {
+    margin-top: 0.6rem;
   }
 
   .atelier-stack > * + * {
@@ -5350,11 +5406,6 @@ body:has(.atelier-page) .site-header {
     align-items: center;
   }
 
-  /* the small viewer has no room for the „drag to rotate" hint */
-  .atelier-app.is-compact .atelier-app__viewer p {
-    display: none;
-  }
-
   .atelier-issue .atelier-textbtn {
     margin-top: 0;
   }
@@ -5377,5 +5428,68 @@ body:has(.atelier-page) .site-header {
 
   .atelier-foot__row {
     gap: 0.5rem;
+  }
+}
+
+/* phones: three decors per row, so their names have room */
+@media (max-width: 639px) {
+  .atelier-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ── short screens (a phone on its side, a zoomed desktop window): the pinned viewer + step bar
+   + bottom bar would leave no room for the choices ── */
+@media (max-height: 559px) {
+  /* narrow and short: the viewer scrolls away with the page; the step bar stays */
+  .atelier-app__viewer {
+    position: relative;
+    top: auto;
+    --at-viewer-h: 11rem;
+  }
+
+  .atelier-app__head {
+    top: var(--site-header-height);
+  }
+
+  .atelier-app__scroll {
+    min-height: 0;
+  }
+}
+
+@media (max-height: 559px) and (min-width: 600px) {
+  /* wide and short: the model on the left, the choices scroll on the right */
+  .atelier-app {
+    display: grid;
+    grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .atelier-app__viewer {
+    position: sticky;
+    top: var(--site-header-height);
+    height: calc(100svh - var(--site-header-height));
+  }
+
+  .atelier-app__panel {
+    border-left: 1px solid var(--at-line);
+  }
+
+  .atelier-app__head {
+    position: static;
+  }
+
+  .atelier-app__scroll {
+    min-height: calc(100svh - var(--site-header-height) - 7.5rem);
+  }
+}
+
+
+/* wherever the page itself scrolls, a vertical swipe over the 3D view scrolls the page;
+   a horizontal drag rotates the model (OrbitControls sets touch-action: none inline) */
+@media not all and (min-width: 1024px) and (min-height: 560px) {
+  .atelier-app__viewer canvas,
+  .atelier-app__viewer > div:first-child div {
+    touch-action: pan-y !important;
   }
 }

@@ -20,6 +20,16 @@ export const CATEGORY_SHORT: Record<AtelierCategory, string> = {
   SUSPENDAT: "Suspendat",
 };
 
+/** „2,4 m" / „50 cm": the width a model starts from, shown as its own badge so it never truncates. */
+function sizeLabel(widthMm: number): string {
+  return widthMm >= 1000 ? `${String(Math.round(widthMm / 100) / 10).replace(".", ",")} m` : `${Math.round(widthMm / 10)} cm`;
+}
+
+/** „Comodă cu 6 sertare 1,6 m" → „Comodă cu 6 sertare" (the size has its own badge). */
+function bareName(name: string): string {
+  return name.replace(/\s+\d+(?:,\d+)?\s?m$/u, "");
+}
+
 function ModelCard({
   name,
   tagline,
@@ -45,9 +55,10 @@ function ModelCard({
         <MiniPreview shape={preset.shape} carcass={carcass} front={front} className="h-full w-full" />
         {badge && <span className="atelier-badge">{badge}</span>}
         {selected && <SelectedMark className="absolute right-2 top-2" />}
+        <span className="atelier-model__size">{sizeLabel(preset.shape.widthMm)}</span>
       </span>
       <span className="atelier-model__text">
-        <span className="atelier-card__name">{name}</span>
+        <span className="atelier-card__name">{bareName(name)}</span>
         <span className="atelier-card__sub">{tagline}</span>
       </span>
     </button>
@@ -97,7 +108,7 @@ export function StepModel({
 
   return (
     <div className="atelier-stack">
-      <Section title="Ce construim?">
+      <Section title="Ce construim?" className="atelier-section--cats">
         <RadioGroup label="Tip de mobilier" className="atelier-cats">
           {CATEGORY_ORDER.map((id) => {
             const sample = presetsFor(id)[0];

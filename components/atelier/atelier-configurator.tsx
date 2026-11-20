@@ -36,6 +36,9 @@ const Viewer3D = dynamic(() => import("./viewer-3d"), {
   loading: () => <div className="atelier-viewer__loading">Se încarcă vizualizarea 3D…</div>,
 });
 
+/** The desktop layout (viewer beside a panel with its own scroll); everything else scrolls the page. */
+const TWO_PANE = "(min-width: 1024px) and (min-height: 560px)";
+
 const SIZE_ACTIONS = new Set<AtelierAction["type"]>(["setSize", "setLegs"]);
 const INTERIOR_ACTIONS = new Set<AtelierAction["type"]>([
   "setColumnWidth",
@@ -181,7 +184,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
     // start the new step from its top: the panel's own scroll (desktop) or the page (mobile)
     scrollRef.current?.scrollTo({ top: 0 });
     const app = appRef.current;
-    if (app && window.matchMedia("(max-width: 1023px)").matches) {
+    if (app && !window.matchMedia(TWO_PANE).matches) {
       const header = document.querySelector<HTMLElement>(".site-header")?.offsetHeight ?? 0;
       const top = app.getBoundingClientRect().top + window.scrollY - header;
       if (window.scrollY > top) window.scrollTo({ top });
@@ -197,26 +200,6 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
     [goTo],
   );
 
-  // Phones: once the client scrolls into a step, the pinned viewer shrinks to leave room for the choices.
-  const [compact, setCompact] = useState(false);
-  useEffect(() => {
-    const phone = window.matchMedia("(max-width: 1023px)");
-    const onScroll = () => {
-      const app = appRef.current;
-      if (!app) return;
-      const header = document.querySelector<HTMLElement>(".site-header")?.offsetHeight ?? 0;
-      const scrolled = header - app.getBoundingClientRect().top;
-      // hysteresis: shrinking changes the layout, so the two thresholds must not meet
-      setCompact((was) => (phone.matches ? (was ? scrolled > 8 : scrolled > 72) : false));
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    phone.addEventListener("change", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      phone.removeEventListener("change", onScroll);
-    };
-  }, []);
-
   const stepIndex = STEP_IDS.indexOf(step);
   const nextStep = STEP_IDS[stepIndex + 1] as StepId | undefined;
   const prevStep = STEP_IDS[stepIndex - 1] as StepId | undefined;
@@ -225,7 +208,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div ref={appRef} className={`atelier-app ${compact ? "is-compact" : ""}`}>
+      <div ref={appRef} className="atelier-app" data-step={step}>
         <div className="atelier-app__viewer">
           <Viewer3D
             scene={lastScene}
@@ -255,9 +238,6 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
           <header className="atelier-app__head">
             <div className="atelier-app__title">
               <h1>Configurează-ți mobilierul</h1>
-              <p>
-                Pasul {stepIndex + 1} din {STEP_IDS.length}
-              </p>
             </div>
             <StepBar step={step} config={config} onStep={goTo} flagged={fixStep} />
           </header>
