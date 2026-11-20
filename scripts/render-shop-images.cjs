@@ -22,17 +22,24 @@ const manifestPath = path.join(__dirname, "..", "lib", "shop", "renders.json");
   const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, "utf8")) : {};
 
   await page.goto(`${base}/magazin`, { waitUntil: "networkidle", timeout: 120000 });
-  let slugs = await page.$$eval('a.shop-card[href^="/magazin/"]', (as) => [...new Set(as.map((a) => a.getAttribute("href").split("/")[2]))]);
+  let slugs = await page.$$eval('.shop-card a[href^="/magazin/"]', (as) => [...new Set(as.map((a) => a.getAttribute("href").split("/")[2].split("?")[0]))]);
   if (only.length) slugs = slugs.filter((s) => only.includes(s));
 
   for (const slug of slugs) {
-    await page.goto(`${base}/magazin/${slug}`, { waitUntil: "networkidle", timeout: 120000 });
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await page.goto(`${base}/magazin/${slug}`, { waitUntil: "networkidle", timeout: 120000 });
+        break;
+      } catch (e) {
+        if (attempt >= 3) throw e; // the dev server sometimes drops a navigation while it recompiles
+      }
+    }
     const palettes = await page.$$eval(".shop-colour", (bs) => bs.map((_, i) => i));
     const ids = [];
     for (const i of palettes) {
       await page.locator(".shop-colour").nth(i).evaluate((b) => b.click());
       // the default colour opens on its room photo: switch to the 3D view
-      await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "3D" && b.getAttribute("aria-pressed") !== "true")?.click());
+      await page.evaluate(() => document.querySelector('.shop-viewswitch button:nth-child(2)[aria-pressed="false"]')?.click());
       await page.addStyleTag({ content: "header, .site-header, .shop-fab, [class*='cookie'] { display: none !important; } .shop-product__info, .shop-viewswitch { visibility: hidden !important; } .shop-viewer button, .shop-viewer p { display: none !important; } .shop-viewer { position: fixed !important; inset: 0 auto auto 0 !important; z-index: 99999 !important; border-radius: 0 !important; width: 800px !important; height: 600px !important; }" });
       await page.waitForSelector(".shop-viewer canvas", { timeout: 60000 });
       await page.waitForTimeout(2500);

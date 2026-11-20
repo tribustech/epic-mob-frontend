@@ -219,9 +219,9 @@
     "stejar-natur",
     "alb-total",
     "gri-casmir",
-    "alb-stejar-natur",
     "antracit-stejar",
-    "nuc-crem"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "separator-usi-180": [
     "alb-stejar-natur",
@@ -236,16 +236,16 @@
     "alb-total",
     "stejar-natur",
     "gri-casmir",
-    "alb-stejar-natur",
-    "antracit-stejar"
+    "antracit-stejar",
+    "nuc-crem"
   ],
   "separator-scund-200": [
     "antracit-stejar",
     "alb-total",
     "stejar-natur",
     "gri-casmir",
-    "alb-stejar-natur",
-    "nuc-crem"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "separator-ingust-90": [
     "salvie-stejar",
@@ -291,9 +291,9 @@
     "stejar-natur",
     "alb-total",
     "gri-casmir",
-    "alb-stejar-natur",
     "antracit-stejar",
-    "nuc-crem"
+    "nuc-crem",
+    "salvie-stejar"
   ],
   "suspendat-mixt-200": [
     "casmir-alb",
