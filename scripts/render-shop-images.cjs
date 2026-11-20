@@ -31,6 +31,8 @@ const manifestPath = path.join(__dirname, "..", "lib", "shop", "renders.json");
     const ids = [];
     for (const i of palettes) {
       await page.locator(".shop-colour").nth(i).evaluate((b) => b.click());
+      // the default colour opens on its room photo: switch to the 3D view
+      await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "3D" && b.getAttribute("aria-pressed") !== "true")?.click());
       await page.addStyleTag({ content: "header, .site-header, .shop-fab, [class*='cookie'] { display: none !important; } .shop-product__info, .shop-viewswitch { visibility: hidden !important; } .shop-viewer button, .shop-viewer p { display: none !important; } .shop-viewer { position: fixed !important; inset: 0 auto auto 0 !important; z-index: 99999 !important; border-radius: 0 !important; width: 800px !important; height: 600px !important; }" });
       await page.waitForSelector(".shop-viewer canvas", { timeout: 60000 });
       await page.waitForTimeout(2500);

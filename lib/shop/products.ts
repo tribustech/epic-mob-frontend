@@ -1,5 +1,7 @@
 import { CONTENT_LABELS } from "../atelier/categories";
 import { hasMirror } from "../atelier/door-types";
+import { hasHandledFronts } from "../atelier/handles";
+import { PALETTES } from "../atelier/palettes";
 import { LAYOUT_PRESETS, type LayoutPreset } from "../atelier/presets";
 import type { AtelierCategory, AtelierHandle } from "../atelier/types.ts";
 import RENDERS from "./renders.json";
@@ -113,7 +115,34 @@ export function renderOf(slug: string, paletteId: string): string | null {
  * Handles per model, so the shop does not show the same bar handle everywhere. Applied only where the model
  * has handled fronts, the CRM catalog offers the type and the fronts can take it (lib/shop/server.ts).
  */
-export const HANDLES: Record<string, AtelierHandle> = {};
+export const HANDLES: Record<string, AtelierHandle> = {
+  "comoda-clasica-160": { type: "BUTON", finish: "NEGRU" },
+  "comoda-tv-240": { type: "PUSH" },
+  "separator-sertare-160": { type: "APLICAT", finish: "NEGRU" },
+  "suspendat-tv-180": { type: "PUSH" },
+  "dressing-hol-120": { type: "APLICAT", finish: "INOX" },
+  "dressing-sertare-200": { type: "APLICAT", finish: "NEGRU" },
+  "dressing-copii-150": { type: "BUTON", finish: "INOX" },
+  "dressing-tavan-270": { type: "PUSH" },
+  "dressing-hol-oglinda-160": { type: "APLICAT", finish: "NEGRU" },
+  "dressing-oglinda-mijloc-240": { type: "APLICAT", finish: "AURIU" },
+  "dressing-ingust-90": { type: "BUTON", finish: "NEGRU" },
+  "comoda-4-sertare-100": { type: "GOLA", finish: "INOX" },
+  "comoda-tv-200": { type: "GOLA", finish: "NEGRU" },
+  "noptiera-50": { type: "BUTON", finish: "AURIU" },
+  "comoda-hol-120": { type: "APLICAT", finish: "NEGRU" },
+  "comoda-mixta-180": { type: "APLICAT", finish: "AURIU" },
+  "comoda-inalta-80": { type: "APLICAT", finish: "INOX" },
+  "comoda-nisa-140": { type: "APLICAT", finish: "NEGRU" },
+  "separator-usi-180": { type: "PUSH" },
+  "separator-ingust-90": { type: "BUTON", finish: "AURIU" },
+  "suspendat-clasic-120": { type: "APLICAT", finish: "INOX" },
+  "suspendat-tv-240": { type: "GOLA", finish: "NEGRU" },
+  "suspendat-baie-60": { type: "BUTON", finish: "INOX" },
+  "suspendat-aventos-180": { type: "PUSH" },
+  "suspendat-mixt-200": { type: "GOLA", finish: "INOX" },
+  "suspendat-hol-90": { type: "BUTON", finish: "AURIU" },
+};
 
 /** Photos already generated (public/magazin/foto/<slug>.webp). Kept in code so the build needs no fs. */
 export const PHOTOS: ReadonlySet<string> = new Set<string>([
@@ -158,8 +187,26 @@ export const PHOTOS: ReadonlySet<string> = new Set<string>([
   "suspendat-tv-240",
 ]);
 
+/** Extra body colours for open models, after USUAL (their fronts do not show, so only the body counts). */
+const OPEN_EXTRA: string[] = ["sonoma-alb", "tabac-negru", "beton-grafit"];
+
+/** A model with no fronts at all (open shelves): two palettes with the same body look identical. */
+function isOpen(shape: LayoutPreset["shape"]): boolean {
+  if (shape.category === "DRESSING") return shape.doors.type === "NONE" && !shape.columns.some((c) => c.content === "SERTARE" || c.content === "BARA_SERTARE");
+  return !hasHandledFronts(shape);
+}
+
+const bodyOf = (id: string) => PALETTES.find((p) => p.id === id)?.carcassCodes[0] ?? id;
+
 function variantsOf(preset: LayoutPreset): string[] {
   const own = preset.paletteId ?? "alb-total";
+  if (isOpen(preset.shape)) {
+    const out: string[] = [];
+    for (const id of [own, ...USUAL, ...OPEN_EXTRA]) {
+      if (!out.some((o) => bodyOf(o) === bodyOf(id))) out.push(id);
+    }
+    return out.slice(0, MAX_VARIANTS);
+  }
   const pool = hasMirror(preset.shape) ? WHITE_BODY : USUAL;
   return [own, ...pool.filter((id) => id !== own)].slice(0, MAX_VARIANTS);
 }
