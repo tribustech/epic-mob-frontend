@@ -214,3 +214,49 @@ Reviewed: `/tmp/claude-0/batch2/<slug>/<paletteId>.webp`, same method and standa
 - dressing-oglinda-240: all six use one layout (window on the left wall, bed at lower left, room door with switch and socket on the right, flush ceiling lamp in the reflection). Mirrors show no camera, no person and no second room, and frame tones match each palette. Since the palettes differ only in frame colour the similarity is defensible, but for variety add to half of the remaining colours: `Window on the right wall, room door on the left, bed at lower right.`
 - dressing-hol-120: two of three photos have the wardrobe reaching the ceiling. Add: `A clear 20 cm strip of wall is visible between the top of the wardrobe and the ceiling.`
 - dressing-dormitor-180: three of six stand mid-wall instead of in a corner. Each still makes sense. Add if the corner matters: `One side of the wardrobe touches the side wall of the room.`
+
+---
+
+# Batch 3 (22 photos; dressing-familie-300/stejar-natur skipped as instructed)
+
+Reviewed: `/tmp/claude-0/batch3/<slug>/<paletteId>.webp`, same method and standard. Rules A1–A10 were in use.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-clasic-240 / alb-total (redo) | ACCEPT | 8.5 | Doors now cover the whole front, no frame; far end 80% of near end; far end at the corner by the window wall |
+| suspendat-tv-180 / alb-total (redo 2) | ACCEPT | 8.5 | Front now about 4.8–5 : 1 (real 5.1); TV two thirds of the unit, 20 cm above it; underside reads ~20–25 cm (brief 30), acceptable |
+| dressing-copii-150 / denim-alb | ACCEPT | 8.5 | 2 doors, steel knobs at render height, denim fronts, white body; child's room with toys; ~40 cm under the ceiling |
+| dressing-familie-300 / antracit-stejar | ACCEPT | 8.5 | 3 equal oak doors, anthracite body and plinth |
+| dressing-deschis-280 / alb-stejar-natur | ACCEPT | 9 | 4 columns in the right order, 3 oak drawers in column 3; dressing room, wall to wall |
+| dressing-deschis-280 / alb-total | ACCEPT | 8.5 | Matches render; dressing room with leaning mirror; reflection in the mirror is plausible |
+| dressing-deschis-280 / antracit-stejar | ACCEPT | 8 | Matches render; fills a bedroom alcove wall to wall, bed corner visible in the frame |
+| dressing-deschis-280 / gri-casmir | ACCEPT | 8.5 | Matches render; alcove with a curtain that closes it, bed corner barely visible |
+| dressing-deschis-280 / nuc-crem | ACCEPT | 9 | Walnut body, cream drawers; dressing room with bench and window |
+| dressing-deschis-280 / stejar-natur | ACCEPT | 9 | All oak; dressing room, bedroom seen through the doorway |
+| dressing-mare-360 / alb-stejar-natur | ACCEPT | 8.5 | 4 oak doors in a niche with white filler frame, wall to wall |
+| dressing-mare-360 / alb-total | ACCEPT | 8 | 4 doors, right end in the corner; ~30 cm of wall left between the left end and the room door |
+| dressing-mare-360 / antracit-stejar | ACCEPT | 8 | Matches render; not wall to wall (about 1 m of wall on the right, armchair at the left end) |
+| dressing-mare-360 / gri-casmir | ACCEPT | 9 | Built in wall to wall, greige |
+| dressing-mare-360 / nuc-crem | ACCEPT | 8.5 | Cream doors, walnut side and plinth; almost wall to wall |
+| dressing-mare-360 / stejar-natur | REJECT | 8 | Desk, chair and radiator stand directly in front of the right-hand door |
+| dressing-sertare-200 / alb-stejar-natur | ACCEPT | 8.5 | 3 doors, middle wider, 3 black bars placed as in the render |
+| dressing-sertare-200 / alb-total | ACCEPT | 8.5 | Matches render; corner by the window, desk beside it |
+| dressing-sertare-200 / antracit-stejar | ACCEPT | 8.5 | Matches render |
+| dressing-sertare-200 / gri-casmir | ACCEPT | 9 | Matches render; nightstand and bed give scale |
+| dressing-sertare-200 / nuc-crem | ACCEPT | 8.5 | Matches render; ~30–40 cm under the ceiling instead of 10–12 |
+| dressing-sertare-200 / stejar-natur | ACCEPT | 8.5 | Matches render |
+
+## Reject
+
+### dressing-mare-360 / stejar-natur
+- The wardrobe itself is right (4 equal oak doors, wall to wall, oak plinth). The desk and chair on the window wall sit right against the front of the fourth door, and the radiator ends a few cm from it. Nobody could reach that section.
+- Prompt additions:
+  - `No desk, chair or other furniture within 90 cm of the wardrobe front; the floor in front of all four doors is empty.`
+  - `The window and radiator are on the wall opposite the wardrobe or at least 1 m away from the wardrobe's end.`
+  - `Only the bed, at the lower edge of the frame, is in the room besides the wardrobe.`
+
+## Patterns
+
+- Felt slippers appear in about 15 of the 22 photos and a closed book in about 8. Rule A10 is being satisfied with the same two props, and side by side on the site it will show. Replace with a rotating list, one per photo: `One personal object only, chosen for this photo: <a folded blanket | a tote bag | a phone charger on the nightstand | a child's toy | a pair of sneakers | a laundry basket>. No slippers, no book.`
+- dressing-deschis-280: two of six (antracit-stejar, gri-casmir) are alcoves inside a bedroom with the bed corner in frame. They make sense, so accepted, but for the remaining colours add: `Separate dressing room with no bed in the frame.`
+- dressing-mare-360: two of six do not fill the wall. Add: `Both ends of the wardrobe touch the side walls; no free wall beside it.`

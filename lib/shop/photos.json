@@ -1,6 +1,7 @@
 {
   "dressing-clasic-240": [
     "alb-stejar-natur",
+    "alb-total",
     "stejar-natur",
     "gri-casmir",
     "antracit-stejar",
@@ -16,6 +17,17 @@
   ],
   "comoda-tv-240": [
     "alb-total"
+  ],
+  "suspendat-tv-180": [
+    "alb-total"
+  ],
+  "dressing-deschis-280": [
+    "stejar-natur",
+    "alb-total",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "antracit-stejar",
+    "nuc-crem"
   ],
   "dressing-hol-120": [
     "casmir-alb",
@@ -37,7 +49,26 @@
     "stejar-casmir",
     "alb-total",
     "gri-casmir",
-    "alb-stejar-natur"
+    "alb-stejar-natur",
+    "antracit-stejar"
+  ],
+  "dressing-mare-360": [
+    "gri-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "antracit-stejar",
+    "nuc-crem"
+  ],
+  "dressing-sertare-200": [
+    "antracit-stejar",
+    "alb-total",
+    "stejar-natur",
+    "gri-casmir",
+    "alb-stejar-natur",
+    "nuc-crem"
+  ],
+  "dressing-copii-150": [
+    "denim-alb"
   ],
   "noptiera-50": [
     "stejar-casmir"
