@@ -49,6 +49,7 @@ const INTERIOR_ACTIONS = new Set<AtelierAction["type"]>([
   "setColumnShelves",
   "addColumn",
   "removeColumn",
+  "equalizeColumns",
   "setDoors",
   "setHandle",
   "setColumnDoorRows",
@@ -102,7 +103,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   const [session, dispatch] = useReducer(sessionReducer, catalog, initialSession);
   const { config, step, contact } = session;
   const setContact = useCallback((next: LeadContact) => dispatch({ type: "contact", contact: next }), []);
-  const { result, loading, unavailable } = useLivePrice(config);
+  const { result, loading, unavailable, retry } = useLivePrice(config);
   const [lead, setLead] = useState<LeadStatus>({ kind: "idle" });
   const [issuesOpen, setIssuesOpen] = useState(false);
   const appRef = useRef<HTMLDivElement>(null);
@@ -163,6 +164,22 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
       ? "Are nevoie de o ajustare"
       : "Se calculează…";
   const fixStep = hasErrors ? stepForIssue(errors[0]) : null;
+  // an error the height fixes is also shown right at the height control
+  const heightIssue = errors.find((e) => e.code === "USA_PREA_INALTA" || (stepForIssue(e) === "dimensiuni" && /[îi]n[ăa]l[țt]im/iu.test(e.message)));
+
+  // „Două fețe" is offered for every painted model, but some can only be priced on one face:
+  // when the service says so, go back to one face and switch the option off for that model.
+  const [noTwoFaces, setNoTwoFaces] = useState<string | null>(null);
+  const vopsitModel = config.fronts.kind === "MDF_VOPSIT" ? (config.fronts.modelId ?? "") : null;
+  if (
+    !loading &&
+    vopsitModel !== null &&
+    config.fronts.faces === 2 &&
+    errors.some((e) => e.code === "MATERIAL_INDISPONIBIL")
+  ) {
+    setNoTwoFaces(vopsitModel);
+    dispatch({ type: "config", actions: [{ type: "setFronts", fronts: { ...config.fronts, faces: 1 } }], at: 0 });
+  }
   // warnings are routine remarks: a quiet link by the price, and a calm list on the offer step
   const notes = useMemo(() => (hasErrors ? [] : groupNotes(warnings, config)), [hasErrors, warnings, config]);
   const showNotes = notes.length > 0 && step !== "oferta";
@@ -184,9 +201,8 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
       restoredStep.current = linked;
       dispatch({ type: "step", step: linked });
     }
-    stepRef.current = linked ?? stored?.step ?? "model";
     // keep the address in step with the screen, so Back from a later step returns here
-    if (!linked && stepRef.current !== "model") window.history.replaceState(null, "", `#${stepRef.current}`);
+    if (!linked && stored && stored.step !== "model") window.history.replaceState(null, "", `#${stored.step}`);
   }, [catalog]);
   useEffect(() => {
     if (restored.current) saveSession(config, step, contact);
@@ -223,9 +239,11 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   }, []);
 
   /* ── every step is a history entry: the browser's Back goes to the previous step ── */
-  const stepRef = useRef<StepId>("model");
+  const stepNow = useRef<StepId>(step);
+  useEffect(() => {
+    stepNow.current = step;
+  }, [step]);
   const showStep = useCallback((next: StepId) => {
-    stepRef.current = next;
     dispatch({ type: "step", step: next });
     setIssuesOpen(false);
     // entering „Interior" always shows the interior again, whatever was toggled before
@@ -241,7 +259,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   }, []);
   const goTo = useCallback(
     (next: StepId) => {
-      if (next !== stepRef.current) window.history.pushState(null, "", `#${next}`);
+      if (next !== stepNow.current) window.history.pushState(null, "", `#${next}`);
       showStep(next);
     },
     [showStep],
@@ -280,9 +298,9 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
     setLead({ kind: "idle" });
     setManualDoors(null);
     setPickedColumn(0);
-    dispatch({ type: "restore", config: initialSession(catalog).config, step: stepRef.current, contact });
+    dispatch({ type: "restore", config: initialSession(catalog).config, step, contact });
     goTo("model");
-  }, [catalog, contact, goTo]);
+  }, [catalog, contact, goTo, step]);
 
   const onLead = useCallback(
     (next: LeadStatus) => {
@@ -372,9 +390,16 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                     carcass={carcass}
                     front={front}
                     act={act}
+                    noTwoFaces={noTwoFaces !== null && noTwoFaces === vopsitModel}
                   />
                 )}
-                {step === "dimensiuni" && <StepSize config={config} act={act} />}
+                {step === "dimensiuni" && (
+                  <StepSize
+                    config={config}
+                    act={act}
+                    heightIssue={heightIssue ? issueMessage(heightIssue.message, config.category === "DRESSING") : null}
+                  />
+                )}
                 {step === "interior" && (
                   <StepInterior catalog={catalog} config={config} act={act} column={column} onColumn={pickColumn} />
                 )}
@@ -459,7 +484,14 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                 {price != null ? (
                   <span className={`atelier-price__value ${loading ? "is-stale" : ""}`}>{formatLei(price)}</span>
                 ) : (
-                  <span className={`atelier-price__note ${hasErrors ? "is-error" : ""}`}>{priceNote}</span>
+                  <span className={`atelier-price__note ${hasErrors ? "is-error" : ""}`}>
+                    {priceNote}
+                    {down && !loading && (
+                      <button type="button" className="atelier-inlinebtn atelier-price__retry" onClick={retry}>
+                        Reîncearcă
+                      </button>
+                    )}
+                  </span>
                 )}
               </div>
               <div className="atelier-foot__nav">

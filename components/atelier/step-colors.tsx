@@ -8,7 +8,8 @@ import type { AtelierCatalog, AtelierConfig, AtelierFronts, AtelierMaterial, Fro
 import { materialLook, paletteLooks, swatchStyle, type MaterialLook } from "./material-look";
 
 import type { Act } from "./session";
-import { Choice, Field, RadioGroup, Section, SelectedMark, decorTitle } from "./ui";
+import { ralLabel, ralNameRo } from "@/lib/atelier/ral-names";
+import { Choice, Field, RadioGroup, Section, SelectedMark, decorName, decorTitle, fold } from "./ui";
 
 const KIND_LABELS: Record<FrontKind, string> = {
   PAL: "PAL",
@@ -53,11 +54,12 @@ function materialItem(m: AtelierMaterial, kind: "PAL" | "MDF_MELAMINAT"): Swatch
   const bare = code && m.name.startsWith(code) ? m.name.slice(code.length).replace(/^[\s·\-–]+/, "") : m.name;
   return {
     id: m.id,
-    label: bare || m.name,
+    label: decorName(bare || m.name),
     sub: code,
     group: m.brand,
     look: materialLook(m, kind),
-    text: `${m.name} ${code} ${m.brand ?? ""}`.toLowerCase(),
+    // with and without diacritics, the code with and without its space: „casmir", „h1145", „H 1145"
+    text: fold(`${m.name} ${decorName(m.name)} ${code} ${code.replace(/\s+/g, "")} ${m.brand ?? ""}`),
   };
 }
 
@@ -121,8 +123,14 @@ function SwatchPicker({
   // The decor chosen when the list was opened leads it; a tap never reshuffles the tiles under the finger.
   const [leadId] = useState(selectedId);
   const matches = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const list = items.filter((i) => (!activeGroup || i.group === activeGroup) && (!q || i.text.includes(q)));
+    // every word typed must be found; „ral7016", „RAL 7016" and „7016" are the same search
+    const words = fold(query.trim()).split(/\s+/).filter(Boolean);
+    const compact = words.join("");
+    const list = items.filter(
+      (i) =>
+        (!activeGroup || i.group === activeGroup) &&
+        (words.length === 0 || words.every((w) => i.text.includes(w)) || i.text.replace(/\s+/g, "").includes(compact)),
+    );
     const at = list.findIndex((i) => i.id === leadId);
     return at > 0 ? [list[at], ...list.slice(0, at), ...list.slice(at + 1)] : list;
   }, [items, query, activeGroup, leadId]);
@@ -234,6 +242,7 @@ export function StepColors({
   carcass,
   front,
   act,
+  noTwoFaces = false,
 }: {
   catalog: AtelierCatalog;
   config: AtelierConfig;
@@ -242,6 +251,8 @@ export function StepColors({
   carcass: MaterialLook;
   front: MaterialLook;
   act: Act;
+  /** painting both faces could not be priced for this front model: the option is off */
+  noTwoFaces?: boolean;
 }) {
   const [mood, setMood] = useState<PaletteMood | null>(null);
   const [allPalettes, setAllPalettes] = useState(false);
@@ -252,7 +263,13 @@ export function StepColors({
     const list = mood ? palettes.filter((p) => p.mood === mood) : palettes;
     return list.map((palette) => ({ palette, looks: paletteLooks(catalog, palette) }));
   }, [catalog, palettes, mood]);
-  const shownPalettes = allPalettes ? paletteList : paletteList.slice(0, PALETTES_COLLAPSED);
+  // the chosen combination is always among the visible ones (first, when it would be hidden)
+  const shownPalettes = useMemo(() => {
+    if (allPalettes) return paletteList;
+    const head = paletteList.slice(0, PALETTES_COLLAPSED);
+    const active = paletteList.find((p) => p.palette.id === activePalette);
+    return !active || head.includes(active) ? head : [active, ...head.slice(0, PALETTES_COLLAPSED - 1)];
+  }, [paletteList, allPalettes, activePalette]);
 
   const carcassItems = useMemo(() => {
     const mdf = new Set(catalog.fronts.MDF_MELAMINAT.map((m) => m.id));
@@ -270,10 +287,11 @@ export function StepColors({
       catalog.ral.map((r) => ({
         id: r.code,
         label: r.code,
-        sub: r.name,
+        // Romanian colour name; the code alone when we have none (never the English one)
+        sub: ralNameRo(r.name) ?? "",
         group: null,
         look: { color: r.hex, imageUrl: null },
-        text: `${r.code} ${r.code.replace(/^ral\s*/i, "")} ${r.name}`.toLowerCase(),
+        text: fold(`${r.code} ${r.code.replace(/\s+/g, "")} ${ralNameRo(r.name) ?? ""} ${r.name}`),
       })),
     [catalog],
   );
@@ -290,7 +308,7 @@ export function StepColors({
   const frontName =
     fronts.kind === "MDF_VOPSIT"
       ? ral
-        ? `${ral.code} · ${ral.name}`
+        ? ralLabel(ral)
         : "—"
       : catalog.fronts[fronts.kind].find((m) => m.id === fronts.materialId)?.name ?? "—";
 
@@ -396,7 +414,7 @@ export function StepColors({
                 label="Culoare RAL"
                 items={ralItems}
                 selectedId={fronts.ralCode}
-                placeholder="Caută: 9016, alb, verde…"
+                placeholder="Caută: 9016, alb, antracit…"
                 onPick={(ralCode) => setFronts({ ...fronts, ralCode })}
               />
               <div className="atelier-rows mt-3">
@@ -410,13 +428,16 @@ export function StepColors({
                     />
                   </Field>
                 )}
-                <Field label="Fețe vopsite">
+                <Field
+                  label="Fețe vopsite"
+                  hint={noTwoFaces ? "Vopsirea pe două fețe nu e disponibilă momentan — o stabilim la măsurători." : undefined}
+                >
                   <Choice
                     label="Fețe vopsite"
                     value={fronts.faces ?? 1}
                     options={[
                       { value: 1, label: "O față" },
-                      { value: 2, label: "Două fețe" },
+                      { value: 2, label: "Două fețe", disabled: noTwoFaces },
                     ]}
                     onChange={(faces) => setFronts({ ...fronts, faces: faces as 1 | 2 })}
                   />

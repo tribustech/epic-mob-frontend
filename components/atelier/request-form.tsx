@@ -90,7 +90,7 @@ export function RequestForm({
   const edit = (key: keyof LeadContact, value: string) => {
     onContact({ ...typed, [key]: value });
     // the reason goes away as soon as the client starts fixing the field
-    if (key !== "notes" && fieldErrors[key]) setFieldErrors(({ [key]: _fixed, ...rest }) => rest);
+    if (key !== "notes" && fieldErrors[key]) setFieldErrors((errors) => ({ ...errors, [key]: undefined }));
   };
 
   // the submit button sits in the footer: bring a fresh error into view

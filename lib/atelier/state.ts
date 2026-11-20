@@ -28,6 +28,7 @@ export type AtelierAction =
   | { type: "setColumnShelves"; index: number; shelves: number | undefined }
   | { type: "addColumn" }
   | { type: "removeColumn"; index: number }
+  | { type: "equalizeColumns" }
   | { type: "setCarcass"; materialId: string }
   | { type: "setFronts"; fronts: AtelierFronts }
   | { type: "setLegs"; legsMm: AtelierConfig["legsMm"] }
@@ -115,6 +116,28 @@ function fit(widths: number[], total: number): number[] | null {
   return out;
 }
 
+/**
+ * n equal columns for a total width, in whole centimetres where the total allows it; the
+ * leftover millimetres go on the last column. Always sums to exactly total; null when n
+ * columns of 30–120 cm cannot make it.
+ */
+export function evenWidths(total: number, n: number): number[] | null {
+  if (n < 1 || total < n * MIN_COL_MM || total > n * MAX_COL_MM) return null;
+  for (const base of [Math.floor(total / n / 10) * 10, Math.floor(total / n)]) {
+    const last = total - base * (n - 1);
+    if (base >= MIN_COL_MM && last <= MAX_COL_MM) return Array.from({ length: n }, (_, i) => (i === n - 1 ? last : base));
+  }
+  return fit(Array.from({ length: n }, () => Math.floor(total / n)), total);
+}
+
+/** Are these widths „all the same" (nobody set one by hand)? Equal within 2 mm, or exactly an even split. */
+export function areEven(widths: number[]): boolean {
+  if (widths.length <= 1) return true;
+  if (Math.max(...widths) - Math.min(...widths) <= 2) return true;
+  const even = evenWidths(sumOf(widths), widths.length);
+  return !!even && even.every((w, i) => w === widths[i]);
+}
+
 function withWidths(cols: AtelierColumn[], w: number[]): AtelierColumn[] {
   return cols.map((c, i) => ({ ...c, widthMm: w[i] }));
 }
@@ -144,7 +167,10 @@ function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
     cols = [...cols, ...Array.from({ length: minN - cols.length }, () => ({ widthMm: avg, content: fill }))];
   }
   if (cols.length > maxN) cols = cols.slice(0, maxN);
-  const fitted = fit(cols.map((c) => c.widthMm), widthMm);
+  // equal columns stay equal (no 53,3 / 53,4 cm drift, no odd filler column after widening)
+  const fitted = areEven(state.columns.map((c) => c.widthMm))
+    ? evenWidths(widthMm, cols.length)
+    : fit(cols.map((c) => c.widthMm), widthMm);
   if (!fitted) return state;
   return { ...state, widthMm, columns: withWidths(cols, fitted) };
 }
@@ -244,14 +270,22 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       return { ...state, columns: state.columns.map((c, i) => (i === index ? next : c)) };
     }
     case "addColumn": {
+      // equal columns: make room for one more and keep them equal (3 × 100 → 4 × 75)
+      const even = areEven(state.columns.map((c) => c.widthMm)) ? evenWidths(state.widthMm, state.columns.length + 1) : null;
+      if (even) return { ...state, columns: withWidths([...state.columns, { widthMm: 0, content: rules.fill }], even) };
       const cols = splitWidest(state.columns, rules.fill);
       return cols ? { ...state, columns: cols } : state;
+    }
+    case "equalizeColumns": {
+      const even = evenWidths(state.widthMm, state.columns.length);
+      return even && even.some((w, i) => w !== state.columns[i].widthMm) ? { ...state, columns: withWidths(state.columns, even) } : state;
     }
     case "removeColumn": {
       const { index } = action;
       if (state.columns.length <= 1 || index < 0 || index >= state.columns.length) return state;
       const rest = state.columns.filter((_, i) => i !== index);
-      const fitted = fit(rest.map((c) => c.widthMm), state.widthMm);
+      const widths = rest.map((c) => c.widthMm);
+      const fitted = (Math.max(...widths) - Math.min(...widths) <= 20 ? evenWidths(state.widthMm, rest.length) : null) ?? fit(widths, state.widthMm);
       if (!fitted) return state;
       return { ...state, columns: withWidths(rest, fitted) };
     }

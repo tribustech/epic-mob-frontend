@@ -42,7 +42,16 @@ function SizeCard({
   );
 }
 
-export function StepSize({ config, act }: { config: AtelierConfig; act: Act }) {
+export function StepSize({
+  config,
+  act,
+  heightIssue = null,
+}: {
+  config: AtelierConfig;
+  act: Act;
+  /** what the price service says about the current height (e.g. doors taller than the board allows) */
+  heightIssue?: string | null;
+}) {
   const rules = categoryRules(config.category);
   const legOptions = rules.legs.filter((l) => l > 0);
   // Different categories have different limits: remount the fields so no half-typed draft survives a switch.
@@ -71,7 +80,7 @@ export function StepSize({ config, act }: { config: AtelierConfig; act: Act }) {
                   type="button"
                   className="atelier-chip atelier-chip--sm"
                   aria-pressed={config.widthMm === w}
-                  onClick={() => act({ type: "setSize", widthMm: w })}
+                  onClick={() => config.widthMm !== w && act({ type: "setSize", widthMm: w })}
                 >
                   {cm(w)} cm
                 </button>
@@ -89,6 +98,11 @@ export function StepSize({ config, act }: { config: AtelierConfig; act: Act }) {
               slider
               onCommit={(heightMm) => act({ type: "setSize", heightMm })}
             />
+            {heightIssue && (
+              <p className="atelier-length__note atelier-length__note--left" role="alert">
+                {heightIssue}
+              </p>
+            )}
           </SizeCard>
           <SizeCard icon={<MoveDiagonal size={16} />} label="Adâncime" range={rules.depth}>
             <LengthControl

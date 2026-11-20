@@ -18,7 +18,7 @@ import {
 import { doorFace, doorOpening, doorType, type DoorFace, type DoorOpening } from "@/lib/atelier/door-types";
 import { autoDoorCount, doorCountOptions } from "@/lib/atelier/doors";
 import { hasHandledFronts } from "@/lib/atelier/handles";
-import { MAX_COL_MM, MIN_COL_MM } from "@/lib/atelier/state";
+import { MAX_COL_MM, MIN_COL_MM, areEven } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig, BottomType, ColumnContent } from "@/lib/atelier/types";
 import { ContentGlyph } from "./content-glyph";
 import { HandlePicker } from "./handle-picker";
@@ -51,6 +51,9 @@ function ColumnEditor({ config, index, act }: { config: AtelierConfig; index: nu
   // the widths the reducer accepts for this column (the others must stay within 30–120 cm)
   const lo = Math.max(MIN_COL_MM, config.widthMm - MAX_COL_MM * (n - 1));
   const hi = Math.min(MAX_COL_MM, config.widthMm - MIN_COL_MM * (n - 1));
+  // fewer columns would each have to be wider than 120 cm
+  const minColumns = Math.ceil(config.widthMm / MAX_COL_MM);
+  const canRemove = n > 1 && n > minColumns;
 
   return (
     <div className="atelier-box">
@@ -63,12 +66,20 @@ function ColumnEditor({ config, index, act }: { config: AtelierConfig; index: nu
           type="button"
           className="atelier-textbtn atelier-textbtn--danger"
           onClick={() => act({ type: "removeColumn", index })}
-          disabled={n <= 1}
+          disabled={!canRemove}
           aria-label={`Elimină ${noun} ${index + 1}`}
+          aria-describedby={canRemove ? undefined : "atelier-col-min"}
         >
           <Trash2 size={15} aria-hidden="true" /> Elimină
         </button>
       </div>
+      {!canRemove && (
+        <p id="atelier-col-min" className="atelier-hint -mt-2 mb-3">
+          {n <= 1
+            ? `Nu se poate elimina: e ${compartment ? "singurul compartiment" : "singura coloană"}.`
+            : `Nu se poate elimina: la ${cm(config.widthMm)} cm lățime e nevoie de cel puțin ${minColumns} ${compartment ? "compartimente" : "coloane"} (cel mult 120 cm fiecare).`}
+        </p>
+      )}
 
       {contents.length > 1 && (
         <Choice
@@ -216,14 +227,22 @@ function Columns({
   const canAdd = config.columns.some((c) => c.widthMm >= 2 * MIN_COL_MM);
   const dressing = config.category === "DRESSING";
   const noun = dressing ? "coloană" : "compartiment";
+  // what one column can really be here: the others must stay within 30–120 cm too
+  const lo = Math.max(MIN_COL_MM, config.widthMm - MAX_COL_MM * (n - 1));
+  const hi = Math.max(lo, Math.min(MAX_COL_MM, config.widthMm - MIN_COL_MM * (n - 1)));
+  const range = n <= 1 ? "" : lo === hi ? ` Fiecare are ${cm(lo)} cm.` : ` Fiecare poate avea între ${cm(lo)} și ${cm(hi)} cm.`;
+  const even = areEven(config.columns.map((c) => c.widthMm));
 
   return (
     <Section
       title={dressing ? `Coloane (${n})` : `Compartimente (${n})`}
-      hint={
-        dressing
-          ? "Atinge o coloană ca să-i alegi interiorul. Fiecare are între 30 și 120 cm."
-          : "Atinge un compartiment ca să-l schimbi. Fiecare are între 30 și 120 cm."
+      hint={(dressing ? "Atinge o coloană ca să-i alegi interiorul." : "Atinge un compartiment ca să-l schimbi.") + range}
+      action={
+        n > 1 && !even ? (
+          <button type="button" className="atelier-textbtn shrink-0" onClick={() => act({ type: "equalizeColumns" })}>
+            Egalizează
+          </button>
+        ) : undefined
       }
     >
       <div className="atelier-cols" role="group" aria-label={dressing ? "Coloane" : "Compartimente"}>
@@ -238,7 +257,10 @@ function Columns({
             onClick={() => onPick(i)}
           >
             <ContentGlyph content={col.content} className="atelier-col__glyph" />
-            <span className="atelier-col__w">{cm(col.widthMm)}</span>
+            <span className="atelier-col__w">
+              {cm(col.widthMm)}
+              {n <= 5 && <span className="atelier-col__unit"> cm</span>}
+            </span>
           </button>
         ))}
         <button

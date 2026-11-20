@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Edges, OrbitControls } from "@react-three/drei";
 import { DoorClosed, DoorOpen, ScanEye } from "lucide-react";
@@ -272,6 +272,8 @@ function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: num
   });
 
   const frame = useRef<() => void>(() => {});
+  /** keeps the viewing direction, changes only the distance (doors opened / closed) */
+  const refit = useRef<() => void>(() => {});
   useEffect(() => {
     frame.current = () => {
       const v = latest.current;
@@ -289,6 +291,22 @@ function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: num
         controls.maxDistance = view.dist * 1.8;
         controls.update();
       }
+      invalidate();
+    };
+    refit.current = () => {
+      const v = latest.current;
+      const view = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
+      const target = controls ? controls.target.clone() : view.target;
+      const dir = camera.position.clone().sub(target);
+      if (dir.lengthSq() < 1e-6) return;
+      dir.normalize();
+      if (controls) {
+        controls.minDistance = view.dist * 0.4;
+        controls.maxDistance = view.dist * 1.8;
+      }
+      camera.far = view.dist * 6 + 10;
+      camera.updateProjectionMatrix();
+      if (!dragging.current) glide.current = { position: target.clone().addScaledVector(dir, view.dist), target };
       invalidate();
     };
   }, [camera, controls, invalidate]);
@@ -337,21 +355,8 @@ function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: num
   useEffect(() => {
     if (padKey === firstPad.current) return;
     firstPad.current = padKey;
-    const v = latest.current;
-    const view = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
-    const target = controls ? controls.target.clone() : view.target;
-    const dir = camera.position.clone().sub(target);
-    if (dir.lengthSq() < 1e-6) return;
-    dir.normalize();
-    if (controls) {
-      controls.minDistance = view.dist * 0.4;
-      controls.maxDistance = view.dist * 1.8;
-    }
-    camera.far = view.dist * 6 + 10;
-    camera.updateProjectionMatrix();
-    if (!dragging.current) glide.current = { position: target.clone().addScaledVector(dir, view.dist), target };
-    invalidate();
-  }, [padKey, camera, controls, invalidate]);
+    refit.current();
+  }, [padKey]);
 
   useFrame((state, delta) => {
     const g = glide.current;
@@ -374,7 +379,10 @@ function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: num
 /* ── Pieces, rails, doors ── */
 
 const CORP_EDGE = { color: "#3b332b", opacity: 0.3 };
-const FRONT_EDGE = { color: "#2a2420", opacity: 0.5 };
+const FRONT_EDGE_ON_LIGHT = { color: "#2a2420", opacity: 0.5 };
+/** dark fronts get light joints, or a black chest of drawers is one black block */
+const FRONT_EDGE_ON_DARK = { color: "#b9b2a8", opacity: 0.55 };
+const FrontEdge = createContext(FRONT_EDGE_ON_LIGHT);
 
 function Piece({
   piece,
@@ -398,7 +406,8 @@ function Piece({
     z * S,
     piece.role === "FRONT" ? "y" : "auto",
   );
-  const edge = piece.role === "FRONT" ? FRONT_EDGE : piece.role === "CORP" ? CORP_EDGE : null;
+  const frontEdge = useContext(FrontEdge);
+  const edge = piece.role === "FRONT" ? frontEdge : piece.role === "CORP" ? CORP_EDGE : null;
   return (
     <mesh
       position={[(x + w / 2 - scene.widthMm / 2) * S, (y + h / 2) * S, (z + d / 2 - scene.depthMm / 2) * S]}
@@ -483,6 +492,7 @@ function HingedFront({
   const target = !open ? 0 : hinge === "T" ? -LIFT_OPEN_RAD : hinge === "R" ? SWING_OPEN_RAD : -SWING_OPEN_RAD;
   const geometry = useGrainBox(Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S, x * S, y * S, z * S, "y");
   const handleLen = Math.min(HANDLE_LEN_MM, (hinge === "T" ? w : h) * 0.6);
+  const FRONT_EDGE = useContext(FrontEdge);
 
   useEffect(() => {
     invalidate();
@@ -644,6 +654,7 @@ function Door({
   const geometry = useGrainBox(door.w * S, door.h * S, DOOR_THICKNESS_MM * S, door.x * S, 0, 0, "y");
   const invalidate = useThree((s) => s.invalidate);
   const bottom = Math.max(0, scene.heightMm - door.h);
+  const FRONT_EDGE = useContext(FrontEdge);
   const targetX = (targetXmm + door.w / 2 - scene.widthMm / 2) * S;
 
   // X is owned by the animation, never by a prop (a prop would snap it into place).
@@ -774,7 +785,14 @@ function Wardrobe({
   const gap = (zone - 2 * DOOR_THICKNESS_MM) / 3;
   const trackZ = [carcassFront + gap, carcassFront + 2 * gap + DOOR_THICKNESS_MM];
 
+  const frontEdge = useMemo(() => {
+    const hsl = { h: 0, s: 0, l: 0 };
+    new THREE.Color(front.color).getHSL(hsl);
+    return hsl.l < 0.3 ? FRONT_EDGE_ON_DARK : FRONT_EDGE_ON_LIGHT;
+  }, [front.color]);
+
   return (
+    <FrontEdge.Provider value={frontEdge}>
     <group>
       {scene.pieces.map((piece, i) =>
         piece.hinge ? (
@@ -816,6 +834,7 @@ function Wardrobe({
         );
       })}
     </group>
+    </FrontEdge.Provider>
   );
 }
 

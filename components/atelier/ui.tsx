@@ -57,11 +57,44 @@ export function fold(text: string): string {
     .toLowerCase();
 }
 
+/** Catalog names typed without diacritics, as they should read. */
+const DECOR_WORDS: Record<string, string> = {
+  portelan: "Porțelan",
+  migdala: "Migdală",
+  rosu: "Roșu",
+  inchis: "Închis",
+  mesteacan: "Mesteacăn",
+  artar: "Arțar",
+  cires: "Cireș",
+  salbatic: "Sălbatic",
+  salcam: "Salcâm",
+  marmura: "Marmură",
+  piatra: "Piatră",
+  trufa: "Trufă",
+  perlata: "Perlată",
+  cenusiu: "Cenușiu",
+  mustar: "Muștar",
+  casmir: "Cașmir",
+  kasmir: "Cașmir",
+  tendinta: "Tendință",
+  fata: "față",
+  "2-fete": "2 fețe",
+};
+
+/** „Alb Portelan" → „Alb Porțelan" (display only; ids and decor codes are untouched). */
+export function decorName(name: string): string {
+  return name.replace(/[\p{L}\d-]+/gu, (word) => {
+    const fixed = DECOR_WORDS[word.toLowerCase()];
+    if (!fixed) return word;
+    return word.length > 1 && word === word.toUpperCase() && /\p{L}/u.test(word) ? fixed.toUpperCase() : fixed;
+  });
+}
+
 /** „W1000 ST9 · Alb Premium" → „Alb Premium" (the catalog name leads with the decor code). */
 export function decorTitle(name: string): string {
   const at = name.indexOf(" · ");
   if (/^(MDF vopsit )?RAL\b/.test(name)) return name;
-  return at > 0 && at < name.length - 3 ? name.slice(at + 3) : name;
+  return decorName(at > 0 && at < name.length - 3 ? name.slice(at + 3) : name);
 }
 
 export function plural(n: number, one: string, many: string): string {

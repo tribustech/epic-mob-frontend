@@ -4,6 +4,7 @@ import { Info, PhoneCall, Ruler, ShieldCheck } from "lucide-react";
 import { categoryRules } from "@/lib/atelier/categories";
 import { doorFace, doorOpening } from "@/lib/atelier/door-types";
 import { currentHandle, hasHandledFronts } from "@/lib/atelier/handles";
+import { ralLabel } from "@/lib/atelier/ral-names";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetById, presetsFor } from "@/lib/atelier/presets";
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
@@ -108,7 +109,7 @@ export function StepOffer({
   const ral = catalog.ral.find((r) => r.code === fronts.ralCode);
   const frontName =
     fronts.kind === "MDF_VOPSIT"
-      ? `MDF vopsit ${ral ? `${ral.code} · ${ral.name}` : ""}`
+      ? `MDF vopsit ${ral ? ralLabel(ral) : ""}`
       : catalog.fronts[fronts.kind].find((m) => m.id === fronts.materialId)?.name ?? "—";
   const doors = doorsText(config);
   const bottom =
