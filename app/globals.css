@@ -5577,3 +5577,374 @@ body:has(.atelier-page) .site-header {
     font-size: 0.82rem;
   }
 }
+
+/* ── atelier round 2: handles from photos, door faces (mirror / glass), share, „ce primești" ── */
+.atelier-handles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+@media (min-width: 30rem) {
+  .atelier-handles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.atelier-handle__art {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: #ece7df;
+}
+
+.atelier-handle__art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.atelier-handle__text {
+  display: block;
+  padding: 0.5rem 0.6rem 0.6rem;
+}
+
+.atelier-handle .atelier-card__name {
+  font-size: 0.84rem;
+}
+
+.atelier-finish {
+  margin-top: 0.85rem;
+  border-top: 1px solid var(--at-line);
+  padding-top: 0.75rem;
+}
+
+.atelier-finish__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+}
+
+.atelier-finish__chip {
+  min-height: 2.75rem;
+  padding-inline: 0.5rem;
+}
+
+.atelier-finish__dot {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14), inset 0 2px 3px rgba(255, 255, 255, 0.35);
+}
+
+/* how the doors open */
+.atelier-openings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.atelier-opening {
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.6rem 0.4rem 0.65rem;
+  text-align: center;
+}
+
+.atelier-opening__glyph {
+  width: 3rem;
+  height: 2.5rem;
+  color: #8b8479;
+}
+
+.atelier-opening[aria-checked="true"] {
+  background: #fdf3e7;
+}
+
+.atelier-opening[aria-checked="true"] .atelier-opening__glyph {
+  color: var(--at-accent-dark);
+}
+
+.atelier-opening__sub {
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--at-muted);
+}
+
+/* the face of each door */
+.atelier-faces {
+  margin-top: 0.85rem;
+  border-top: 1px solid var(--at-line);
+  padding-top: 0.75rem;
+}
+
+.atelier-faces__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+.atelier-faces__quick .atelier-chip--sm {
+  min-height: 2.75rem;
+  padding-inline: 0.8rem;
+}
+
+.atelier-faces__hint {
+  margin-top: 0.75rem;
+}
+
+.atelier-doorchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+.atelier-doorchip {
+  display: flex;
+  min-width: 3.4rem;
+  max-width: 6rem;
+  flex: 1 1 3.4rem;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid var(--at-line);
+  border-radius: 0.7rem;
+  background: #fff;
+  padding: 0.4rem 0.3rem 0.35rem;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+}
+
+.atelier-doorchip:hover {
+  border-color: #cfc8bb;
+}
+
+.atelier-doorchip:active {
+  transform: scale(0.97);
+}
+
+.atelier-doorchip:not([data-fill="PANOU"]) {
+  border-color: var(--at-accent);
+  box-shadow: inset 0 0 0 1px var(--at-accent);
+}
+
+.atelier-doorchip__door {
+  display: block;
+  width: 100%;
+  max-width: 2.6rem;
+  height: 4rem;
+  border-radius: 0.2rem;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(43, 37, 32, 0.28);
+}
+
+.atelier-doorchip__n {
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+  line-height: 1.2;
+  color: var(--at-muted);
+  white-space: nowrap;
+}
+
+.atelier-doorchip__face {
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* which mirror / glass */
+.atelier-glassrow {
+  margin-top: 0.85rem;
+  border-top: 1px solid var(--at-line);
+  padding-top: 0.75rem;
+}
+
+.atelier-glassrow__current {
+  font-weight: 500;
+  color: var(--at-muted);
+}
+
+.atelier-glasses {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.1rem, 1fr));
+  gap: 0.5rem 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.atelier-glass {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+.atelier-glass__chip {
+  display: flex;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.7rem;
+  box-shadow: inset 0 0 0 1px rgba(43, 37, 32, 0.2), 0 1px 2px rgba(40, 30, 15, 0.08);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.atelier-glass:hover .atelier-glass__chip {
+  transform: translateY(-1px);
+}
+
+.atelier-glass[aria-checked="true"] .atelier-glass__chip {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--at-accent);
+}
+
+.atelier-glass--more .atelier-glass__chip {
+  background: #fff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #3d3a35;
+}
+
+.atelier-glass__name {
+  display: -webkit-box;
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 0.7rem;
+  line-height: 1.25;
+  text-align: center;
+  color: #4d4942;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.atelier-glass[aria-checked="true"] .atelier-glass__name {
+  font-weight: 700;
+  color: var(--at-ink);
+}
+
+/* a one-line note from the configurator itself (not an error) */
+.atelier-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border-radius: 0.7rem;
+  background: #fdf3e7;
+  padding: 0.55rem 0.5rem 0.55rem 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #4d3a1f;
+}
+
+.atelier-notice > svg {
+  margin-top: 0.12rem;
+  flex-shrink: 0;
+  color: var(--at-accent-dark);
+}
+
+/* offer: what you get, share */
+.atelier-gets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.atelier-gets li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-radius: 0.8rem;
+  background: var(--at-panel);
+  padding: 0.65rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.atelier-gets svg {
+  flex-shrink: 0;
+  color: var(--at-accent-dark);
+}
+
+.atelier-share {
+  border: 1px solid var(--at-line);
+  border-radius: var(--at-radius);
+  background: #fff;
+  padding: 0.9rem;
+}
+
+.atelier-share__actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+@media (min-width: 30rem) {
+  .atelier-share__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.atelier-share__btn {
+  display: inline-flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--at-line);
+  border-radius: 0.8rem;
+  background: #fff;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--at-ink);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.atelier-share__btn:hover {
+  border-color: #cfc8bb;
+  background: #faf8f4;
+}
+
+.atelier-share__btn--wa {
+  border-color: #177a40;
+  background: #177a40;
+  color: #fff;
+}
+
+.atelier-share__btn--wa:hover {
+  border-color: #126535;
+  background: #126535;
+}
+
+.atelier-share__link {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.atelier-handle[aria-disabled="true"] {
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.atelier-handle[aria-disabled="true"]:hover {
+  border-color: var(--at-line);
+  transform: none;
+}
+
+.atelier-handle[aria-disabled="true"] .atelier-handle__art,
+.atelier-handle[aria-disabled="true"] .atelier-card__name {
+  opacity: 0.45;
+}
+
+.atelier-notice p + p {
+  margin-top: 0.3rem;
+}

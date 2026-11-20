@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { getFunnelSessionId, trackFunnel, trackFunnelOnce } from "@/lib/atelier/funnel";
+import { withShownHandle } from "@/lib/atelier/handles";
 import type { AtelierConfig, AtelierIssue } from "@/lib/atelier/types";
 import { trackPixel } from "@/lib/meta-pixel";
 import type { LeadContact } from "./session";
@@ -134,7 +135,8 @@ export function RequestForm({
       const res = await fetch("/api/atelier/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config, contact, website, sessionId: getFunnelSessionId() }),
+        // the handle colour drawn in 3D goes along even when the client kept the default
+        body: JSON.stringify({ config: withShownHandle(config), contact, website, sessionId: getFunnelSessionId() }),
       });
       const body = (await res.json().catch(() => null)) as {
         ok?: boolean;

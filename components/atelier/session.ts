@@ -1,6 +1,8 @@
-import { CATEGORY_RULES, categoryRules } from "@/lib/atelier/categories";
 import { COMBO_PRESETS, presetById, type PresetShape } from "@/lib/atelier/presets";
 import { resolvePalettes } from "@/lib/atelier/palettes";
+import { currentHandle, hasHandledFronts } from "@/lib/atelier/handles";
+import { followUps } from "@/lib/atelier/house-rules";
+import { parseConfig } from "@/lib/atelier/share";
 import { atelierReducer, defaultConfig, type AtelierAction } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 
@@ -54,10 +56,22 @@ export interface AtelierSession {
   contact: LeadContact;
   /** signature + time of the last change, to coalesce slider drags into one undo entry */
   last: { sig: string; at: number } | null;
+  /** what the configurator changed on its own with the last change, to tell the client in one line each */
+  notices: SessionNotice[];
 }
 
+/**
+ * WHITE_BODY: mirror doors go on a plain white body, so the body was switched from an AGT panel to white.
+ * HANDLE_RESET: the chosen handle cannot be made on the new fronts / doors; the usual one took its place.
+ */
+export type SessionNotice = "WHITE_BODY" | "HANDLE_RESET";
+
+const NO_NOTICES: SessionNotice[] = [];
+
 export type SessionAction =
-  | { type: "config"; actions: AtelierAction[]; at: number }
+  /** with `catalog`, the house rules run on top of the change (lib/atelier/house-rules.ts), as the same undo step */
+  | { type: "config"; actions: AtelierAction[]; at: number; catalog?: AtelierCatalog }
+  | { type: "dismissNotice" }
   | { type: "undo" }
   | { type: "step"; step: StepId }
   | { type: "contact"; contact: LeadContact }
@@ -83,7 +97,14 @@ export function sessionReducer(state: AtelierSession, action: SessionAction): At
   switch (action.type) {
     case "config": {
       // several actions (a combination = model + colours) are one change, and one undo
-      const config = action.actions.reduce(atelierReducer, state.config);
+      let config = action.actions.reduce(atelierReducer, state.config);
+      const notices: SessionNotice[] = [];
+      if (action.catalog) {
+        const extra = followUps(state.config, config, action.catalog);
+        config = extra.actions.reduce(atelierReducer, config);
+        if (extra.whitened) notices.push("WHITE_BODY");
+        if (extra.handleReset) notices.push("HANDLE_RESET");
+      }
       // choosing what is already chosen is not a change: nothing to undo
       if (config === state.config || JSON.stringify(config) === JSON.stringify(state.config)) return state;
       const sig = action.actions.map(signature).join("+");
@@ -94,18 +115,20 @@ export function sessionReducer(state: AtelierSession, action: SessionAction): At
         state.last.sig === sig &&
         action.at - state.last.at < COALESCE_MS;
       const past = coalesce ? state.past : [...state.past, state.config].slice(-HISTORY_LIMIT);
-      return { ...state, config, past, last: { sig, at: action.at } };
+      return { ...state, config, past, last: { sig, at: action.at }, notices: notices.length ? notices : NO_NOTICES };
     }
     case "undo": {
       if (state.past.length === 0) return state;
-      return { ...state, config: state.past[state.past.length - 1], past: state.past.slice(0, -1), last: null };
+      return { ...state, config: state.past[state.past.length - 1], past: state.past.slice(0, -1), last: null, notices: NO_NOTICES };
     }
     case "step":
       return action.step === state.step ? state : { ...state, step: action.step };
     case "contact":
       return { ...state, contact: action.contact };
+    case "dismissNotice":
+      return state.notices.length ? { ...state, notices: NO_NOTICES } : state;
     case "restore":
-      return { config: action.config, past: [], step: action.step, contact: action.contact, last: null };
+      return { config: action.config, past: [], step: action.step, contact: action.contact, last: null, notices: NO_NOTICES };
   }
 }
 
@@ -123,7 +146,16 @@ export function initialSession(catalog: AtelierCatalog): AtelierSession {
       fronts: palette.fronts,
     });
   }
-  return { config, past: [], step: "model", contact: EMPTY_CONTACT, last: null };
+  return { config: withGlassDefaults(config, catalog), past: [], step: "model", contact: EMPTY_CONTACT, last: null, notices: NO_NOTICES };
+}
+
+/**
+ * A configuration that comes from outside a tap (first screen, a reload, a shared link), settled the way a
+ * tap would leave it: a mirror / glass door with no type takes the catalog's first one (what the swatches
+ * show as chosen, and what the CRM must price), a handle the fronts cannot take becomes the usual one.
+ */
+export function withGlassDefaults(config: AtelierConfig, catalog: AtelierCatalog): AtelierConfig {
+  return followUps(config, config, catalog).actions.reduce(atelierReducer, config);
 }
 
 /* ── Comparing shapes (which preset card is the current one) ── */
@@ -141,12 +173,20 @@ function canonical(value: unknown): unknown {
   return value;
 }
 
-/** Stable key of everything in a configuration except the colours. */
+/**
+ * Stable key of everything in a configuration except the finishes: the colours, which mirror / glass
+ * is on the doors and the colour of the handles. (A model stays „the same model" in another finish.)
+ */
 export function shapeKey(shape: PresetShape | AtelierConfig): string {
   const { carcassMaterialId: _c, fronts: _f, ...rest } = shape as AtelierConfig;
   void _c;
   void _f;
-  return JSON.stringify(canonical(rest));
+  const { mirrorId: _m, glassId: _g, ...doors } = rest.doors;
+  void _m;
+  void _g;
+  // no handle chosen and the category's default chosen by hand are the same thing
+  const handle = hasHandledFronts(rest) ? currentHandle(rest) : undefined;
+  return JSON.stringify(canonical({ ...rest, doors, handle }));
 }
 
 export function shapeOf(config: AtelierConfig): PresetShape {
@@ -168,43 +208,9 @@ export function saveSession(config: AtelierConfig, step: StepId, contact: LeadCo
   }
 }
 
-const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
-
-/** Loose shape check of a stored configuration; null when it no longer fits today's catalog or rules. */
+/** Strict check of a stored configuration (lib/atelier/share.ts); null when it no longer fits today's catalog or rules. */
 export function validStoredConfig(raw: unknown, catalog: AtelierCatalog): AtelierConfig | null {
-  if (!raw || typeof raw !== "object") return null;
-  const c = raw as Partial<AtelierConfig>;
-  if (typeof c.category !== "string" || !CATEGORY_RULES[c.category]) return null;
-  const rules = categoryRules(c.category);
-  if (!isNum(c.widthMm) || !isNum(c.heightMm) || !isNum(c.depthMm) || !isNum(c.legsMm)) return null;
-  if (c.widthMm < rules.width[0] || c.widthMm > rules.width[1]) return null;
-  if (c.heightMm < rules.height[0] || c.heightMm > rules.height[1]) return null;
-  if (c.depthMm < rules.depth[0] || c.depthMm > rules.depth[1]) return null;
-  if (!rules.legs.includes(c.legsMm)) return null;
-  if (!Array.isArray(c.columns) || c.columns.length === 0 || c.columns.length > 30) return null;
-  for (const col of c.columns) {
-    if (!col || typeof col !== "object" || !isNum(col.widthMm) || !rules.contents.includes(col.content)) return null;
-  }
-  if (c.columns.reduce((sum, col) => sum + col.widthMm, 0) !== c.widthMm) return null;
-  if (!c.doors || typeof c.doors !== "object" || typeof c.doors.type !== "string") return null;
-  if (!rules.slidingDoors && c.doors.type !== "NONE") return null;
-  if (typeof c.carcassMaterialId !== "string" || !catalog.carcass.some((m) => m.id === c.carcassMaterialId)) return null;
-  const f = c.fronts;
-  if (!f || typeof f !== "object") return null;
-  if (f.kind === "MDF_VOPSIT") {
-    if (!catalog.ral.some((r) => r.code === f.ralCode)) return null;
-    if (!catalog.fronts.MDF_VOPSIT.some((m) => m.id === f.modelId)) return null;
-  } else if (f.kind === "PAL" || f.kind === "MDF_MELAMINAT") {
-    if (!catalog.fronts[f.kind].some((m) => m.id === f.materialId)) return null;
-  } else {
-    return null;
-  }
-  if (c.bottom !== undefined && (c.category !== "SEPARATOR" || typeof c.bottom !== "object" || !c.bottom)) return null;
-  if (c.handle !== undefined) {
-    const type = c.handle?.type;
-    if (!type || !(catalog.handles?.types ?? []).some((t) => t.type === type)) return null;
-  }
-  return c as AtelierConfig;
+  return parseConfig(raw, catalog);
 }
 
 export function loadSession(
@@ -214,8 +220,9 @@ export function loadSession(
     const text = window.sessionStorage.getItem(STORAGE_KEY);
     if (!text) return null;
     const parsed = JSON.parse(text) as { config?: unknown; step?: unknown; contact?: unknown };
-    const config = validStoredConfig(parsed.config, catalog);
+    let config = validStoredConfig(parsed.config, catalog);
     if (!config) return null;
+    config = withGlassDefaults(config, catalog);
     const step = STEP_IDS.find((s) => s === parsed.step) ?? "model";
     return { config, step, contact: storedContact(parsed.contact) };
   } catch {

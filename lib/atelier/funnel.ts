@@ -22,7 +22,8 @@ export type FunnelEvent =
   | "material_changed"   // props: { part: "corp" | "fronturi" }
   | "step_viewed"        // props: { step }
   | "size_changed"       // first change per session only
-  | "interior_changed"   // first change per session only (columns / doors / handles)
+  | "interior_changed"   // first change per session only (columns / doors / handles); also, once each,
+                         // props { what: "door_opened" | "drawer_opened" | "sliding_moved" | "all_opened" } from the 3D view
   | "price_shown"        // first valid price per session; props: { price }
   | "form_started"       // first focus in the request form
   | "lead_submitted"     // props: { price }
@@ -148,11 +149,15 @@ export function trackFunnel(event: FunnelEvent, props: FunnelProps = {}): void {
   }
 }
 
-const fired = new Set<FunnelEvent>();
+const fired = new Set<string>();
 
-/** Fires at most once per page session for the given key (e.g. „size_changed"). */
-export function trackFunnelOnce(event: FunnelEvent, props: FunnelProps = {}): void {
-  if (fired.has(event)) return;
-  fired.add(event);
+/**
+ * Fires at most once per page session for the given event (e.g. „size_changed"). With `key`, once per
+ * key instead: the same event name can report several first-time things („interior_changed" for the
+ * first change, and again with { what: "door_opened" } for the first door opened in 3D).
+ */
+export function trackFunnelOnce(event: FunnelEvent, props: FunnelProps = {}, key: string = event): void {
+  if (fired.has(key)) return;
+  fired.add(key);
   trackFunnel(event, props);
 }

@@ -1,4 +1,4 @@
-import type { AtelierCategory, AtelierConfig } from "./types.ts";
+import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "./types.ts";
 
 /** Everything a preset fixes except the colours (those come from a palette). */
 export type PresetShape = Omit<AtelierConfig, "carcassMaterialId" | "fronts">;
@@ -74,6 +74,9 @@ function make(category: AtelierCategory, p: PresetInput): LayoutPreset {
  * Every preset must price in the CRM without errors (scripts/check-atelier-presets.ts)
  * and respect lib/atelier/categories.ts (tests/atelier-presets.test.ts).
  * Owner rule: mirror doors go with a white body and cașmir fronts („alb-casmir").
+ * A mirror on only some of the doors is written as the plain door type + `fills` (one face per sliding
+ * door / per column with hinged doors); such presets are offered only when the CRM knows per-door faces
+ * (presetAvailable).
  */
 
 const DRESSING: PresetInput[] = [
@@ -188,6 +191,33 @@ const DRESSING: PresetInput[] = [
     size: [1600, 2400, 450],
     columns: [col(800, "POLITE_BARA", { shelves: 2 }), col(800, "POLITE")],
     doors: { type: "BATANTE_OGLINDA" },
+  },
+  {
+    id: "dressing-oglinda-una-180",
+    name: "Dulap cu o ușă oglindă 1,8 m",
+    tagline: "Două uși glisante: una cu oglindă, una în culoarea aleasă.",
+    paletteId: "alb-casmir",
+    size: [1800, 2500, 600],
+    columns: [col(900, "BARA"), col(900, "POLITE")],
+    doors: { type: "GLISANTE", count: 2, fills: ["OGLINDA", "PANOU"] },
+  },
+  {
+    id: "dressing-oglinda-mijloc-240",
+    name: "Dulap cu oglindă la mijloc 2,4 m",
+    tagline: "Uși batante, cu oglindă doar pe ușa din mijloc.",
+    paletteId: "alb-casmir",
+    size: [2400, 2500, 600],
+    columns: [col(800, "BARA"), col(800, "POLITE"), col(800, "BARA_SERTARE", { drawers: 2 })],
+    doors: { type: "BATANTE", fills: ["PANOU", "OGLINDA", "PANOU"] },
+  },
+  {
+    id: "dressing-oglinzi-300",
+    name: "Dressing cu trei oglinzi 3 m",
+    tagline: "Trei uși glisante, toate cu oglindă, de la un perete la altul.",
+    paletteId: "alb-casmir",
+    size: [3000, 2600, 600],
+    columns: [col(750, "BARA"), col(750, "POLITE"), col(750, "POLITE_BARA", { shelves: 2 }), col(750, "BARA_DUBLA")],
+    doors: { type: "GLISANTE_OGLINDA", count: 3 },
   },
   {
     id: "dressing-sticla-300",
@@ -419,6 +449,7 @@ export const LAYOUT_PRESETS: LayoutPreset[] = [
 export const COMBO_PRESETS: ComboPreset[] = [
   { id: "scandinav-luminos", name: "Scandinav luminos", tagline: "Dressing 2,4 m alb, cu uși în stejar natur.", presetId: "dressing-clasic-240", paletteId: "alb-stejar-natur" },
   { id: "dormitor-cu-oglinda", name: "Dormitor cu oglindă", tagline: "Uși glisante cu oglindă, corp alb și cașmir.", presetId: "dressing-oglinda-240", paletteId: "alb-casmir" },
+  { id: "oglinda-la-mijloc", name: "Oglindă la mijloc", tagline: "Dulap alb cu uși cașmir și oglindă pe ușa din mijloc.", presetId: "dressing-oglinda-mijloc-240", paletteId: "alb-casmir" },
   { id: "nuc-crem-dormitor", name: "Nuc & crem de dormitor", tagline: "Dulap de 1,8 m în nuc, cu uși crem.", presetId: "dressing-dormitor-180", paletteId: "nuc-crem" },
   { id: "casmir-total", name: "Cașmir de la un perete la altul", tagline: "Dressing de 3,6 m, tot în gri cașmir.", presetId: "dressing-mare-360", paletteId: "gri-casmir" },
   { id: "walk-in-stejar", name: "Walk-in în stejar", tagline: "Dressing deschis, cald, cu totul la vedere.", presetId: "dressing-deschis-280", paletteId: "stejar-natur" },
@@ -445,4 +476,13 @@ export function presetsFor(category: AtelierCategory): LayoutPreset[] {
 
 export function presetById(id: string): LayoutPreset | undefined {
   return LAYOUT_PRESETS.find((p) => p.id === id);
+}
+
+/**
+ * Can this model be shown as it is drawn? A preset with its own face per door needs a CRM that knows
+ * per-door faces (it lists the mirror / glass types in the catalog); an older one would build it with
+ * plain doors.
+ */
+export function presetAvailable(preset: LayoutPreset, catalog: Pick<AtelierCatalog, "glass">): boolean {
+  return !preset.shape.doors.fills || !!catalog.glass;
 }

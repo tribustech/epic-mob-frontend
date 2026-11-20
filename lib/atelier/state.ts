@@ -1,3 +1,5 @@
+import { doorFills, doorOpening, isDoorFill, normalizeDoors } from "./door-types.ts";
+import { cleanHandle, hasHandledFronts } from "./handles.ts";
 import { BARA_SERTARE_RANGE, BOTTOM_HEIGHT_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
   AtelierCatalog,
@@ -8,6 +10,7 @@ import type {
   AtelierFronts,
   AtelierHandle,
   ColumnContent,
+  DoorFill,
   RailPosition,
 } from "./types.ts";
 import type { PresetShape } from "./presets.ts";
@@ -34,6 +37,12 @@ export type AtelierAction =
   | { type: "setLegs"; legsMm: AtelierConfig["legsMm"] }
   | { type: "setDoors"; doors: AtelierConfig["doors"]; handle?: AtelierHandle }
   | { type: "setHandle"; handle: AtelierHandle }
+  /** the face of one door (sliding: the door; hinged: the column) */
+  | { type: "setDoorFill"; index: number; fill: DoorFill }
+  /** the face of every door at once, left to right (missing entries = panel) */
+  | { type: "setDoorFills"; fills: DoorFill[] }
+  /** which mirror / glass from the catalog; only the given keys change */
+  | { type: "setDoorGlass"; mirrorId?: string; glassId?: string }
   | { type: "setColumnDoorRows"; index: number; doorRows: number }
   | { type: "setColumnDoorsAcross"; index: number; doorsAcross: number }
   | { type: "setBottom"; bottom: AtelierBottom };
@@ -175,7 +184,15 @@ function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
   return { ...state, widthMm, columns: withWidths(cols, fitted) };
 }
 
+/** Every change leaves the doors in their canonical form (see normalizeDoors). */
 export function atelierReducer(state: AtelierConfig, action: AtelierAction): AtelierConfig {
+  const next = reduce(state, action);
+  if (next === state) return state;
+  const doors = normalizeDoors(next);
+  return doors === next.doors ? next : { ...next, doors };
+}
+
+function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
   const rules = categoryRules(state.category);
   switch (action.type) {
     case "setCategory": {
@@ -193,12 +210,13 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       const next: AtelierConfig = {
         ...shape,
         columns: shape.columns.map((c) => ({ ...c })),
-        doors: { ...shape.doors },
+        doors: { ...shape.doors, ...(shape.doors.fills ? { fills: [...shape.doors.fills] } : {}) },
         carcassMaterialId: state.carcassMaterialId,
         fronts: state.fronts,
       };
       if (shape.bottom) next.bottom = { ...shape.bottom };
-      if (shape.handle) next.handle = { ...shape.handle };
+      const handle = cleanHandle(shape.handle);
+      if (handle && hasHandledFronts(next)) next.handle = handle;
       return next;
     }
     case "applyPalette":
@@ -274,7 +292,13 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       const even = areEven(state.columns.map((c) => c.widthMm)) ? evenWidths(state.widthMm, state.columns.length + 1) : null;
       if (even) return { ...state, columns: withWidths([...state.columns, { widthMm: 0, content: rules.fill }], even) };
       const cols = splitWidest(state.columns, rules.fill);
-      return cols ? { ...state, columns: cols } : state;
+      if (!cols) return state;
+      // hinged doors with their own faces: the new half takes the face of the column it was cut from
+      const fills = state.doors.fills && doorOpening(state.doors.type) === "BATANTE" ? doorFills(state) : null;
+      if (!fills) return { ...state, columns: cols };
+      const at = cols.findIndex((c, i) => c !== state.columns[i]);
+      fills.splice(at, 0, fills[at] ?? "PANOU");
+      return { ...state, columns: cols, doors: { ...state.doors, fills } };
     }
     case "equalizeColumns": {
       const even = evenWidths(state.widthMm, state.columns.length);
@@ -287,7 +311,11 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       const widths = rest.map((c) => c.widthMm);
       const fitted = (Math.max(...widths) - Math.min(...widths) <= 20 ? evenWidths(state.widthMm, rest.length) : null) ?? fit(widths, state.widthMm);
       if (!fitted) return state;
-      return { ...state, columns: withWidths(rest, fitted) };
+      const next: AtelierConfig = { ...state, columns: withWidths(rest, fitted) };
+      // hinged doors with their own faces: the removed column takes its face with it
+      if (state.doors.fills && doorOpening(state.doors.type) === "BATANTE")
+        next.doors = { ...state.doors, fills: doorFills(state).filter((_, i) => i !== index) };
+      return next;
     }
     case "setCarcass":
       return { ...state, carcassMaterialId: action.materialId };
@@ -299,16 +327,38 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
       if (!rules.slidingDoors) return state;
       const next: AtelierConfig = { ...state, doors: action.doors };
       // the handle belongs to hinged doors only; keep the last choice while switching between them
-      if (action.doors.type.startsWith("BATANTE")) next.handle = action.handle ?? state.handle;
+      const handle = cleanHandle(action.handle) ?? state.handle;
+      if (action.doors.type.startsWith("BATANTE") && handle) next.handle = handle;
       else delete next.handle;
       return next;
     }
-    case "setHandle":
+    case "setHandle": {
       // every front can take a handle (doors and drawers); open separators and open / sliding wardrobes have none
-      return (state.category === "SEPARATOR" && (!state.bottom || state.bottom.type === "NONE")) ||
-        (state.category === "DRESSING" && !state.doors.type.startsWith("BATANTE"))
-        ? state
-        : { ...state, handle: action.handle };
+      const handle = cleanHandle(action.handle);
+      if (!handle || !hasHandledFronts(state)) return state;
+      // the colour stays while the client tries other types that have one
+      if (handle.finish === undefined && state.handle?.finish && cleanHandle({ type: handle.type, finish: state.handle.finish })?.finish)
+        handle.finish = state.handle.finish;
+      return { ...state, handle };
+    }
+    case "setDoorFill": {
+      const fills = doorFills(state);
+      const { index, fill } = action;
+      if (!Number.isInteger(index) || index < 0 || index >= fills.length || !isDoorFill(fill) || fills[index] === fill) return state;
+      fills[index] = fill;
+      return { ...state, doors: normalizeDoors(state, fills) };
+    }
+    case "setDoorFills": {
+      if (doorOpening(state.doors.type) === "NONE" || !Array.isArray(action.fills)) return state;
+      return { ...state, doors: normalizeDoors(state, action.fills.filter(isDoorFill)) };
+    }
+    case "setDoorGlass": {
+      if (doorOpening(state.doors.type) === "NONE") return state;
+      const doors = { ...state.doors };
+      if (typeof action.mirrorId === "string" && action.mirrorId) doors.mirrorId = action.mirrorId;
+      if (typeof action.glassId === "string" && action.glassId) doors.glassId = action.glassId;
+      return { ...state, doors };
+    }
     case "setBottom": {
       if (state.category !== "SEPARATOR") return state;
       const b = action.bottom;

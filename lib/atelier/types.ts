@@ -27,8 +27,23 @@ export type DoorType =
   | 'GLISANTE' | 'GLISANTE_OGLINDA' | 'GLISANTE_STICLA'
   | 'BATANTE' | 'BATANTE_OGLINDA' | 'BATANTE_STICLA';   // oglinda / sticla: lipite pe o foaie de PAL din materialul corpului
 /** Mânerul fronturilor (uși și sertare). Modelul exact al mânerului aplicat se stabilește la măsurători. */
-export type HandleKind = 'APLICAT' | 'PUSH' | 'GOLA';
-export interface AtelierHandle { type: HandleKind }
+export type HandleKind = 'APLICAT' | 'BUTON' | 'INGROPAT' | 'PROFIL_J' | 'GOLA' | 'PUSH';
+/** Culoarea mânerului vizibil — informativă (ajunge în nota cererii), fără efect pe preț. */
+export type HandleFinish = 'NEGRU' | 'INOX' | 'AURIU';
+export interface AtelierHandle { type: HandleKind; finish?: HandleFinish }
+/** Fața unei uși. */
+export type DoorFill = 'PANOU' | 'OGLINDA' | 'STICLA';
+export interface AtelierDoors {
+  type: DoorType;        // *_OGLINDA / *_STICLA = toate ușile au fața aceea
+  count?: number;        // doar la glisante
+  /** fața pe fiecare ușă, peste cea din `type`. Glisante: index = ușa (stânga→dreapta); batante: index = coloana.
+   *  Lipsă / mai scurt = fața din `type`. */
+  fills?: DoorFill[];
+  mirrorId?: string;     // catalog.glass.mirrors[].id; lipsă = tariful vechi din setări
+  glassId?: string;      // catalog.glass.glasses[].id; lipsă = tariful vechi din setări
+}
+/** Un tip de oglindă / sticlă din Cataloage, fără preț. */
+export interface AtelierGlass { id: string; name: string; tint: string; matte?: boolean; opaque?: boolean }
 export interface AtelierConfig {
   category: AtelierCategory;
   widthMm: number; heightMm: number; depthMm: number;
@@ -36,7 +51,7 @@ export interface AtelierConfig {
   carcassMaterialId: string;
   fronts: AtelierFronts;
   legsMm: 0 | 100 | 150;           // 0 doar la SUSPENDAT; 100 | 150 la restul
-  doors: { type: DoorType; count?: number };   // în afara DRESSING: { type: 'NONE' }; count doar la glisante
+  doors: AtelierDoors;   // în afara DRESSING: { type: 'NONE' }; count doar la glisante
   bottom?: AtelierBottom;          // doar SEPARATOR: partea de jos (lipsă = deschis până jos)
   handle?: AtelierHandle;          // fronturile cu mâner (comodă, suspendat, dressing cu uși batante); lipsă = implicitul categoriei
 }
@@ -47,9 +62,15 @@ export interface ScenePiece {
   hinge?: 'L' | 'R' | 'T';
   /** ușile batante cu oglindă / sticlă (lipite pe PAL) */
   fill?: 'OGLINDA' | 'STICLA';
+  /** doar role FRONT: ușă sau front de sertar */
+  front?: 'USA' | 'SERTAR';
+  /** aspectul oglinzii / sticlei de pe ușă */
+  tint?: string; matte?: boolean; opaque?: boolean;
 }
-export interface SceneDoor { x: number; w: number; h: number; fill: 'PANOU' | 'OGLINDA' | 'STICLA'; track: 0 | 1 }
-export interface AtelierScene { pieces: ScenePiece[]; doors: SceneDoor[]; widthMm: number; heightMm: number; depthMm: number }
+export interface SceneDoor { x: number; w: number; h: number; fill: 'PANOU' | 'OGLINDA' | 'STICLA'; track: 0 | 1; tint?: string; matte?: boolean; opaque?: boolean }
+export interface AtelierScene { pieces: ScenePiece[]; doors: SceneDoor[]; widthMm: number; heightMm: number; depthMm: number;
+  /** mânerul efectiv al fronturilor */
+  handle?: HandleKind | 'FARA' }
 export interface AtelierPriceResult { sellPrice: number | null; errors: AtelierIssue[]; warnings: AtelierIssue[]; scene: AtelierScene | null }
 export interface AtelierMaterial { id: string; name: string; decorCode: string | null; brand: string | null; imageUrl: string | null }
 export interface AtelierCatalog {
@@ -58,5 +79,7 @@ export interface AtelierCatalog {
   ral: { code: string; name: string; hex: string }[];
   /** tipurile de mâner care se pot cota acum */
   handles?: { types: { type: HandleKind; label: string }[] };
+  /** tipurile de oglindă și sticlă pentru uși */
+  glass?: { mirrors: AtelierGlass[]; glasses: AtelierGlass[] };
 }
 export interface AtelierContact { name: string; phone: string; city: string; notes?: string }

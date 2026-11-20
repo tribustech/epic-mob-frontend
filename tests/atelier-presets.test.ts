@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { COMBO_PRESETS, LAYOUT_PRESETS, presetById, presetsFor } from "../lib/atelier/presets.ts";
+import { COMBO_PRESETS, LAYOUT_PRESETS, presetAvailable, presetById, presetsFor } from "../lib/atelier/presets.ts";
+import { doorFills, doorSlots, hasMirror, normalizeDoors } from "../lib/atelier/door-types.ts";
 import { PALETTES, activePaletteId, defaultVopsitModelId, resolvePalettes } from "../lib/atelier/palettes.ts";
 import { atelierReducer, defaultConfig } from "../lib/atelier/state.ts";
 import {
@@ -101,6 +102,12 @@ for (const preset of LAYOUT_PRESETS) {
       assert.ok(inRange(h, BOTTOM_HEIGHT_RANGE));
       assert.ok(shape.heightMm - h >= 300, "room for shelves above the bottom");
     }
+    if (shape.doors.fills) {
+      // a face per door: exactly one per sliding door / per column, really mixed, written canonically
+      assert.equal(shape.doors.fills.length, doorSlots(shape), "one face per door");
+      assert.ok(new Set(shape.doors.fills).size > 1, "the same face on every door is written as the door type");
+      assert.equal(normalizeDoors(shape), shape.doors, "canonical doors");
+    }
     if (shape.handle) assert.ok(["APLICAT", "PUSH"].includes(shape.handle.type));
     if (preset.paletteId) assert.ok(PALETTES.some((p) => p.id === preset.paletteId), `palette ${preset.paletteId}`);
     assert.equal(presetById(preset.id), preset);
@@ -108,13 +115,37 @@ for (const preset of LAYOUT_PRESETS) {
 }
 
 test("owner rule: mirror doors come with the white body + cașmir palette, never AGT", () => {
-  const mirrors = LAYOUT_PRESETS.filter((p) => p.shape.doors.type.endsWith("OGLINDA"));
-  assert.ok(mirrors.length >= 1);
+  // any mirror counts: on every door (the *_OGLINDA types) or only on some (doors.fills)
+  const mirrors = LAYOUT_PRESETS.filter((p) => hasMirror(p.shape));
+  assert.ok(mirrors.length >= 4);
   for (const p of mirrors) assert.equal(p.paletteId, "alb-casmir", p.id);
   for (const c of COMBO_PRESETS) {
-    if (presetById(c.presetId)?.shape.doors.type.endsWith("OGLINDA")) assert.equal(c.paletteId, "alb-casmir", c.id);
+    const preset = presetById(c.presetId);
+    if (preset && hasMirror(preset.shape)) assert.equal(c.paletteId, "alb-casmir", c.id);
   }
   for (const p of PALETTES) assert.doesNotMatch(p.name, /oglind/i);
+});
+
+test("mirror presets: one mirrored sliding door, a mirror on the middle column, all mirrors", () => {
+  const one = presetById("dressing-oglinda-una-180")!;
+  assert.deepEqual(doorFills(one.shape), ["OGLINDA", "PANOU"]);
+  assert.equal(one.shape.doors.type, "GLISANTE", "mixed faces keep the plain door type");
+  const middle = presetById("dressing-oglinda-mijloc-240")!;
+  assert.deepEqual(doorFills(middle.shape), ["PANOU", "OGLINDA", "PANOU"]);
+  assert.equal(middle.shape.doors.type, "BATANTE");
+  const all = presetById("dressing-oglinzi-300")!;
+  assert.deepEqual(doorFills(all.shape), ["OGLINDA", "OGLINDA", "OGLINDA"]);
+  assert.equal(all.shape.doors.fills, undefined, "all mirrors is the classic type, so an older CRM prices it the same");
+
+  // applying one keeps its faces, as a copy
+  const next = atelierReducer(defaultConfig(fullCatalog()), { type: "applyPreset", shape: middle.shape });
+  assert.deepEqual(next.doors, middle.shape.doors);
+  assert.notEqual(next.doors.fills, middle.shape.doors.fills);
+
+  // presets with a face per door need a CRM that knows them; the rest are always offered
+  assert.equal(presetAvailable(one, {}), false);
+  assert.equal(presetAvailable(one, { glass: { mirrors: [], glasses: [] } }), true);
+  assert.equal(presetAvailable(all, {}), true);
 });
 
 test("a few presets carry a badge", () => {

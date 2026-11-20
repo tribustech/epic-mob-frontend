@@ -1,6 +1,6 @@
 "use client";
 
-import { DoorClosed, DoorOpen, Plus, Rows3, SquareDashed, Trash2 } from "lucide-react";
+import { DoorClosed, Plus, Rows3, SquareDashed, Trash2 } from "lucide-react";
 import {
   BARA_SERTARE_RANGE,
   BOTTOM_DEFAULT_HEIGHT_MM,
@@ -15,13 +15,13 @@ import {
   autoShelves,
   categoryRules,
 } from "@/lib/atelier/categories";
-import { doorFace, doorOpening, doorType, type DoorFace, type DoorOpening } from "@/lib/atelier/door-types";
-import { autoDoorCount, doorCountOptions } from "@/lib/atelier/doors";
 import { hasHandledFronts } from "@/lib/atelier/handles";
 import { MAX_COL_MM, MIN_COL_MM, areEven } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig, BottomType, ColumnContent } from "@/lib/atelier/types";
 import { ContentGlyph } from "./content-glyph";
+import { DoorsPanel } from "./doors-panel";
 import { HandlePicker } from "./handle-picker";
+import type { MaterialLook } from "./material-look";
 import type { Act } from "./session";
 import { Choice, Field, LengthControl, Section, Stepper, cm, plural } from "./ui";
 
@@ -281,76 +281,6 @@ function Columns({
   );
 }
 
-/* ── Doors (dressing) ── */
-
-const OPENINGS: { value: DoorOpening; label: string; icon: React.ReactNode }[] = [
-  { value: "GLISANTE", label: "Glisante", icon: <Rows3 size={16} className="rotate-90" aria-hidden="true" /> },
-  { value: "BATANTE", label: "Batante", icon: <DoorOpen size={16} aria-hidden="true" /> },
-  { value: "NONE", label: "Fără uși", icon: <SquareDashed size={16} aria-hidden="true" /> },
-];
-
-const FACES: { value: DoorFace; label: string }[] = [
-  { value: "PANOU", label: "Decorul fronturilor" },
-  { value: "OGLINDA", label: "Oglindă" },
-  { value: "STICLA", label: "Sticlă" },
-];
-
-function Doors({ catalog, config, act }: { catalog: AtelierCatalog; config: AtelierConfig; act: Act }) {
-  const { doors } = config;
-  const opening = doorOpening(doors.type);
-  const face = doorFace(doors.type);
-  const sliding = opening === "GLISANTE";
-  const handleTypes = catalog.handles?.types ?? [];
-  const auto = autoDoorCount(config.widthMm);
-  // only counts whose doors fit on a sheet (too-wide doors cannot be cut)
-  const counts = doorCountOptions(config.widthMm, doors.count);
-
-  return (
-    <Section title="Uși">
-      <div className="atelier-box">
-        <Choice
-          label="Tip uși"
-          columns={3}
-          value={opening}
-          // hinged doors need a handle the CRM can price; without any (old cached catalog) the option is hidden
-          options={OPENINGS.filter((o) => o.value !== "BATANTE" || handleTypes.length > 0 || opening === "BATANTE")}
-          onChange={(o) => act({ type: "setDoors", doors: { type: doorType(o, face) } })}
-        />
-        {opening !== "NONE" && (
-          <div className="atelier-rows mt-3">
-            <Field label="Fața ușilor">
-              <Choice
-                label="Fața ușilor"
-                value={face}
-                options={FACES}
-                onChange={(f) =>
-                  act({
-                    type: "setDoors",
-                    doors: sliding ? { ...doors, type: doorType(opening, f) } : { type: doorType(opening, f) },
-                  })
-                }
-              />
-            </Field>
-            {opening === "BATANTE" && <HandlePicker catalog={catalog} config={config} act={act} />}
-            {sliding && (
-              <Field label="Număr de uși">
-                <Choice
-                  label="Număr de uși"
-                  value={doors.count ?? 0}
-                  options={[{ value: 0, label: `Automat (${auto})` }, ...counts.map((c) => ({ value: c, label: String(c) }))]}
-                  onChange={(count) =>
-                    act({ type: "setDoors", doors: count ? { type: doors.type, count } : { type: doors.type } })
-                  }
-                />
-              </Field>
-            )}
-          </div>
-        )}
-      </div>
-    </Section>
-  );
-}
-
 /* ── Separator: the closed bottom ── */
 
 const BOTTOMS: { value: BottomType; label: string; icon: React.ReactNode }[] = [
@@ -360,7 +290,7 @@ const BOTTOMS: { value: BottomType; label: string; icon: React.ReactNode }[] = [
 ];
 
 /** Separator: optional closed bottom (drawers or doors) under the open shelves, with a PFL back. */
-function Bottom({ catalog, config, act }: { catalog: AtelierCatalog; config: AtelierConfig; act: Act }) {
+function Bottom({ config, act }: { config: AtelierConfig; act: Act }) {
   const bottom = config.bottom ?? { type: "NONE" as const };
   const active = bottom.type !== "NONE";
 
@@ -410,7 +340,6 @@ function Bottom({ catalog, config, act }: { catalog: AtelierCatalog; config: Ate
                 />
               </Field>
             )}
-            <HandlePicker catalog={catalog} config={config} act={act} />
           </div>
         )}
       </div>
@@ -424,25 +353,23 @@ export function StepInterior({
   act,
   column,
   onColumn,
+  front,
 }: {
   catalog: AtelierCatalog;
   config: AtelierConfig;
   act: Act;
+  /** the look of the fronts (the door chips are drawn with it) */
+  front: MaterialLook;
   column: number;
   onColumn: (index: number) => void;
 }) {
   return (
     <div className="atelier-stack">
       <Columns config={config} act={act} index={column} onPick={onColumn} />
-      {config.category === "SEPARATOR" && <Bottom catalog={catalog} config={config} act={act} />}
-      {categoryRules(config.category).slidingDoors && <Doors catalog={catalog} config={config} act={act} />}
-      {(config.category === "COMODA" || config.category === "SUSPENDAT") && hasHandledFronts(config) && (
-        <Section title="Mânere">
-          <div className="atelier-box">
-            <HandlePicker catalog={catalog} config={config} act={act} />
-          </div>
-        </Section>
-      )}
+      {config.category === "SEPARATOR" && <Bottom config={config} act={act} />}
+      {categoryRules(config.category).slidingDoors && <DoorsPanel catalog={catalog} config={config} act={act} front={front} />}
+      {/* one place for the handles, wherever a front takes one: hinged doors, drawers, a closed bottom */}
+      {hasHandledFronts(config) && <HandlePicker catalog={catalog} config={config} act={act} />}
     </div>
   );
 }

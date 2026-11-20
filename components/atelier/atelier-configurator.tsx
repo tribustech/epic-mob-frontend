@@ -5,7 +5,8 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { AlertTriangle, ArrowLeft, ArrowRight, Info, Loader2, Undo2, X } from "lucide-react";
 import { trackFunnel, trackFunnelOnce } from "@/lib/atelier/funnel";
-import { currentHandle, hasHandledFronts } from "@/lib/atelier/handles";
+import { effectiveHandle } from "@/lib/atelier/handles";
+import { decodeShare, shareCodeFrom } from "@/lib/atelier/share";
 import { activePaletteId, resolvePalettes } from "@/lib/atelier/palettes";
 import type { AtelierAction } from "@/lib/atelier/state";
 import { useLivePrice } from "@/lib/atelier/use-live-price";
@@ -13,12 +14,14 @@ import type { AtelierCatalog, AtelierConfig, AtelierIssue, AtelierScene } from "
 import { carcassLook, frontLook } from "./material-look";
 import { REQUEST_FORM_ID, leadSentFor, type LeadStatus } from "./request-form";
 import {
+  EMPTY_CONTACT,
   STEP_IDS,
   initialSession,
   loadSession,
   saveSession,
   sessionReducer,
   stepLabel,
+  withGlassDefaults,
   type Act,
   type LeadContact,
   type StepId,
@@ -52,6 +55,9 @@ const INTERIOR_ACTIONS = new Set<AtelierAction["type"]>([
   "equalizeColumns",
   "setDoors",
   "setHandle",
+  "setDoorFill",
+  "setDoorFills",
+  "setDoorGlass",
   "setColumnDoorRows",
   "setColumnDoorsAcross",
   "setBottom",
@@ -120,6 +126,9 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   const carcass = useMemo(() => carcassLook(catalog, config), [catalog, config]);
   const front = useMemo(() => frontLook(catalog, config), [catalog, config]);
   const activePalette = activePaletteId(palettes, config);
+  // the handle on the fronts (null when no front takes one) and the colour it is drawn in
+  const shownHandle = useMemo(() => effectiveHandle(config), [config]);
+  const resetHandleName = shownHandle?.type === "PUSH" ? "varianta fără mâner" : "mânerul bară";
 
   // The Interior step shows the interior: doors open while the client is there and close on leaving,
   // unless the client used the toggle — that choice then stays until the next visit to Interior.
@@ -194,6 +203,23 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
     const stored = loadSession(catalog);
     // a link straight to a step (#culori) wins over the step of the stored session
     const linked = stepFromHash();
+    // „Arată-i cuiva configurația": ?c=… reopens exactly that configuration (on its summary), and wins
+    // over whatever this tab had before. The code is checked field by field; a bad one is ignored.
+    const code = shareCodeFrom(window.location.search);
+    if (code !== null) {
+      const shared = decodeShare(code, catalog);
+      // the code is used once: a reload then keeps whatever the visitor changed since
+      const params = new URLSearchParams(window.location.search);
+      params.delete("c");
+      const query = params.toString();
+      const openAt: StepId | null = shared ? (linked ?? "oferta") : linked;
+      window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}${openAt ? `#${openAt}` : ""}`);
+      if (shared) {
+        restoredStep.current = openAt;
+        dispatch({ type: "restore", config: withGlassDefaults(shared, catalog), step: openAt ?? "oferta", contact: stored?.contact ?? EMPTY_CONTACT });
+        return;
+      }
+    }
     if (stored) {
       restoredStep.current = linked ?? stored.step;
       dispatch({ type: "restore", ...stored, step: linked ?? stored.step });
@@ -226,7 +252,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
 
   const act = useCallback<Act>((action) => {
     const actions = Array.isArray(action) ? action : [action];
-    dispatch({ type: "config", actions, at: Date.now() });
+    dispatch({ type: "config", actions, at: Date.now(), catalog });
     if (actions.some((a) => a.type === "setCarcass")) {
       setPeek(true);
       if (peekTimer.current !== null) window.clearTimeout(peekTimer.current);
@@ -236,6 +262,14 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
       if (SIZE_ACTIONS.has(a.type)) trackFunnelOnce("size_changed");
       else if (INTERIOR_ACTIONS.has(a.type)) trackFunnelOnce("interior_changed");
     }
+  }, [catalog]);
+
+  // opening things in the 3D view: reported once per visit and per kind. The CRM accepts a fixed list of
+  // event names, so this rides on „interior_changed" with what was opened in the props.
+  const onInteract = useCallback((kind: "door" | "drawer" | "sliding" | "all", open: boolean) => {
+    if (!open) return;
+    const what = kind === "door" ? "door_opened" : kind === "drawer" ? "drawer_opened" : kind === "sliding" ? "sliding_moved" : "all_opened";
+    trackFunnelOnce("interior_changed", { what }, `interior_changed:${what}`);
   }, []);
 
   /* ── every step is a history entry: the browser's Back goes to the previous step ── */
@@ -331,7 +365,10 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
             doorsOpen={doorsOpen}
             onDoorsOpenChange={setManualDoors}
             highlight={step === "interior" && (doorsOpen || justPicked) ? highlight : null}
-            handles={hasHandledFronts(config) && currentHandle(config) === "APLICAT"}
+            handles={shownHandle?.type === "APLICAT"}
+            handle={shownHandle?.type ?? null}
+            handleFinish={shownHandle?.finish ?? undefined}
+            onInteract={onInteract}
             stale={!loading && (hasErrors || down)}
           />
           <button
@@ -401,7 +438,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                   />
                 )}
                 {step === "interior" && (
-                  <StepInterior catalog={catalog} config={config} act={act} column={column} onColumn={pickColumn} />
+                  <StepInterior catalog={catalog} config={config} act={act} front={front} column={column} onColumn={pickColumn} />
                 )}
                 {step === "oferta" && (
                   <StepOffer
@@ -445,6 +482,22 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                     </button>
                   )}
                 </div>
+              </div>
+            )}
+            {session.notices.length > 0 && (
+              <div className="atelier-notice" role="status">
+                <Info size={15} aria-hidden="true" />
+                <div className="min-w-0 flex-1">
+                  {session.notices.includes("WHITE_BODY") && (
+                    <p>La ușile cu oglindă facem corpul alb simplu, așa că l-am schimbat. Îl poți alege din nou la „Culori”.</p>
+                  )}
+                  {session.notices.includes("HANDLE_RESET") && (
+                    <p>Mânerul ales nu se potrivește cu schimbarea făcută, așa că am pus {resetHandleName}. Îl poți schimba la „Mânere”.</p>
+                  )}
+                </div>
+                <button type="button" className="atelier-issue__close" aria-label="Închide mesajul" onClick={() => dispatch({ type: "dismissNotice" })}>
+                  <X size={16} aria-hidden="true" />
+                </button>
               </div>
             )}
             {showNotes && issuesOpen && (

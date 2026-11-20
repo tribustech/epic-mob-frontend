@@ -3,7 +3,9 @@ import type { ReactNode } from "react";
 import type { PresetShape } from "@/lib/atelier/presets";
 import { autoDrawers, autoShelves, BOTTOM_DEFAULT_HEIGHT_MM } from "@/lib/atelier/categories";
 import { DOOR_OVERLAP_MM, autoDoorCount, doorWidthMm } from "@/lib/atelier/doors";
-import { currentHandle } from "@/lib/atelier/handles";
+import { doorFills } from "@/lib/atelier/door-types";
+import { FINISH_INFO, effectiveHandle } from "@/lib/atelier/handles";
+import type { DoorFill } from "@/lib/atelier/types";
 import type { MaterialLook } from "./material-look";
 
 /**
@@ -97,12 +99,18 @@ export function MiniPreview({
   const doorType = shape.category === "DRESSING" ? shape.doors.type : "NONE";
   const sliding = doorType.startsWith("GLISANTE");
   const hinged = doorType.startsWith("BATANTE");
-  const special = doorType.endsWith("OGLINDA") ? "mirror" : doorType.endsWith("STICLA") ? "glass" : null;
-  const doorFill = special ? `url(#${id(special)})` : frontFill;
-  const doorLine = special ? "rgba(60,80,95,0.5)" : line(front);
+  // the face of every door (sliding: per door; hinged: per column): panel, mirror or glass
+  const faces = doorFills(shape);
+  const GLAZED = "rgba(60,80,95,0.5)";
+  const faceFill = (f: DoorFill | undefined) => (f === "OGLINDA" ? `url(#${id("mirror")})` : f === "STICLA" ? `url(#${id("glass")})` : frontFill);
+  const faceLine = (f: DoorFill | undefined) => (f === "OGLINDA" || f === "STICLA" ? GLAZED : line(front));
 
-  // push-to-open fronts are plain; only applied handles are drawn
-  const appliedHandles = currentHandle({ ...shape, carcassMaterialId: "", fronts: { kind: "PAL" } }) === "APLICAT";
+  // a hint of the handle: a bar, a knob, or a line along the edge; push-to-open fronts stay plain
+  const shownHandle = effectiveHandle(shape);
+  const handleKind = shownHandle?.type ?? null;
+  // the chosen metal colour, unless it would vanish on these fronts (black on black)
+  const finishColor = shownHandle?.finish ? FINISH_INFO[shownHandle.finish].color : null;
+  const handleFinishColor = finishColor && Math.abs(luminance(finishColor) - luminance(front.color)) > 0.22 ? finishColor : null;
 
   const out: ReactNode[] = [];
   let key = 0;
@@ -134,17 +142,50 @@ export function MiniPreview({
     stroke = line(front),
   ) => {
     rect(x, y, w, h, f, stroke, dark(front) && f === frontFill ? 0.8 : 0.55, { rx: px(0.4) });
-    if (handle === "none" || !appliedHandles) return;
-    const c = special && f === doorFill ? "rgba(70,85,95,0.75)" : dark(front) ? "rgba(255,255,255,0.85)" : "rgba(43,37,32,0.55)";
-    const len = Math.min(px(7), Math.max(px(2.5), (handle === "left" || handle === "right" ? h : w) * 0.16));
+    const glazed = f !== frontFill;
+    // a diagonal glint says „mirror / glass" even at icon size
+    if (glazed && w > px(3) && h > px(3)) {
+      const g = Math.min(w, h) * 0.55;
+      for (const [off, sw, op] of [[0.16, 1.5, 0.75], [0.42, 0.7, 0.6]] as const) {
+        const gx = x + w * off;
+        out.push(
+          <line key={key++} x1={gx} y1={y + h * 0.16 + g} x2={gx + g} y2={y + h * 0.16} stroke="#fff" strokeOpacity={op} strokeWidth={px(sw)} strokeLinecap="round" />,
+        );
+      }
+    }
+    if (handle === "none" || !handleKind || handleKind === "PUSH") return;
+    const vertical = handle === "left" || handle === "right";
+    const metal = handleFinishColor ?? (dark(front) ? "#f1eee9" : "#2b2520");
+    const quiet = glazed ? "rgba(70,85,95,0.75)" : dark(front) ? "rgba(255,255,255,0.8)" : "rgba(43,37,32,0.5)";
     const inset = Math.min(px(2.6), w * 0.12);
-    if (handle === "left" || handle === "right") {
-      const hx = handle === "left" ? x + inset : x + w - inset;
-      const cy = y + h / 2;
-      out.push(<line key={key++} x1={hx} x2={hx} y1={cy - len / 2} y2={cy + len / 2} stroke={c} strokeWidth={px(0.9)} strokeLinecap="round" />);
+    const hx = handle === "left" ? x + inset : x + w - inset;
+    const hy = handle === "top" ? y + Math.min(px(2.6), h * 0.2) : handle === "bottom" ? y + h - Math.min(px(2.6), h * 0.2) : y + h / 2;
+    if (handleKind === "BUTON") {
+      // a knob: one dot
+      out.push(<circle key={key++} cx={vertical ? hx : x + w / 2} cy={vertical ? y + h / 2 : hy} r={px(1.05)} fill={metal} />);
+      return;
+    }
+    if (handleKind === "APLICAT") {
+      // a bar standing off the front
+      const len = Math.min(px(7), Math.max(px(2.5), (vertical ? h : w) * 0.16));
+      if (vertical) {
+        const cy = y + h / 2;
+        out.push(<line key={key++} x1={hx} x2={hx} y1={cy - len / 2} y2={cy + len / 2} stroke={metal} strokeWidth={px(0.95)} strokeLinecap="round" />);
+      } else hline(x + w / 2 - len / 2, x + w / 2 + len / 2, hy, metal, 0.95);
+      return;
+    }
+    // recessed grip, milled edge, hidden profile: a line along the edge you pull
+    const edge = handleKind === "INGROPAT" ? 0.36 : 0.86;
+    const sw = handleKind === "GOLA" ? 1.15 : 0.75;
+    const c = handleKind === "PROFIL_J" ? quiet : (handleFinishColor ?? quiet);
+    if (vertical) {
+      const ex = handle === "left" ? x + px(0.7) : x + w - px(0.7);
+      const len = h * edge;
+      out.push(<line key={key++} x1={ex} x2={ex} y1={y + (h - len) / 2} y2={y + (h + len) / 2} stroke={c} strokeWidth={px(sw)} strokeLinecap="round" />);
     } else {
-      const hy = handle === "top" ? y + Math.min(px(2.6), h * 0.2) : handle === "bottom" ? y + h - Math.min(px(2.6), h * 0.2) : y + h / 2;
-      hline(x + w / 2 - len / 2, x + w / 2 + len / 2, hy, c, 0.9);
+      const ey = handle === "bottom" ? y + h - px(0.7) : y + px(0.7);
+      const len = w * edge;
+      hline(x + (w - len) / 2, x + (w + len) / 2, ey, c, sw);
     }
   };
 
@@ -337,9 +378,9 @@ export function MiniPreview({
       for (let i = 0; i < n; i++) {
         if (i % 2 !== track) continue;
         const dx = i * (dw - DOOR_OVERLAP_MM);
-        frontPanel(dx, bodyTop, dw, bodyH, "none", doorFill, doorLine);
+        frontPanel(dx, bodyTop, dw, bodyH, "none", faceFill(faces[i]), faceLine(faces[i]));
         // the vertical aluminium profile of a sliding door
-        const profile = special ? "rgba(235,240,243,0.9)" : dark(front) ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.55)";
+        const profile = faces[i] !== "PANOU" ? "rgba(235,240,243,0.9)" : dark(front) ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.55)";
         for (const ex of [dx + 9, dx + dw - 9])
           out.push(<line key={key++} x1={ex} x2={ex} y1={bodyTop + 4} y2={bodyBottom - 4} stroke={profile} strokeWidth={px(0.7)} />);
       }
@@ -351,7 +392,7 @@ export function MiniPreview({
       const single = shape.columns.length > 1 && i === shape.columns.length - 1 ? "left" : "right";
       // same rule as the CRM and the „Uși pe lățime" control: one leaf unless the client asked for two
       const leaves = c.doorsAcross ?? 1;
-      swingDoors(dx + GAP / 2, c.widthMm - GAP, bodyTop + GAP / 2, bodyBottom - GAP / 2, leaves, c.doorRows ?? 1, doorFill, doorLine, single);
+      swingDoors(dx + GAP / 2, c.widthMm - GAP, bodyTop + GAP / 2, bodyBottom - GAP / 2, leaves, c.doorRows ?? 1, faceFill(faces[i]), faceLine(faces[i]), single);
       dx += c.widthMm;
     }
   }

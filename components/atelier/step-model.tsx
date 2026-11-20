@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
-import { COMBO_PRESETS, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
+import { COMBO_PRESETS, presetAvailable, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
 import { CATEGORY_ORDER } from "@/lib/atelier/categories";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "@/lib/atelier/types";
@@ -83,11 +83,11 @@ export function StepModel({
   act: Act;
 }) {
   const currentKey = shapeKey(config);
-  const presets = presetsFor(config.category);
+  const presets = presetsFor(config.category).filter((p) => presetAvailable(p, catalog));
   const combos = COMBO_PRESETS.flatMap((combo) => {
     const preset = presetById(combo.presetId);
     const palette = palettes.find((p) => p.id === combo.paletteId);
-    return preset && palette && preset.category === config.category ? [{ combo, preset, palette }] : [];
+    return preset && palette && preset.category === config.category && presetAvailable(preset, catalog) ? [{ combo, preset, palette }] : [];
   });
   // Two lists share the space: ready-made combinations (model + colours) and the plain models.
   // Open on the one that holds the current choice.

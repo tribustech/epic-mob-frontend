@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AtelierConfigurator } from "@/components/atelier/atelier-configurator";
 import { getAtelierCatalog } from "@/lib/atelier/crm";
-import type { AtelierCatalog, AtelierMaterial } from "@/lib/atelier/types";
+import { isHandleKind } from "@/lib/atelier/handles";
+import type { AtelierCatalog, AtelierGlass, AtelierMaterial } from "@/lib/atelier/types";
 
 // The catalog comes from the CRM (cached 10 minutes); regenerate on the same cadence
 // so a page built while the CRM was unreachable recovers on its own.
@@ -34,6 +35,16 @@ function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
     brand: m.brand ?? null,
     imageUrl: m.imageUrl ?? null,
   });
+  // mirror / glass types for the doors: only how they look, never a price
+  const glass = (g: AtelierGlass): AtelierGlass => ({
+    id: String(g.id),
+    name: String(g.name ?? ""),
+    tint: typeof g.tint === "string" && /^#[0-9a-f]{6}$/i.test(g.tint) ? g.tint : "#cfd8de",
+    ...(g.matte === true ? { matte: true } : {}),
+    ...(g.opaque === true ? { opaque: true } : {}),
+  });
+  const glassOf = (list: unknown): AtelierGlass[] =>
+    (Array.isArray(list) ? (list as AtelierGlass[]) : []).filter((g) => g && typeof g.id === "string" && g.id).map(glass);
   return {
     carcass: (catalog.carcass ?? []).map(material),
     fronts: {
@@ -42,7 +53,12 @@ function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
       MDF_VOPSIT: (catalog.fronts?.MDF_VOPSIT ?? []).map((m) => ({ id: m.id, name: m.name })),
     },
     ral: (catalog.ral ?? []).map((r) => ({ code: r.code, name: r.name, hex: r.hex })),
-    handles: { types: (catalog.handles?.types ?? []).map((t) => ({ type: t.type, label: t.label })) },
+    // only the handle types this site knows how to show
+    handles: {
+      types: (catalog.handles?.types ?? []).filter((t) => t && isHandleKind(t.type)).map((t) => ({ type: t.type, label: String(t.label ?? "") })),
+    },
+    // absent on an older CRM: the configurator then keeps the one-face-for-all-doors choice
+    ...(catalog.glass ? { glass: { mirrors: glassOf(catalog.glass.mirrors), glasses: glassOf(catalog.glass.glasses) } } : {}),
   };
 }
 

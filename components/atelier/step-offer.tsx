@@ -1,9 +1,9 @@
 "use client";
 
-import { Info, PhoneCall, Ruler, ShieldCheck } from "lucide-react";
+import { Info, PencilRuler, PhoneCall, Ruler, ShieldCheck, Wrench } from "lucide-react";
 import { categoryRules } from "@/lib/atelier/categories";
-import { doorFace, doorOpening } from "@/lib/atelier/door-types";
-import { currentHandle, hasHandledFronts } from "@/lib/atelier/handles";
+import { currentGlass, doorsSummary, hasGlass, hasMirror } from "@/lib/atelier/door-types";
+import { effectiveHandle, handleText } from "@/lib/atelier/handles";
 import { ralLabel } from "@/lib/atelier/ral-names";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetById, presetsFor } from "@/lib/atelier/presets";
@@ -12,16 +12,8 @@ import { swatchStyle, type MaterialLook } from "./material-look";
 import { MiniPreview } from "./mini-preview";
 import { LeadSent, RequestForm, leadSentFor, type LeadStatus } from "./request-form";
 import { shapeKey, shapeOf, type LeadContact, type StepId } from "./session";
-import { Section, cm, decorTitle, formatLei, plural } from "./ui";
-
-function doorsText(config: AtelierConfig): string | null {
-  if (config.category !== "DRESSING") return null;
-  const opening = doorOpening(config.doors.type);
-  if (opening === "NONE") return "Fără uși";
-  const face = doorFace(config.doors.type);
-  const kind = opening === "GLISANTE" ? "Uși glisante" : "Uși batante";
-  return face === "OGLINDA" ? `${kind} cu oglindă` : face === "STICLA" ? `${kind} cu sticlă` : kind;
-}
+import { ShareBlock } from "./share-block";
+import { Section, cm, decorName, decorTitle, formatLei, plural } from "./ui";
 
 function Row({
   label,
@@ -111,7 +103,10 @@ export function StepOffer({
     fronts.kind === "MDF_VOPSIT"
       ? `MDF vopsit ${ral ? ralLabel(ral) : ""}`
       : catalog.fronts[fronts.kind].find((m) => m.id === fronts.materialId)?.name ?? "—";
-  const doors = doorsText(config);
+  const doors = doorsSummary(config);
+  // which mirror / glass, when a door has one and the catalog names the types
+  const mirror = hasMirror(config) ? currentGlass(catalog.glass?.mirrors, config.doors.mirrorId) : null;
+  const glass = hasGlass(config) ? currentGlass(catalog.glass?.glasses, config.doors.glassId) : null;
   const bottom =
     config.category === "SEPARATOR"
       ? !config.bottom || config.bottom.type === "NONE"
@@ -120,10 +115,8 @@ export function StepOffer({
           ? `${plural(config.bottom.drawers ?? 2, "sertar", "sertare")} jos`
           : "uși jos"
       : null;
-  const handleKind = hasHandledFronts(config) ? currentHandle(config) : null;
-  const handle = handleKind
-    ? (catalog.handles?.types.find((t) => t.type === handleKind)?.label ?? (handleKind === "APLICAT" ? "Mâner aplicat" : handleKind === "PUSH" ? "Push" : "Profil Gola"))
-    : null;
+  const shownHandle = effectiveHandle(config);
+  const handle = shownHandle ? handleText(shownHandle) : null;
   const dressing = config.category === "DRESSING";
   const sent = leadSentFor(status, config);
 
@@ -164,9 +157,23 @@ export function StepOffer({
             </Row>
             <Row label={dressing ? "Interior" : "Compartimente"} step="interior" onStep={onStep}>
               {plural(config.columns.length, dressing ? "coloană" : "compartiment", dressing ? "coloane" : "compartimente")}
-              {doors ? ` · ${doors}` : ""}
               {bottom ? ` · ${bottom}` : ""}
             </Row>
+            {doors && (
+              <Row label="Uși" step="interior" onStep={onStep}>
+                {doors}
+              </Row>
+            )}
+            {mirror && (
+              <Row label="Oglindă" step="interior" onStep={onStep}>
+                {decorName(mirror.name)}
+              </Row>
+            )}
+            {glass && (
+              <Row label="Sticlă" step="interior" onStep={onStep}>
+                {decorName(glass.name)}
+              </Row>
+            )}
             {handle && (
               <Row label="Mânere" step="interior" onStep={onStep}>
                 {handle}
@@ -189,6 +196,27 @@ export function StepOffer({
           <p className="atelier-hint mt-1">Sunt recomandări, nu probleme — le lămurim împreună la măsurători.</p>
         </div>
       )}
+
+      <Section title="Ce primești">
+        <ul className="atelier-gets">
+          <li>
+            <Ruler size={18} aria-hidden="true" />
+            <span>Măsurători la tine acasă</span>
+          </li>
+          <li>
+            <PencilRuler size={18} aria-hidden="true" />
+            <span>Proiect pe dimensiunile tale</span>
+          </li>
+          <li>
+            <Wrench size={18} aria-hidden="true" />
+            <span>Montaj inclus</span>
+          </li>
+          <li>
+            <ShieldCheck size={18} aria-hidden="true" />
+            <span>Garanție 5 ani</span>
+          </li>
+        </ul>
+      </Section>
 
       {!sent && (
         <Section title="Trimite-ne configurația" hint="Te sunăm, venim la măsurători și îți confirmăm prețul final.">
@@ -218,6 +246,8 @@ export function StepOffer({
           </ul>
         </Section>
       )}
+
+      <ShareBlock config={config} price={price} />
     </div>
   );
 }
