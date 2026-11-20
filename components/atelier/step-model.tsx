@@ -122,7 +122,7 @@ export function StepModel({
                 onClick={() => pickCategory(id)}
               >
                 <span className="atelier-cat__art">
-                  {sample && <MiniPreview shape={sample.shape} carcass={carcass} front={front} className="h-full w-full" />}
+                  {sample && <MiniPreview shape={sample.shape} carcass={carcass} front={front} bold className="h-full w-full" />}
                 </span>
                 <span className="atelier-cat__name">{CATEGORY_SHORT[id]}</span>
               </button>

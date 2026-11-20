@@ -4667,6 +4667,44 @@ body:has(.atelier-page) .site-header {
   box-shadow: 0 2px 6px rgba(40, 30, 15, 0.2);
 }
 
+.atelier-range {
+  touch-action: pan-y;
+}
+
+/* touch: only the thumb takes the finger — a tap or a scroll that starts on the track changes nothing */
+@media (pointer: coarse) {
+  .atelier-range {
+    height: 2.75rem;
+    margin-top: 0.15rem;
+    pointer-events: none;
+  }
+
+  .atelier-range::-webkit-slider-thumb {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-top: -0.7rem;
+    pointer-events: auto;
+  }
+
+  .atelier-range::-moz-range-thumb {
+    width: 1.5rem;
+    height: 1.5rem;
+    pointer-events: auto;
+  }
+}
+
+.atelier-length__note {
+  margin-top: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #9b2c1c;
+  text-align: center;
+}
+
+.atelier-field__control .atelier-length__note {
+  text-align: right;
+}
+
 .atelier-size__head {
   display: flex;
   align-items: center;
@@ -4994,6 +5032,19 @@ body:has(.atelier-page) .site-header {
   outline: none;
   border-color: var(--at-accent);
   box-shadow: 0 0 0 3px var(--at-accent-soft);
+}
+
+.atelier-input[aria-invalid="true"] {
+  border-color: #c8402b;
+  box-shadow: 0 0 0 3px rgba(200, 64, 43, 0.12);
+}
+
+.atelier-form__error {
+  margin-top: 0.25rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #9b2c1c;
 }
 
 .atelier-trust {

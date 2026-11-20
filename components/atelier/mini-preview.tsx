@@ -52,11 +52,14 @@ export function MiniPreview({
   carcass,
   front,
   className,
+  bold = false,
 }: {
   shape: PresetShape;
   carcass: MaterialLook;
   front: MaterialLook;
   className?: string;
+  /** drawn very small (an icon): heavier lines, so doors and drawers still read */
+  bold?: boolean;
 }) {
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const id = (name: string) => `mp-${uid}-${name}`;
@@ -74,11 +77,12 @@ export function MiniPreview({
   // wall cabinets hang at eye level: centred a little above the middle; the rest stands on the floor
   const oy = wallHung ? PAD_TOP + (availH - H * k) * 0.42 : FLOOR_Y - H * k;
   /** stroke widths are given in SVG units and converted to mm inside the scaled group */
-  const px = (v: number) => v / k;
+  const px = (v: number) => (v * (bold ? 2.6 : 1)) / k;
 
-  const dark = (look: MaterialLook) => luminance(look.color) < 0.3;
+  // dark boards get light lines (and a touch heavier), or doors and drawers melt into one black blob
+  const dark = (look: MaterialLook) => luminance(look.color) < 0.34;
   const line = (look: MaterialLook, strength = 1) =>
-    dark(look) ? `rgba(255,255,255,${0.3 * strength})` : `rgba(43,37,32,${0.42 * strength})`;
+    dark(look) ? `rgba(255,255,255,${Math.min(0.85, 0.62 * strength)})` : `rgba(43,37,32,${0.42 * strength})`;
 
   const fill = (look: MaterialLook, name: string) => (look.imageUrl ? `url(#${id(name)})` : look.color);
   const carcassFill = fill(carcass, "carcass");
@@ -129,9 +133,9 @@ export function MiniPreview({
     f = frontFill,
     stroke = line(front),
   ) => {
-    rect(x, y, w, h, f, stroke, 0.55, { rx: px(0.4) });
+    rect(x, y, w, h, f, stroke, dark(front) && f === frontFill ? 0.8 : 0.55, { rx: px(0.4) });
     if (handle === "none" || !appliedHandles) return;
-    const c = special && f === doorFill ? "rgba(70,85,95,0.75)" : dark(front) ? "rgba(255,255,255,0.6)" : "rgba(43,37,32,0.55)";
+    const c = special && f === doorFill ? "rgba(70,85,95,0.75)" : dark(front) ? "rgba(255,255,255,0.85)" : "rgba(43,37,32,0.55)";
     const len = Math.min(px(7), Math.max(px(2.5), (handle === "left" || handle === "right" ? h : w) * 0.16));
     const inset = Math.min(px(2.6), w * 0.12);
     if (handle === "left" || handle === "right") {
@@ -199,7 +203,18 @@ export function MiniPreview({
   };
 
   /** hinged doors over a zone: one or two leaves, handles at the meeting edge */
-  const swingDoors = (x: number, w: number, y0: number, y1: number, leaves: number, rows = 1, f = frontFill, stroke = line(front)) => {
+  const swingDoors = (
+    x: number,
+    w: number,
+    y0: number,
+    y1: number,
+    leaves: number,
+    rows = 1,
+    f = frontFill,
+    stroke = line(front),
+    /** where a single leaf opens (its handle side) */
+    single: "left" | "right" = "right",
+  ) => {
     const rowH = (y1 - y0 - GAP * (rows - 1)) / rows;
     for (let r = 0; r < rows; r++) {
       const y = y0 + r * (rowH + GAP);
@@ -207,7 +222,7 @@ export function MiniPreview({
         const half = (w - GAP) / 2;
         frontPanel(x, y, half, rowH, "right", f, stroke);
         frontPanel(x + half + GAP, y, half, rowH, "left", f, stroke);
-      } else frontPanel(x, y, w, rowH, "right", f, stroke);
+      } else frontPanel(x, y, w, rowH, single, f, stroke);
     }
   };
 
@@ -324,16 +339,19 @@ export function MiniPreview({
         const dx = i * (dw - DOOR_OVERLAP_MM);
         frontPanel(dx, bodyTop, dw, bodyH, "none", doorFill, doorLine);
         // the vertical aluminium profile of a sliding door
-        const profile = special ? "rgba(235,240,243,0.9)" : dark(front) ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.55)";
+        const profile = special ? "rgba(235,240,243,0.9)" : dark(front) ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.55)";
         for (const ex of [dx + 9, dx + dw - 9])
           out.push(<line key={key++} x1={ex} x2={ex} y1={bodyTop + 4} y2={bodyBottom - 4} stroke={profile} strokeWidth={px(0.7)} />);
       }
     }
   } else if (hinged) {
     let dx = 0;
-    for (const c of shape.columns) {
-      const leaves = c.doorsAcross ?? (c.widthMm > 600 ? 2 : 1);
-      swingDoors(dx + GAP / 2, c.widthMm - GAP, bodyTop + GAP / 2, bodyBottom - GAP / 2, leaves, c.doorRows ?? 1, doorFill, doorLine);
+    for (const [i, c] of shape.columns.entries()) {
+      // a single door is hinged towards the outside: on the right for the last column, else on the left
+      const single = shape.columns.length > 1 && i === shape.columns.length - 1 ? "left" : "right";
+      // same rule as the CRM and the „Uși pe lățime" control: one leaf unless the client asked for two
+      const leaves = c.doorsAcross ?? 1;
+      swingDoors(dx + GAP / 2, c.widthMm - GAP, bodyTop + GAP / 2, bodyBottom - GAP / 2, leaves, c.doorRows ?? 1, doorFill, doorLine, single);
       dx += c.widthMm;
     }
   }

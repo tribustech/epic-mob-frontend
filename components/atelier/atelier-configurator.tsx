@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { AlertTriangle, ArrowLeft, ArrowRight, Info, Loader2, Undo2, X } from "lucide-react";
 import { trackFunnel, trackFunnelOnce } from "@/lib/atelier/funnel";
+import { currentHandle, hasHandledFronts } from "@/lib/atelier/handles";
 import { activePaletteId, resolvePalettes } from "@/lib/atelier/palettes";
 import type { AtelierAction } from "@/lib/atelier/state";
 import { useLivePrice } from "@/lib/atelier/use-live-price";
@@ -28,7 +29,7 @@ import { StepInterior } from "./step-interior";
 import { StepModel } from "./step-model";
 import { StepOffer } from "./step-offer";
 import { StepSize } from "./step-size";
-import { formatLei, plural } from "./ui";
+import { formatLei, issueMessage, plural } from "./ui";
 
 // three.js needs the browser (WebGL); keep it out of SSR and out of the initial bundle.
 const Viewer3D = dynamic(() => import("./viewer-3d"), {
@@ -57,6 +58,9 @@ const INTERIOR_ACTIONS = new Set<AtelierAction["type"]>([
 
 /** The step where the client can fix an error / warning from the price service. */
 function stepForIssue(issue: AtelierIssue): StepId {
+  // „Ușile ar avea 285 cm… Micșorează înălțimea dulapului" is fixed by the height, not by the doors
+  if (issue.code === "USA_PREA_INALTA" || (issue.column == null && /(mic[șs]oreaz[ăa]|redu)\w* [îi]n[ăa]l[țt]imea/iu.test(issue.message)))
+    return "dimensiuni";
   if (issue.column != null) return "interior";
   if (/MATERIAL/.test(issue.code)) return "culori";
   // \b is ASCII-only („bară" ends in a non-ASCII letter), hence the lookahead
@@ -67,13 +71,14 @@ function stepForIssue(issue: AtelierIssue): StepId {
 /** The same remark on several columns reads as one line: „Coloanele 1, 2 și 3: …". */
 function groupNotes(issues: AtelierIssue[], config: AtelierConfig): string[] {
   const byMessage = new Map<string, number[]>();
-  for (const issue of issues) {
+  const dressing = config.category === "DRESSING";
+  for (const raw of issues) {
+    const issue = { ...raw, message: issueMessage(raw.message, dressing) };
     const cols = byMessage.get(issue.message) ?? [];
     if (issue.column != null && issue.column >= 0 && issue.column < config.columns.length && !cols.includes(issue.column))
       cols.push(issue.column);
     byMessage.set(issue.message, cols);
   }
-  const dressing = config.category === "DRESSING";
   return [...byMessage].map(([message, cols]) => {
     if (cols.length === 0) return message;
     const nums = cols.map((c) => c + 1).sort((x, y) => x - y);
@@ -83,10 +88,14 @@ function groupNotes(issues: AtelierIssue[], config: AtelierConfig): string[] {
   });
 }
 
+const stepFromHash = (): StepId | null => STEP_IDS.find((s) => `#${s}` === window.location.hash) ?? null;
+
 /** „Coloana 2: …" when the service says which column the message is about. */
 function issueText(issue: AtelierIssue, config: AtelierConfig): string {
-  if (issue.column == null || issue.column < 0 || issue.column >= config.columns.length) return issue.message;
-  return `${config.category === "DRESSING" ? "Coloana" : "Compartimentul"} ${issue.column + 1}: ${issue.message}`;
+  const dressing = config.category === "DRESSING";
+  const message = issueMessage(issue.message, dressing);
+  if (issue.column == null || issue.column < 0 || issue.column >= config.columns.length) return message;
+  return `${dressing ? "Coloana" : "Compartimentul"} ${issue.column + 1}: ${message}`;
 }
 
 export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
@@ -114,9 +123,32 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   // The Interior step shows the interior: doors open while the client is there and close on leaving,
   // unless the client used the toggle — that choice then stays until the next visit to Interior.
   const [manualDoors, setManualDoors] = useState<boolean | null>(null);
-  const doorsOpen = manualDoors ?? step === "interior";
+  // a new body decor is hidden behind closed doors: open them for a moment so the change is seen
+  const [peek, setPeek] = useState(false);
+  const peekTimer = useRef<number | null>(null);
+  const doorsOpen = manualDoors ?? (step === "interior" || peek);
   const [pickedColumn, setPickedColumn] = useState(0);
   const column = Math.min(pickedColumn, config.columns.length - 1);
+  const highlight = useMemo(() => {
+    const x0 = config.columns.slice(0, column).reduce((sum, c) => sum + c.widthMm, 0);
+    return { x0, x1: x0 + (config.columns[column]?.widthMm ?? 0) };
+  }, [config.columns, column]);
+  // the strip under the chosen column shows while the interior is visible, or right after a pick
+  const [justPicked, setJustPicked] = useState(false);
+  const pickTimer = useRef<number | null>(null);
+  const pickColumn = useCallback((index: number) => {
+    setPickedColumn(index);
+    setJustPicked(true);
+    if (pickTimer.current !== null) window.clearTimeout(pickTimer.current);
+    pickTimer.current = window.setTimeout(() => setJustPicked(false), 2500);
+  }, []);
+  useEffect(
+    () => () => {
+      if (pickTimer.current !== null) window.clearTimeout(pickTimer.current);
+      if (peekTimer.current !== null) window.clearTimeout(peekTimer.current);
+    },
+    [],
+  );
 
   const errors = result?.errors ?? [];
   const warnings = useMemo(() => result?.warnings ?? [], [result]);
@@ -143,10 +175,18 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
     if (restored.current) return;
     restored.current = true;
     const stored = loadSession(catalog);
+    // a link straight to a step (#culori) wins over the step of the stored session
+    const linked = stepFromHash();
     if (stored) {
-      restoredStep.current = stored.step;
-      dispatch({ type: "restore", ...stored });
+      restoredStep.current = linked ?? stored.step;
+      dispatch({ type: "restore", ...stored, step: linked ?? stored.step });
+    } else if (linked) {
+      restoredStep.current = linked;
+      dispatch({ type: "step", step: linked });
     }
+    stepRef.current = linked ?? stored?.step ?? "model";
+    // keep the address in step with the screen, so Back from a later step returns here
+    if (!linked && stepRef.current !== "model") window.history.replaceState(null, "", `#${stepRef.current}`);
   }, [catalog]);
   useEffect(() => {
     if (restored.current) saveSession(config, step, contact);
@@ -171,14 +211,23 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   const act = useCallback<Act>((action) => {
     const actions = Array.isArray(action) ? action : [action];
     dispatch({ type: "config", actions, at: Date.now() });
+    if (actions.some((a) => a.type === "setCarcass")) {
+      setPeek(true);
+      if (peekTimer.current !== null) window.clearTimeout(peekTimer.current);
+      peekTimer.current = window.setTimeout(() => setPeek(false), 2200);
+    }
     for (const a of actions) {
       if (SIZE_ACTIONS.has(a.type)) trackFunnelOnce("size_changed");
       else if (INTERIOR_ACTIONS.has(a.type)) trackFunnelOnce("interior_changed");
     }
   }, []);
 
-  const goTo = useCallback((next: StepId) => {
+  /* ── every step is a history entry: the browser's Back goes to the previous step ── */
+  const stepRef = useRef<StepId>("model");
+  const showStep = useCallback((next: StepId) => {
+    stepRef.current = next;
     dispatch({ type: "step", step: next });
+    setIssuesOpen(false);
     // entering „Interior" always shows the interior again, whatever was toggled before
     if (next === "interior") setManualDoors(null);
     // start the new step from its top: the panel's own scroll (desktop) or the page (mobile)
@@ -190,6 +239,50 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
       if (window.scrollY > top) window.scrollTo({ top });
     }
   }, []);
+  const goTo = useCallback(
+    (next: StepId) => {
+      if (next !== stepRef.current) window.history.pushState(null, "", `#${next}`);
+      showStep(next);
+    },
+    [showStep],
+  );
+  useEffect(() => {
+    const onPop = () => showStep(stepFromHash() ?? "model");
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [showStep]);
+
+  /* ── the remarks panel is a pop-over: it closes on a tap elsewhere and when the page scrolls ── */
+  useEffect(() => {
+    if (!issuesOpen) return;
+    const startY = window.scrollY;
+    const panel = scrollRef.current;
+    const startTop = panel?.scrollTop ?? 0;
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - startY) > 24 || Math.abs((panel?.scrollTop ?? 0) - startTop) > 24) setIssuesOpen(false);
+    };
+    const onDown = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (!target?.closest("#atelier-warnings, .atelier-notelink")) setIssuesOpen(false);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    panel?.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      panel?.removeEventListener("scroll", onScroll);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [issuesOpen]);
+
+  /** After a sent request: a fresh configuration from the first step; the contact details stay. */
+  const startOver = useCallback(() => {
+    setLead({ kind: "idle" });
+    setManualDoors(null);
+    setPickedColumn(0);
+    dispatch({ type: "restore", config: initialSession(catalog).config, step: stepRef.current, contact });
+    goTo("model");
+  }, [catalog, contact, goTo]);
 
   const onLead = useCallback(
     (next: LeadStatus) => {
@@ -219,7 +312,9 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
             updating={loading}
             doorsOpen={doorsOpen}
             onDoorsOpenChange={setManualDoors}
-            highlightColumn={step === "interior" ? column : null}
+            highlight={step === "interior" && (doorsOpen || justPicked) ? highlight : null}
+            handles={hasHandledFronts(config) && currentHandle(config) === "APLICAT"}
+            stale={!loading && (hasErrors || down)}
           />
           <button
             type="button"
@@ -281,7 +376,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                 )}
                 {step === "dimensiuni" && <StepSize config={config} act={act} />}
                 {step === "interior" && (
-                  <StepInterior catalog={catalog} config={config} act={act} column={column} onColumn={setPickedColumn} />
+                  <StepInterior catalog={catalog} config={config} act={act} column={column} onColumn={pickColumn} />
                 )}
                 {step === "oferta" && (
                   <StepOffer
@@ -301,6 +396,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                     status={lead}
                     onStatus={onLead}
                     onStep={goTo}
+                    onStartOver={startOver}
                   />
                 )}
               </motion.div>
@@ -367,7 +463,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                 )}
               </div>
               <div className="atelier-foot__nav">
-                {prevStep && (
+                {prevStep && !(sent && step === "oferta") && (
                   <button type="button" className="atelier-btn atelier-btn--ghost" onClick={() => goTo(prevStep)} aria-label="Pasul anterior">
                     <ArrowLeft size={18} aria-hidden="true" />
                   </button>

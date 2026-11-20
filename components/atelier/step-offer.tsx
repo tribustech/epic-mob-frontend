@@ -3,6 +3,7 @@
 import { Info, PhoneCall, Ruler, ShieldCheck } from "lucide-react";
 import { categoryRules } from "@/lib/atelier/categories";
 import { doorFace, doorOpening } from "@/lib/atelier/door-types";
+import { currentHandle, hasHandledFronts } from "@/lib/atelier/handles";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetById, presetsFor } from "@/lib/atelier/presets";
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
@@ -69,6 +70,7 @@ export function StepOffer({
   status,
   onStatus,
   onStep,
+  onStartOver,
 }: {
   catalog: AtelierCatalog;
   config: AtelierConfig;
@@ -89,6 +91,8 @@ export function StepOffer({
   status: LeadStatus;
   onStatus: (status: LeadStatus) => void;
   onStep: (step: StepId) => void;
+  /** after a sent request: start a fresh configuration (contact details stay) */
+  onStartOver: () => void;
 }) {
   const key = shapeKey(config);
   const preset = presetsFor(config.category).find((p) => shapeKey(p.shape) === key);
@@ -107,12 +111,24 @@ export function StepOffer({
       ? `MDF vopsit ${ral ? `${ral.code} · ${ral.name}` : ""}`
       : catalog.fronts[fronts.kind].find((m) => m.id === fronts.materialId)?.name ?? "—";
   const doors = doorsText(config);
+  const bottom =
+    config.category === "SEPARATOR"
+      ? !config.bottom || config.bottom.type === "NONE"
+        ? "deschis până jos"
+        : config.bottom.type === "SERTARE"
+          ? `${plural(config.bottom.drawers ?? 2, "sertar", "sertare")} jos`
+          : "uși jos"
+      : null;
+  const handleKind = hasHandledFronts(config) ? currentHandle(config) : null;
+  const handle = handleKind
+    ? (catalog.handles?.types.find((t) => t.type === handleKind)?.label ?? (handleKind === "APLICAT" ? "Mâner aplicat" : handleKind === "PUSH" ? "Push" : "Profil Gola"))
+    : null;
   const dressing = config.category === "DRESSING";
   const sent = leadSentFor(status, config);
 
   return (
     <div className="atelier-stack">
-      {sent && <LeadSent onAgain={() => onStatus({ kind: "idle" })} />}
+      {sent && <LeadSent onAgain={onStartOver} />}
       <Section title="Configurația ta">
         <div className="atelier-summary">
           <div className="atelier-summary__top">
@@ -148,7 +164,13 @@ export function StepOffer({
             <Row label={dressing ? "Interior" : "Compartimente"} step="interior" onStep={onStep}>
               {plural(config.columns.length, dressing ? "coloană" : "compartiment", dressing ? "coloane" : "compartimente")}
               {doors ? ` · ${doors}` : ""}
+              {bottom ? ` · ${bottom}` : ""}
             </Row>
+            {handle && (
+              <Row label="Mânere" step="interior" onStep={onStep}>
+                {handle}
+              </Row>
+            )}
           </dl>
         </div>
       </Section>

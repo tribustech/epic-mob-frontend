@@ -17,13 +17,44 @@ export function cm(mm: number): string {
 
 /** „240 cm" typed by a client → millimetres (null when it is not a number). */
 export function parseCm(text: string): number | null {
-  // „240", „240,5", „240 cm", „2,4 m", „2400 mm" — the unit is optional and centimetres by default
+  // „240", „240,5", „240 cm", „2,4 m", „2400 mm" — centimetres by default; a bare number under 10
+  // („2.4", „3") can only be metres: no furniture here is under 10 cm
   const match = /^([0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)\s*(cm|mm|m)?\.?$/i.exec(text.trim());
   if (!match) return null;
   const v = Number(match[1].replace(",", "."));
   if (!Number.isFinite(v)) return null;
-  const unit = (match[2] ?? "cm").toLowerCase();
+  const unit = (match[2] ?? (v > 0 && v < 10 ? "m" : "cm")).toLowerCase();
   return Math.round(unit === "m" ? v * 1000 : unit === "mm" ? v : v * 10);
+}
+
+/**
+ * A message from the price service, as the client reads it: millimetres become centimetres
+ * („964 mm" → „96,4 cm") and, outside dressings, „coloană" becomes „compartiment".
+ */
+export function issueMessage(message: string, dressing: boolean): string {
+  let text = message.replace(/(\d+(?:[.,]\d+)?)\s*mm\b/g, (_, n: string) => `${cm(Number(n.replace(",", ".")))} cm`);
+  if (!dressing) {
+    const forms: [RegExp, string][] = [
+      [/coloanelor/g, "compartimentelor"],
+      [/coloanele/g, "compartimentele"],
+      [/coloanei/g, "compartimentului"],
+      [/coloana/g, "compartimentul"],
+      [/coloană/g, "compartiment"],
+      [/coloane/g, "compartimente"],
+    ];
+    for (const [re, to] of forms) {
+      text = text.replace(re, to).replace(new RegExp(re.source.replace(/^c/, "C"), "g"), to.replace(/^c/, "C"));
+    }
+  }
+  return text;
+}
+
+/** Search text without diacritics, lower-case: „Cașmir" → „casmir". */
+export function fold(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 /** „W1000 ST9 · Alb Premium" → „Alb Premium" (the catalog name leads with the decor code). */
@@ -238,8 +269,9 @@ export function Stepper({
 }
 
 /**
- * A length the client can nudge (− / +), type (in cm) or drag (slider). The state stays in
- * millimetres; half-typed text never reaches the reducer — it commits on blur / Enter, clamped.
+ * A length the client can nudge (− / +, in steps of 5 cm; hold to repeat), type (in cm, any
+ * precision) or drag (slider). The state stays in millimetres; half-typed text never reaches the
+ * reducer — it commits on blur / Enter, clamped (with a short note when it had to be).
  */
 export function LengthControl({
   id,
@@ -248,6 +280,7 @@ export function LengthControl({
   minMm,
   maxMm,
   stepMm = 10,
+  nudgeMm = 50,
   slider = false,
   disabled = false,
   onCommit,
@@ -257,33 +290,125 @@ export function LengthControl({
   valueMm: number;
   minMm: number;
   maxMm: number;
+  /** slider precision */
   stepMm?: number;
+  /** what one tap on − / + changes */
+  nudgeMm?: number;
   slider?: boolean;
   disabled?: boolean;
   onCommit: (mm: number) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  const [clamped, setClamped] = useState(false);
+  const clampTimer = useRef<number | null>(null);
   const clampMm = (mm: number) => Math.min(maxMm, Math.max(minMm, Math.round(mm)));
+
+  // the − / + repeat while held: they must read the value as it is now, not as it was at press time
+  const live = useRef({ valueMm, minMm, maxMm, nudgeMm, onCommit });
+  useEffect(() => {
+    live.current = { valueMm, minMm, maxMm, nudgeMm, onCommit };
+  });
+  const hold = useRef<{ timer: number | null; repeated: boolean }>({ timer: null, repeated: false });
+  const stopHold = () => {
+    if (hold.current.timer !== null) window.clearTimeout(hold.current.timer);
+    hold.current.timer = null;
+  };
+  useEffect(
+    () => () => {
+      if (hold.current.timer !== null) window.clearTimeout(hold.current.timer);
+      if (clampTimer.current !== null) window.clearTimeout(clampTimer.current);
+    },
+    [],
+  );
+
+  const noteClamp = () => {
+    setClamped(true);
+    if (clampTimer.current !== null) window.clearTimeout(clampTimer.current);
+    clampTimer.current = window.setTimeout(() => setClamped(false), 4000);
+  };
 
   const commit = () => {
     if (draft === null) return;
     const mm = parseCm(draft);
     setDraft(null);
-    if (mm === null) return;
+    if (mm === null) {
+      if (draft.trim()) noteClamp();
+      return;
+    }
     const next = clampMm(mm);
+    if (next !== mm) noteClamp();
+    else setClamped(false);
     if (next !== valueMm) onCommit(next);
   };
-  const nudge = (dir: 1 | -1) => {
-    // land on the next multiple of the step, so 2405 → 2410 → 2420
-    const snapped = dir > 0 ? Math.floor(valueMm / stepMm) * stepMm + stepMm : Math.ceil(valueMm / stepMm) * stepMm - stepMm;
-    const next = clampMm(snapped);
-    if (next !== valueMm) onCommit(next);
+  /** one step; false when the limit is reached */
+  const nudge = (dir: 1 | -1): boolean => {
+    const v = live.current;
+    // land on the next multiple of the step, so 2405 → 2450 → 2500
+    const snapped =
+      dir > 0 ? Math.floor(v.valueMm / v.nudgeMm) * v.nudgeMm + v.nudgeMm : Math.ceil(v.valueMm / v.nudgeMm) * v.nudgeMm - v.nudgeMm;
+    const next = Math.min(v.maxMm, Math.max(v.minMm, snapped));
+    if (next === v.valueMm) return false;
+    live.current = { ...v, valueMm: next };
+    v.onCommit(next);
+    return true;
+  };
+  const nudgeButton = (dir: 1 | -1) => ({
+    onPointerDown: (e: React.PointerEvent) => {
+      if (e.button !== 0) return;
+      stopHold();
+      hold.current.repeated = false;
+      const tick = () => {
+        hold.current.repeated = true;
+        hold.current.timer = nudge(dir) ? window.setTimeout(tick, 110) : null;
+      };
+      hold.current.timer = window.setTimeout(tick, 420);
+    },
+    onPointerUp: stopHold,
+    onPointerLeave: stopHold,
+    onPointerCancel: stopHold,
+    onBlur: stopHold,
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    onClick: () => {
+      stopHold();
+      // the click that ends a hold already did its steps
+      if (hold.current.repeated) hold.current.repeated = false;
+      else nudge(dir);
+    },
+  });
+
+  // Touch: a page scroll that happens to start on the slider must not change the value.
+  const touch = useRef<{ x: number; y: number; scrollY: number; vertical: boolean | null } | null>(null);
+  const sliderGuard = {
+    onTouchStart: (e: React.TouchEvent) => {
+      const t = e.touches[0];
+      touch.current = { x: t.clientX, y: t.clientY, scrollY: window.scrollY, vertical: null };
+    },
+    onTouchMove: (e: React.TouchEvent) => {
+      const s = touch.current;
+      const t = e.touches[0];
+      if (!s || s.vertical !== null) return;
+      const dx = Math.abs(t.clientX - s.x);
+      const dy = Math.abs(t.clientY - s.y);
+      if (dx > 6 || dy > 6) s.vertical = dy > dx;
+    },
+    onTouchEnd: () => {
+      window.setTimeout(() => {
+        touch.current = null;
+      }, 60);
+    },
+    onTouchCancel: () => {
+      touch.current = null;
+    },
+  };
+  const scrolling = () => {
+    const s = touch.current;
+    return !!s && (s.vertical === true || Math.abs(window.scrollY - s.scrollY) > 3);
   };
 
   return (
     <div className="min-w-0">
       <div className="atelier-length">
-        <button type="button" aria-label={`${label}: mai mic`} disabled={disabled || valueMm <= minMm} onClick={() => nudge(-1)}>
+        <button type="button" aria-label={`${label}: mai mic`} disabled={disabled || valueMm <= minMm} {...nudgeButton(-1)}>
           <Minus size={16} aria-hidden="true" />
         </button>
         <label className="atelier-length__value" htmlFor={id}>
@@ -293,6 +418,7 @@ export function LengthControl({
             inputMode="decimal"
             autoComplete="off"
             aria-label={`${label} în centimetri (între ${cm(minMm)} și ${cm(maxMm)})`}
+            aria-describedby={clamped ? `${id}-range` : undefined}
             value={draft ?? cm(valueMm)}
             disabled={disabled}
             onChange={(e) => setDraft(e.target.value)}
@@ -302,16 +428,23 @@ export function LengthControl({
               if (e.key === "Enter") {
                 e.preventDefault();
                 commit();
-                e.currentTarget.blur();
+                // focus stays in the field (the value is selected again, ready for another try)
+                const input = e.currentTarget;
+                requestAnimationFrame(() => input.select());
               }
             }}
           />
           <span aria-hidden="true">cm</span>
         </label>
-        <button type="button" aria-label={`${label}: mai mare`} disabled={disabled || valueMm >= maxMm} onClick={() => nudge(1)}>
+        <button type="button" aria-label={`${label}: mai mare`} disabled={disabled || valueMm >= maxMm} {...nudgeButton(1)}>
           <Plus size={16} aria-hidden="true" />
         </button>
       </div>
+      {clamped && (
+        <p id={`${id}-range`} className="atelier-length__note" role="status">
+          între {cm(minMm)} și {cm(maxMm)} cm
+        </p>
+      )}
       {slider && (
         <input
           type="range"
@@ -321,7 +454,10 @@ export function LengthControl({
           step={stepMm}
           value={Math.min(maxMm, Math.max(minMm, valueMm))}
           disabled={disabled}
-          onChange={(e) => onCommit(Number(e.target.value))}
+          {...sliderGuard}
+          onChange={(e) => {
+            if (!scrolling()) onCommit(Number(e.target.value));
+          }}
           aria-label={`${label} (glisor)`}
           style={{ "--fill": `${((valueMm - minMm) / Math.max(1, maxMm - minMm)) * 100}%` } as React.CSSProperties}
         />

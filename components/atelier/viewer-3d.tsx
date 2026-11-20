@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Edges, OrbitControls } from "@react-three/drei";
-import { ScanEye } from "lucide-react";
+import { DoorClosed, DoorOpen, ScanEye } from "lucide-react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { AtelierScene, ColumnContent, RailPosition, SceneDoor, ScenePiece } from "@/lib/atelier/types";
@@ -41,8 +41,12 @@ export interface Viewer3DProps {
   doorsOpen?: boolean;
   /** Called when the client uses the „Uși închise / deschise" toggle (controlled or not). */
   onDoorsOpenChange?: (open: boolean) => void;
-  /** 0-based column to point at (a soft accent strip on the floor in front of it); floor-standing furniture only. */
-  highlightColumn?: number | null;
+  /** x range (scene mm) of the column to point at: a soft accent strip right under its front edge. */
+  highlight?: { x0: number; x1: number } | null;
+  /** fronts carry an applied bar handle (push-to-open / Gola fronts stay plain) */
+  handles?: boolean;
+  /** the scene on screen is not the current configuration's (errors / price service down) */
+  stale?: boolean;
 }
 
 /* ── Shared textures: one THREE.Texture per imageUrl for the whole page ── */
@@ -205,8 +209,16 @@ const VIEW_FOV = 28;
 const VIEW_FILL_X = 0.88;
 const VIEW_FILL_Y = 0.8;
 
+/** Extra room (metres) the opened hinged doors need around the body. */
+interface OpenPad {
+  x: number;
+  front: number;
+  top: number;
+}
+const NO_PAD: OpenPad = { x: 0, front: 0, top: 0 };
+
 /** Where the default camera stands for a W×H×D box centred on (0, H/2, 0), for this canvas aspect. */
-function defaultView(W: number, H: number, D: number, aspect: number) {
+function defaultView(W: number, H: number, D: number, aspect: number, pad: OpenPad = NO_PAD) {
   const target = new THREE.Vector3(0, H / 2, 0);
   const dir = new THREE.Vector3(
     Math.sin(VIEW_AZIMUTH) * Math.cos(VIEW_ELEVATION),
@@ -223,7 +235,8 @@ function defaultView(W: number, H: number, D: number, aspect: number) {
   for (const sx of [-1, 1])
     for (const sy of [-1, 1])
       for (const sz of [-1, 1]) {
-        corner.set((sx * W) / 2, (sy * H) / 2, (sz * D) / 2);
+        // opened hinged doors reach out to the sides, forwards and (lift-up doors) above the body
+        corner.set(sx * (W / 2 + pad.x), sy * (H / 2) + (sy > 0 ? pad.top : 0), sz > 0 ? D / 2 + pad.front : -D / 2);
         const towards = corner.dot(dir);
         dist = Math.max(dist, Math.abs(corner.dot(right)) / tanX + towards, Math.abs(corner.dot(up)) / tanY + towards);
       }
@@ -235,7 +248,7 @@ function defaultView(W: number, H: number, D: number, aspect: number) {
  * strip). Re-frames when the model or the canvas changes noticeably — never in the middle of
  * a drag — and glides back to the default view when `resetSignal` changes.
  */
-function CameraRig({ W, H, D, resetSignal }: { W: number; H: number; D: number; resetSignal: number }) {
+function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: number; pad: OpenPad; resetSignal: number }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const controls = useThree((s) => s.controls) as unknown as OrbitControlsLike | null;
   const size = useThree((s) => s.size);
@@ -253,16 +266,16 @@ function CameraRig({ W, H, D, resetSignal }: { W: number; H: number; D: number; 
   const pending = useRef(false);
   /** set while the camera glides back to the default view */
   const glide = useRef<{ position: THREE.Vector3; target: THREE.Vector3 } | null>(null);
-  const latest = useRef({ W, H, D, aspect });
+  const latest = useRef({ W, H, D, aspect, pad });
   useEffect(() => {
-    latest.current = { W, H, D, aspect };
+    latest.current = { W, H, D, aspect, pad };
   });
 
   const frame = useRef<() => void>(() => {});
   useEffect(() => {
     frame.current = () => {
       const v = latest.current;
-      const view = defaultView(v.W, v.H, v.D, v.aspect);
+      const view = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
       glide.current = null;
       camera.fov = VIEW_FOV;
       camera.position.copy(view.position);
@@ -312,10 +325,33 @@ function CameraRig({ W, H, D, resetSignal }: { W: number; H: number; D: number; 
   useEffect(() => {
     if (resetSignal === firstReset.current) return;
     const v = latest.current;
-    const view = defaultView(v.W, v.H, v.D, v.aspect);
+    const view = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
     glide.current = { position: view.position, target: view.target };
     invalidate();
   }, [resetSignal, invalidate]);
+
+  // Doors opening / closing change how much room the piece needs: step back (or return) along the
+  // client's own viewing direction, so their rotation is kept.
+  const padKey = `${pad.x.toFixed(2)}|${pad.front.toFixed(2)}|${pad.top.toFixed(2)}`;
+  const firstPad = useRef(padKey);
+  useEffect(() => {
+    if (padKey === firstPad.current) return;
+    firstPad.current = padKey;
+    const v = latest.current;
+    const view = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
+    const target = controls ? controls.target.clone() : view.target;
+    const dir = camera.position.clone().sub(target);
+    if (dir.lengthSq() < 1e-6) return;
+    dir.normalize();
+    if (controls) {
+      controls.minDistance = view.dist * 0.4;
+      controls.maxDistance = view.dist * 1.8;
+    }
+    camera.far = view.dist * 6 + 10;
+    camera.updateProjectionMatrix();
+    if (!dragging.current) glide.current = { position: target.clone().addScaledVector(dir, view.dist), target };
+    invalidate();
+  }, [padKey, camera, controls, invalidate]);
 
   useFrame((state, delta) => {
     const g = glide.current;
@@ -340,7 +376,18 @@ function CameraRig({ W, H, D, resetSignal }: { W: number; H: number; D: number; 
 const CORP_EDGE = { color: "#3b332b", opacity: 0.3 };
 const FRONT_EDGE = { color: "#2a2420", opacity: 0.5 };
 
-function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierScene; material: THREE.Material }) {
+function Piece({
+  piece,
+  scene,
+  material,
+  handleMaterial,
+}: {
+  piece: ScenePiece;
+  scene: AtelierScene;
+  material: THREE.Material;
+  /** set on drawer fronts that carry an applied handle */
+  handleMaterial?: THREE.Material | null;
+}) {
   const { x, y, z, w, h, d } = piece;
   const geometry = useGrainBox(
     Math.max(w, 1) * S,
@@ -361,7 +408,42 @@ function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierSc
       receiveShadow
     >
       {edge && <Edges threshold={20} color={edge.color} transparent opacity={edge.opacity} />}
+      {handleMaterial && w >= 150 && h >= 60 && (
+        // a drawer front: the handle lies flat, centred
+        <BarHandle at={[0, 0, (d / 2) * S]} vertical={false} lengthMm={Math.min(HANDLE_LEN_MM, w * 0.6)} material={handleMaterial} />
+      )}
     </mesh>
+  );
+}
+
+/* ── Applied handles: a slim dark bar on two posts ── */
+
+const HANDLE_LEN_MM = 160;
+const HANDLE_BAR_MM = 10;
+const HANDLE_STANDOFF_MM = 26;
+/** where a hand finds the handle of a tall door (mm above the floor) */
+const HANDLE_HEIGHT_MM = 1050;
+
+/**
+ * A bar handle on a front, in the front's own frame: `at` is the bar's centre relative to the
+ * parent (metres), on the front face; the bar stands off it towards +z.
+ */
+function BarHandle({ at, vertical, lengthMm, material }: { at: [number, number, number]; vertical: boolean; lengthMm: number; material: THREE.Material }) {
+  const len = lengthMm * S;
+  const bar = HANDLE_BAR_MM * S;
+  const off = HANDLE_STANDOFF_MM * S;
+  const post = (sign: number): [number, number, number] => (vertical ? [0, sign * (len / 2 - bar * 1.6), off / 2] : [sign * (len / 2 - bar * 1.6), 0, off / 2]);
+  return (
+    <group position={at}>
+      <mesh position={[0, 0, off]} material={material} castShadow>
+        <boxGeometry args={vertical ? [bar, len, bar] : [len, bar, bar]} />
+      </mesh>
+      {[-1, 1].map((sign) => (
+        <mesh key={sign} position={post(sign)} material={material}>
+          <boxGeometry args={[bar * 0.8, bar * 0.8, off]} />
+        </mesh>
+      ))}
+    </group>
   );
 }
 
@@ -379,11 +461,13 @@ function HingedFront({
   scene,
   material,
   open,
+  handleMaterial,
 }: {
   piece: ScenePiece;
   scene: AtelierScene;
   material: THREE.Material;
   open: boolean;
+  handleMaterial?: THREE.Material | null;
 }) {
   const ref = useRef<THREE.Group>(null);
   const invalidate = useThree((s) => s.invalidate);
@@ -398,6 +482,7 @@ function HingedFront({
     hinge === "T" ? [0, (-h / 2) * S, (-d / 2) * S] : [((hinge === "R" ? -w : w) / 2) * S, 0, (-d / 2) * S];
   const target = !open ? 0 : hinge === "T" ? -LIFT_OPEN_RAD : hinge === "R" ? SWING_OPEN_RAD : -SWING_OPEN_RAD;
   const geometry = useGrainBox(Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S, x * S, y * S, z * S, "y");
+  const handleLen = Math.min(HANDLE_LEN_MM, (hinge === "T" ? w : h) * 0.6);
 
   useEffect(() => {
     invalidate();
@@ -424,6 +509,24 @@ function HingedFront({
     <group ref={ref} position={pivot}>
       <mesh position={offset} material={material} geometry={geometry} castShadow receiveShadow>
         <Edges threshold={20} color={FRONT_EDGE.color} transparent opacity={FRONT_EDGE.opacity} />
+        {handleMaterial && w >= 120 && h >= 120 && (
+          <BarHandle
+            at={
+              hinge === "T"
+                ? // lift-up door: the handle lies along the bottom edge
+                  [0, (-h / 2 + Math.min(60, h * 0.2)) * S, (d / 2) * S]
+                : // side-hung door: upright, by the edge that opens, where the hand reaches
+                  [
+                    (hinge === "R" ? -1 : 1) * (w / 2 - Math.min(45, w * 0.2)) * S,
+                    (Math.min(y + h - handleLen / 2 - 60, Math.max(y + handleLen / 2 + 60, HANDLE_HEIGHT_MM)) - (y + h / 2)) * S,
+                    (d / 2) * S,
+                  ]
+            }
+            vertical={hinge !== "T"}
+            lengthMm={handleLen}
+            material={handleMaterial}
+          />
+        )}
       </mesh>
     </group>
   );
@@ -487,8 +590,21 @@ export function railsFor(scene: AtelierScene, columns: ColumnContent[], railPosi
     const upperRail = top - PANEL_MM - RAIL_DROP_MM;
     rails.push({ x0, x1, y: upperRail, z });
     if (count === 2) {
+      // the second rail hangs under the shelf that halves the column (the CRM places it);
+      // without one, under the middle of the interior
       const interiorMid = (bottomY + PANEL_MM + top - PANEL_MM) / 2;
-      rails.push({ x0, x1, y: interiorMid - RAIL_DROP_MM / 2, z });
+      const dividers = scene.pieces.filter(
+        (p) =>
+          p.role === "CORP" &&
+          p.h <= PANEL_MM + 2 &&
+          p.w > 100 &&
+          p.x >= x0 - 1 &&
+          p.x + p.w <= x1 + 1 &&
+          p.y > bottomY + PANEL_MM + 300 &&
+          p.y < upperRail - 300,
+      );
+      const divider = dividers.sort((a, b) => Math.abs(a.y - interiorMid) - Math.abs(b.y - interiorMid))[0];
+      rails.push({ x0, x1, y: (divider ? divider.y : interiorMid) - RAIL_DROP_MM, z });
     }
   });
   return rails;
@@ -558,17 +674,19 @@ function Door({
   return (
     <group position={[0, (bottom + door.h / 2) * S, (zMm + DOOR_THICKNESS_MM / 2 - scene.depthMm / 2) * S]}>
       <mesh ref={ref} material={material} geometry={geometry} renderOrder={2} castShadow={solid} receiveShadow={solid}>
-        <Edges threshold={20} color={FRONT_EDGE.color} transparent opacity={FRONT_EDGE.opacity} />
+        <Edges threshold={20} color={FRONT_EDGE.color} transparent opacity={solid ? FRONT_EDGE.opacity : 0.22} />
       </mesh>
     </group>
   );
 }
 
+const GHOST_OPACITY = 0.06;
+
 function useDoorMaterials(front: MaterialLook, open: boolean) {
   const texture = useOptionalTexture(front);
   const env = useRoomEnvironment();
-  // Open doors turn into ghosts so the interior reads through them.
-  const ghost = open ? { transparent: true, opacity: 0.22, depthWrite: false } : {};
+  // Open sliding doors are reduced to a faint outline, so the interior being edited reads clearly.
+  const ghost = open ? { transparent: true, opacity: GHOST_OPACITY, depthWrite: false } : {};
   const panel = useDisposable(
     useMemo(
       () =>
@@ -610,7 +728,7 @@ function useDoorMaterials(front: MaterialLook, open: boolean) {
         envMap: env,
         envMapIntensity: 0.8,
         transparent: true,
-        opacity: open ? 0.22 : 0.92,
+        opacity: open ? GHOST_OPACITY : 0.92,
         depthWrite: !open,
       });
     }, [front.color, open, env]),
@@ -625,7 +743,8 @@ function Wardrobe({
   carcass,
   front,
   doorsOpen,
-}: Omit<Viewer3DProps, "updating" | "scene"> & { scene: AtelierScene; doorsOpen: boolean }) {
+  handles,
+}: Pick<Viewer3DProps, "columns" | "railPositions" | "carcass" | "front" | "handles"> & { scene: AtelierScene; doorsOpen: boolean }) {
   const carcassMat = useLookMaterial(carcass, 0.75);
   const backMat = useLookMaterial(carcass, 0.9);
   const frontMat = useLookMaterial(front, 0.55);
@@ -636,6 +755,12 @@ function Wardrobe({
   const railMat = useDisposable(
     useMemo(
       () => new THREE.MeshStandardMaterial({ color: "#c9cdd2", metalness: 1, roughness: 0.28, envMap: env, envMapIntensity: 1 }),
+      [env],
+    ),
+  );
+  const handleMat = useDisposable(
+    useMemo(
+      () => new THREE.MeshStandardMaterial({ color: "#2e2d2c", metalness: 0.85, roughness: 0.38, envMap: env, envMapIntensity: 0.9 }),
       [env],
     ),
   );
@@ -659,6 +784,7 @@ function Wardrobe({
             scene={scene}
             material={piece.fill ? hingedMats[piece.fill] : frontMat}
             open={doorsOpen}
+            handleMaterial={handles ? handleMat : null}
           />
         ) : (
           <Piece
@@ -666,6 +792,7 @@ function Wardrobe({
             piece={piece}
             scene={scene}
             material={piece.role === "FRONT" ? frontMat : piece.role === "SPATE" ? backMat : carcassMat}
+            handleMaterial={handles && piece.role === "FRONT" ? handleMat : null}
           />
         ),
       )}
@@ -754,8 +881,8 @@ function KeyLight({ W, H, D }: { W: number; H: number; D: number }) {
 
 /**
  * What the furniture stands on (or hangs from). Nothing here has a hard edge, so the canvas
- * can stay transparent over the CSS backdrop: a pool of light, a soft contact shadow and a
- * shadow-only plane that catches the real cast shadow.
+ * can stay transparent over the CSS backdrop: a pool of light and a soft contact shadow.
+ * (No plane catches the real cast shadow: it read as a hard grey block beside the model.)
  */
 function Stage({ W, H, D, wallHung }: { W: number; H: number; D: number; wallHung: boolean }) {
   const glow = useBlobTexture("rgba(255,253,249,0.75)", "rgba(255,253,249,0)", 0.05);
@@ -773,10 +900,6 @@ function Stage({ W, H, D, wallHung }: { W: number; H: number; D: number; wallHun
           <planeGeometry args={[W + 0.34, H + 0.3]} />
           <meshBasicMaterial map={shade} transparent depthWrite={false} toneMapped={false} opacity={0.75} />
         </mesh>
-        <mesh position={[0, H / 2, z]} receiveShadow renderOrder={-1}>
-          <planeGeometry args={[W + 3, H + 3]} />
-          <shadowMaterial transparent opacity={0.16} depthWrite={false} />
-        </mesh>
       </group>
     );
   }
@@ -790,27 +913,28 @@ function Stage({ W, H, D, wallHung }: { W: number; H: number; D: number; wallHun
         <planeGeometry args={[W + 0.5, D + 0.6]} />
         <meshBasicMaterial map={shade} transparent depthWrite={false} toneMapped={false} />
       </mesh>
-      <mesh position={[0, 0, -0.001]} receiveShadow renderOrder={-1}>
-        <planeGeometry args={[W + 6, D + 6]} />
-        <shadowMaterial transparent opacity={0.13} depthWrite={false} />
-      </mesh>
     </group>
   );
 }
 
-/** A soft accent strip on the floor in front of one column (its plinth gives the x range). */
-function ColumnHighlight({ scene, index }: { scene: AtelierScene; index: number }) {
-  const plinth = scene.pieces.filter((p) => p.role === "PLINTA").sort((a, b) => a.x - b.x)[index];
-  if (!plinth) return null;
-  const depth = 0.07;
+/** A soft accent strip right under the front edge of one column (on the floor, or under a wall cabinet). */
+function ColumnHighlight({ scene, range, wallHung }: { scene: AtelierScene; range: { x0: number; x1: number }; wallHung: boolean }) {
+  const width = Math.max(0.05, (range.x1 - range.x0) * S - 0.03);
+  const x = ((range.x0 + range.x1) / 2 - scene.widthMm / 2) * S;
+  const front = (scene.depthMm / 2) * S;
+  const material = <meshBasicMaterial color="#d96f0a" transparent opacity={0.85} depthWrite={false} toneMapped={false} />;
+  if (wallHung)
+    return (
+      <mesh position={[x, -0.035, front]} renderOrder={1}>
+        <planeGeometry args={[width, 0.028]} />
+        {material}
+      </mesh>
+    );
+  const depth = 0.06;
   return (
-    <mesh
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[(plinth.x + plinth.w / 2 - scene.widthMm / 2) * S, 0.003, (scene.depthMm / 2) * S + 0.04 + depth / 2]}
-      renderOrder={1}
-    >
-      <planeGeometry args={[Math.max(0.05, plinth.w * S - 0.04), depth]} />
-      <meshBasicMaterial color="#d96f0a" transparent opacity={0.85} depthWrite={false} toneMapped={false} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.003, front + 0.02 + depth / 2]} renderOrder={1}>
+      <planeGeometry args={[width, depth]} />
+      {material}
     </mesh>
   );
 }
@@ -827,7 +951,9 @@ export default function Viewer3D({
   updating,
   doorsOpen: doorsOpenProp,
   onDoorsOpenChange,
-  highlightColumn,
+  highlight,
+  handles = false,
+  stale = false,
 }: Viewer3DProps) {
   const [doorsOpenLocal, setDoorsOpenLocal] = useState(false);
   const doorsOpen = doorsOpenProp ?? doorsOpenLocal;
@@ -846,6 +972,28 @@ export default function Viewer3D({
   const D = (scene?.depthMm ?? 600) * S;
   // wall cabinets are the only furniture without legs / plinth: they hang on a wall, not on the floor
   const wallHung = scene ? !scene.pieces.some((p) => p.role === "PLINTA") : false;
+  // opened hinged doors stick out: the camera must leave room for them
+  const pad = useMemo<OpenPad>(() => {
+    if (!scene || !doorsOpen) return NO_PAD;
+    let x = 0;
+    let front = 0;
+    let top = 0;
+    for (const p of scene.pieces) {
+      if (!p.hinge) continue;
+      if (p.hinge === "T") {
+        front = Math.max(front, p.h * Math.sin(LIFT_OPEN_RAD));
+        top = Math.max(top, p.y + p.h - p.h * Math.cos(LIFT_OPEN_RAD) - scene.heightMm + 20);
+        continue;
+      }
+      const swing = p.w * Math.sin(SWING_OPEN_RAD);
+      const past = -p.w * Math.cos(SWING_OPEN_RAD) + 20;
+      front = Math.max(front, swing);
+      // only the doors hinged at the outer edges reach beyond the body
+      const edge = p.hinge === "L" ? p.x : scene.widthMm - (p.x + p.w);
+      x = Math.max(x, past - edge);
+    }
+    return x <= 0 && front <= 0 && top <= 0 ? NO_PAD : { x: Math.max(0, x) * S, front: front * S, top: Math.max(0, top) * S };
+  }, [scene, doorsOpen]);
 
   return (
     <div
@@ -854,9 +1002,11 @@ export default function Viewer3D({
     >
       {scene ? (
         <Canvas
+          // an out-of-date model (old shape in new colours) must not pass for the result
+          style={{ opacity: stale && !updating ? 0.5 : 1, transition: "opacity 0.3s ease" }}
           frameloop="demand"
           dpr={[1, 2]}
-          shadows="soft"
+          shadows="percentage"
           // The room alone lights everything evenly, which is what made the model look flat:
           // keep it low and let the key light model the shapes.
           scene={{ environmentIntensity: ENVIRONMENT_INTENSITY }}
@@ -873,8 +1023,16 @@ export default function Viewer3D({
           <KeyLight W={W} H={H} D={D} />
           <directionalLight position={[-4, 2.5, 3]} intensity={0.5} color="#eef2ff" />
           <Stage W={W} H={H} D={D} wallHung={wallHung} />
-          <Wardrobe scene={scene} columns={columns} railPositions={railPositions} carcass={carcass} front={front} doorsOpen={doorsOpen} />
-          {highlightColumn != null && <ColumnHighlight scene={scene} index={highlightColumn} />}
+          <Wardrobe
+            scene={scene}
+            columns={columns}
+            railPositions={railPositions}
+            carcass={carcass}
+            front={front}
+            doorsOpen={doorsOpen}
+            handles={handles}
+          />
+          {highlight && <ColumnHighlight scene={scene} range={highlight} wallHung={wallHung} />}
           <OrbitControls
             makeDefault
             enablePan={false}
@@ -884,7 +1042,7 @@ export default function Viewer3D({
             maxAzimuthAngle={Math.PI / 2.4}
             onStart={() => setInteracted(true)}
           />
-          <CameraRig W={W} H={H} D={D} resetSignal={resetSignal} />
+          <CameraRig W={W} H={H} D={D} pad={pad} resetSignal={resetSignal} />
         </Canvas>
       ) : (
         <div className="flex h-full items-center justify-center text-sm text-[var(--home-ivory)]/60">
@@ -893,36 +1051,24 @@ export default function Viewer3D({
       )}
 
       {hasDoors && (
-        <div
-          className="absolute left-2 top-2 flex gap-0.5 rounded-full bg-white/85 p-0.5 shadow-sm backdrop-blur sm:left-3 sm:top-3 sm:gap-1 sm:p-1"
-          role="radiogroup"
-          aria-label="Uși"
+        <button
+          type="button"
+          aria-pressed={doorsOpen}
+          aria-label={doorsOpen ? "Închide ușile" : "Deschide ușile"}
+          title={doorsOpen ? "Închide ușile" : "Deschide ușile"}
+          onClick={() => setDoorsOpen(!doorsOpen)}
+          className={`atelier-doors absolute left-2 top-2 flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold shadow-sm backdrop-blur transition-colors sm:left-3 sm:top-3 sm:px-3.5 ${
+            doorsOpen ? "bg-[var(--home-orange)] text-white" : "bg-white/90 text-[var(--home-ivory)]/85 hover:text-[var(--home-ivory)]"
+          }`}
         >
-          {[
-            { open: false, label: "Uși închise" },
-            { open: true, label: "Uși deschise" },
-          ].map((o) => (
-            <button
-              key={o.label}
-              type="button"
-              role="radio"
-              aria-checked={doorsOpen === o.open}
-              onClick={() => setDoorsOpen(o.open)}
-              className={`rounded-full px-2.5 py-1 text-[13px] font-semibold leading-5 transition-colors sm:px-3 sm:py-1.5 ${
-                doorsOpen === o.open
-                  ? "bg-[var(--home-orange)] text-white"
-                  : "text-[var(--home-ivory)]/80 hover:text-[var(--home-ivory)]"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
+          {doorsOpen ? <DoorOpen size={18} aria-hidden="true" /> : <DoorClosed size={18} aria-hidden="true" />}
+          <span className="max-sm:hidden">{doorsOpen ? "Închide ușile" : "Deschide ușile"}</span>
+        </button>
       )}
 
-      {updating && scene && (
+      {scene && (updating || stale) && (
         <span className="absolute right-2 top-2 rounded-full bg-white/85 px-3 py-1.5 text-xs text-[var(--home-ivory)]/80 shadow-sm backdrop-blur sm:right-3 sm:top-3">
-          Se actualizează…
+          {updating ? "Se actualizează…" : "Imaginea nu e la zi"}
         </span>
       )}
       {scene && (
@@ -932,7 +1078,7 @@ export default function Viewer3D({
             onClick={() => setResetSignal((n) => n + 1)}
             aria-label="Vedere din față"
             title="Vedere din față"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/85 text-[var(--home-ivory)]/80 shadow-sm backdrop-blur transition-colors hover:text-[var(--home-ivory)]"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-[var(--home-ivory)]/80 shadow-sm backdrop-blur transition-colors hover:text-[var(--home-ivory)]"
           >
             <ScanEye size={18} aria-hidden="true" />
           </button>

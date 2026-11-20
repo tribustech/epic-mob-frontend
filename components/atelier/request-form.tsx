@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { getFunnelSessionId, trackFunnel, trackFunnelOnce } from "@/lib/atelier/funnel";
 import type { AtelierConfig, AtelierIssue } from "@/lib/atelier/types";
 import { trackPixel } from "@/lib/meta-pixel";
 import type { LeadContact } from "./session";
+import { issueMessage } from "./ui";
 
 export type LeadStatus =
   | { kind: "idle" }
@@ -24,15 +25,36 @@ export function leadSentFor(status: LeadStatus, config: AtelierConfig): boolean 
   return status.kind === "success" && status.key === JSON.stringify(config);
 }
 
+type FieldKey = "name" | "phone" | "city";
+const FIELD_ORDER: readonly FieldKey[] = ["name", "phone", "city"];
+
+/** What is wrong with each contact field (empty object = ready to send). */
+export function contactErrors(contact: { name: string; phone: string; city: string }): Partial<Record<FieldKey, string>> {
+  const errors: Partial<Record<FieldKey, string>> = {};
+  if (!contact.name.trim()) errors.name = "Scrie numele tău.";
+  const phone = contact.phone.trim();
+  const digits = phone.replace(/\D/g, "").length;
+  if (!phone) errors.phone = "Scrie un număr de telefon.";
+  else if (!/^\+?[\d\s().\-/]+$/.test(phone) || digits < 7 || digits > 15)
+    errors.phone = "Numărul nu pare valid. Exemplu: 0722 123 456.";
+  if (!contact.city.trim()) errors.city = "Scrie orașul.";
+  return errors;
+}
+
 export function LeadSent({ onAgain }: { onAgain: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  // the form (and the focused submit button) is gone: move focus to the confirmation
+  useEffect(() => {
+    ref.current?.focus({ preventScroll: true });
+  }, []);
   return (
-    <div className="atelier-sent" role="status">
+    <div ref={ref} tabIndex={-1} className="atelier-sent" role="status">
       <CheckCircle2 size={28} aria-hidden="true" className="shrink-0" />
       <div>
         <p className="atelier-sent__title">Mulțumim! Am primit configurația.</p>
         <p className="atelier-sent__text">Te sunăm în curând ca să stabilim măsurătorile.</p>
         <button type="button" className="atelier-textbtn mt-2" onClick={onAgain}>
-          Trimite altă configurație
+          Începe o configurație nouă
         </button>
       </div>
     </div>
@@ -64,6 +86,12 @@ export function RequestForm({
   const configKey = JSON.stringify(config);
   const errorRef = useRef<HTMLDivElement>(null);
   const errorMessage = status.kind === "error" ? status.message : null;
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
+  const edit = (key: keyof LeadContact, value: string) => {
+    onContact({ ...typed, [key]: value });
+    // the reason goes away as soon as the client starts fixing the field
+    if (key !== "notes" && fieldErrors[key]) setFieldErrors(({ [key]: _fixed, ...rest }) => rest);
+  };
 
   // the submit button sits in the footer: bring a fresh error into view
   useEffect(() => {
@@ -85,8 +113,15 @@ export function RequestForm({
       city: typed.city.trim(),
       ...(notes ? { notes } : {}),
     };
-    if (!contact.name || !contact.city || contact.phone.replace(/\D/g, "").length < 6) {
-      onStatus({ kind: "error", message: "Completează numele, un număr de telefon valid și orașul." });
+    const invalid = contactErrors(contact);
+    setFieldErrors(invalid);
+    const first = FIELD_ORDER.find((key) => invalid[key]);
+    if (first) {
+      if (status.kind === "error") onStatus({ kind: "idle" });
+      // every attempt: take the client to the first field that needs fixing
+      const field = document.getElementById(`atelier-${first}`);
+      field?.focus({ preventScroll: true });
+      field?.scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
 
@@ -147,12 +182,19 @@ export function RequestForm({
           id="atelier-name"
           name="name"
           value={typed.name}
-          onChange={(e) => onContact({ ...typed, name: e.target.value })}
+          onChange={(e) => edit("name", e.target.value)}
+          aria-invalid={fieldErrors.name ? true : undefined}
+          aria-describedby={fieldErrors.name ? "atelier-name-error" : undefined}
           required
           maxLength={100}
           autoComplete="name"
           className="atelier-input"
         />
+        {fieldErrors.name && (
+          <p id="atelier-name-error" className="atelier-form__error">
+            {fieldErrors.name}
+          </p>
+        )}
       </div>
       <div className="atelier-form__field">
         <label htmlFor="atelier-phone" className="atelier-label">
@@ -163,13 +205,20 @@ export function RequestForm({
           name="phone"
           type="tel"
           value={typed.phone}
-          onChange={(e) => onContact({ ...typed, phone: e.target.value })}
+          onChange={(e) => edit("phone", e.target.value)}
+          aria-invalid={fieldErrors.phone ? true : undefined}
+          aria-describedby={fieldErrors.phone ? "atelier-phone-error" : undefined}
           required
           maxLength={30}
           autoComplete="tel"
           inputMode="tel"
           className="atelier-input"
         />
+        {fieldErrors.phone && (
+          <p id="atelier-phone-error" className="atelier-form__error">
+            {fieldErrors.phone}
+          </p>
+        )}
       </div>
       <div className="atelier-form__field atelier-form__wide">
         <label htmlFor="atelier-city" className="atelier-label">
@@ -179,12 +228,19 @@ export function RequestForm({
           id="atelier-city"
           name="city"
           value={typed.city}
-          onChange={(e) => onContact({ ...typed, city: e.target.value })}
+          onChange={(e) => edit("city", e.target.value)}
+          aria-invalid={fieldErrors.city ? true : undefined}
+          aria-describedby={fieldErrors.city ? "atelier-city-error" : undefined}
           required
           maxLength={80}
           autoComplete="address-level2"
           className="atelier-input"
         />
+        {fieldErrors.city && (
+          <p id="atelier-city-error" className="atelier-form__error">
+            {fieldErrors.city}
+          </p>
+        )}
       </div>
       <div className="atelier-form__field atelier-form__wide">
         <label htmlFor="atelier-notes" className="atelier-label">
@@ -213,7 +269,7 @@ export function RequestForm({
           {status.issues && (
             <ul className="mt-1 list-disc pl-5">
               {status.issues.map((issue, i) => (
-                <li key={`${issue.code}-${i}`}>{issue.message}</li>
+                <li key={`${issue.code}-${i}`}>{issueMessage(issue.message, config.category === "DRESSING")}</li>
               ))}
             </ul>
           )}
