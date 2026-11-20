@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import type { HandleFinish } from "@/lib/atelier/types";
-import type { EffectiveHandle, FrontMode, GripEdge, Rect } from "./plan";
+import type { EffectiveHandle, FrontMode, FrontPlan, GripEdge, Rect } from "./plan";
 
 /** Scene units are millimetres; three.js works in metres. */
 export const S = 0.001;
@@ -38,13 +38,18 @@ export interface HardwareMaterials {
   shade: THREE.Material;
 }
 
-const HANDLE_LEN_MM = 160;
-const HANDLE_BAR_MM = 10;
-const HANDLE_STANDOFF_MM = 26;
+/* Proportions are a touch bolder than a catalogue handle: on a phone the whole wardrobe is 200 px tall. */
+const HANDLE_LEN_MM = 192;
+/** tall doors carry a longer bar */
+const HANDLE_LEN_TALL_MM = 320;
+const HANDLE_BAR_MM = 14;
+const HANDLE_STANDOFF_MM = 32;
+const RECESS_LONG_MM = 190;
+const RECESS_SHORT_MM = 52;
 /** where a hand finds the handle of a tall door (mm above the floor) */
 const HANDLE_HEIGHT_MM = 1050;
 /** distance from the opening edge of a door to the middle of its handle */
-const HANDLE_INSET_MM = 45;
+const HANDLE_INSET_MM = 46;
 /** a mirror / glass face leaves this strip of board free for the handle */
 export const HANDLE_STRIP_MM = 86;
 
@@ -60,6 +65,27 @@ function anchor(mode: FrontMode, w: number, h: number, yMm: number, wallHung: bo
   const hi = yMm + h - lenMm / 2 - margin;
   const y = Math.min(hi, Math.max(lo, wallHung ? lo : HANDLE_HEIGHT_MM));
   return [x, y - (yMm + h / 2)];
+}
+
+function barLength(mode: FrontMode, w: number, h: number): number {
+  const vertical = mode === "L" || mode === "R";
+  const along = vertical ? h : w;
+  return Math.min(vertical && h > 1400 ? HANDLE_LEN_TALL_MM : HANDLE_LEN_MM, along * 0.6);
+}
+
+/**
+ * Where the hand goes on a front, relative to its centre (mm): the middle of its handle, or of
+ * the edge it is pulled by. The camera looks here when the client is choosing handles.
+ */
+export function gripPoint(plan: FrontPlan, handle: EffectiveHandle, wallHung: boolean): [number, number] {
+  const { w, h, y } = plan.piece;
+  if (handle === "PROFIL_J" || handle === "GOLA") {
+    if (plan.edge === "TOP") return [0, h / 2];
+    if (plan.edge === "BOTTOM") return [0, -h / 2];
+    const [, ay] = anchor(plan.mode, w, h, y, wallHung, HANDLE_LEN_MM);
+    return [plan.edge === "RIGHT" ? w / 2 : -w / 2, ay];
+  }
+  return anchor(plan.mode, w, h, y, wallHung, handle === "BUTON" ? 42 : barLength(plan.mode, w, h));
 }
 
 /** A slim bar on two posts. */
@@ -88,18 +114,18 @@ function Bar({ vertical, lengthMm, material }: { vertical: boolean; lengthMm: nu
 function Knob({ material }: { material: THREE.Material }) {
   return (
     <>
-      <mesh geometry={UNIT_CYLINDER} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 1 * S]} scale={[10 * S, 2 * S, 10 * S]} material={material} />
-      <mesh geometry={UNIT_CYLINDER} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 8 * S]} scale={[5.5 * S, 14 * S, 5.5 * S]} material={material} />
-      <mesh geometry={UNIT_SPHERE} position={[0, 0, 19 * S]} scale={[15 * S, 15 * S, 9 * S]} material={material} castShadow />
+      <mesh geometry={UNIT_CYLINDER} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 1 * S]} scale={[14 * S, 2.5 * S, 14 * S]} material={material} />
+      <mesh geometry={UNIT_CYLINDER} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 10 * S]} scale={[8 * S, 18 * S, 8 * S]} material={material} />
+      <mesh geometry={UNIT_SPHERE} position={[0, 0, 25 * S]} scale={[21 * S, 21 * S, 13 * S]} material={material} castShadow />
     </>
   );
 }
 
 /** A grip let into the face: a slim metal rim around a dark hollow. */
 function Recessed({ vertical, mats }: { vertical: boolean; mats: HardwareMaterials }) {
-  const long = 150 * S;
-  const short = 40 * S;
-  const rim = 5 * S;
+  const long = RECESS_LONG_MM * S;
+  const short = RECESS_SHORT_MM * S;
+  const rim = 6 * S;
   return (
     <>
       <mesh geometry={UNIT_BOX} position={[0, 0, 0.8 * S]} scale={vertical ? [short, long, 1.6 * S] : [long, short, 1.6 * S]} material={mats.metal} />
@@ -165,7 +191,7 @@ export function FrontHardware({
   const vertical = mode === "L" || mode === "R";
   const face = (d / 2) * S;
   if (kind === "APLICAT") {
-    const len = Math.min(HANDLE_LEN_MM, (vertical ? h : w) * 0.6);
+    const len = barLength(mode, w, h);
     const [x, y] = anchor(mode, w, h, yMm, wallHung, len);
     return (
       <group position={[x * S, y * S, face]}>
@@ -174,7 +200,7 @@ export function FrontHardware({
     );
   }
   if (kind === "BUTON") {
-    const [x, y] = anchor(mode, w, h, yMm, wallHung, 30);
+    const [x, y] = anchor(mode, w, h, yMm, wallHung, 42);
     return (
       <group position={[x * S, y * S, face]}>
         <Knob material={mats.metal} />
@@ -182,8 +208,8 @@ export function FrontHardware({
     );
   }
   if (kind === "INGROPAT") {
-    if ((vertical ? h : w) < 190 || (vertical ? w : h) < 56) return null;
-    const [x, y] = anchor(mode, w, h, yMm, wallHung, 150);
+    if ((vertical ? h : w) < RECESS_LONG_MM + 40 || (vertical ? w : h) < RECESS_SHORT_MM + 16) return null;
+    const [x, y] = anchor(mode, w, h, yMm, wallHung, RECESS_LONG_MM);
     return (
       <group position={[x * S, y * S, face]}>
         <Recessed vertical={vertical} mats={mats} />

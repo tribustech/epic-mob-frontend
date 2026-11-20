@@ -3,11 +3,12 @@
 import { Info, PencilRuler, PhoneCall, Ruler, ShieldCheck, Wrench } from "lucide-react";
 import { categoryRules } from "@/lib/atelier/categories";
 import { currentGlass, doorsSummary, hasGlass, hasMirror } from "@/lib/atelier/door-types";
-import { effectiveHandle, handleText } from "@/lib/atelier/handles";
-import { ralLabel } from "@/lib/atelier/ral-names";
+import { effectiveHandle, handleText, usesFronts } from "@/lib/atelier/handles";
+import { ralNameRo } from "@/lib/atelier/ral-names";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetById, presetsFor } from "@/lib/atelier/presets";
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
+import { glazingOf } from "./glass-look";
 import { swatchStyle, type MaterialLook } from "./material-look";
 import { MiniPreview } from "./mini-preview";
 import { LeadSent, RequestForm, leadSentFor, type LeadStatus } from "./request-form";
@@ -18,19 +19,22 @@ import { Section, cm, decorName, decorTitle, formatLei, plural } from "./ui";
 function Row({
   label,
   step,
+  anchor,
   onStep,
   children,
 }: {
   label: string;
   step: StepId;
-  onStep: (step: StepId) => void;
+  /** the section of that step „Modifică" lands on (scrolled into view and highlighted) */
+  anchor: string;
+  onStep: (step: StepId, anchor?: string) => void;
   children: React.ReactNode;
 }) {
   return (
     <div className="atelier-summary__row">
       <dt>{label}</dt>
       <dd>{children}</dd>
-      <button type="button" className="atelier-textbtn" onClick={() => onStep(step)} aria-label={`Modifică: ${label}`}>
+      <button type="button" className="atelier-textbtn" onClick={() => onStep(step, anchor)} aria-label={`Modifică: ${label}`}>
         Modifică
       </button>
     </div>
@@ -83,7 +87,7 @@ export function StepOffer({
   onContact: (contact: LeadContact) => void;
   status: LeadStatus;
   onStatus: (status: LeadStatus) => void;
-  onStep: (step: StepId) => void;
+  onStep: (step: StepId, anchor?: string) => void;
   /** after a sent request: start a fresh configuration (contact details stay) */
   onStartOver: () => void;
 }) {
@@ -101,7 +105,7 @@ export function StepOffer({
   const ral = catalog.ral.find((r) => r.code === fronts.ralCode);
   const frontName =
     fronts.kind === "MDF_VOPSIT"
-      ? `MDF vopsit ${ral ? ralLabel(ral) : ""}`
+      ? ral ? `Vopsit: ${ralNameRo(ral.name) || ral.code} (${ral.code})` : "Vopsit"
       : catalog.fronts[fronts.kind].find((m) => m.id === fronts.materialId)?.name ?? "—";
   const doors = doorsSummary(config);
   // which mirror / glass, when a door has one and the catalog names the types
@@ -127,7 +131,7 @@ export function StepOffer({
         <div className="atelier-summary">
           <div className="atelier-summary__top">
             <span className="atelier-summary__art">
-              <MiniPreview shape={shapeOf(config)} carcass={carcass} front={front} className="h-full w-full" />
+              <MiniPreview shape={shapeOf(config)} carcass={carcass} front={front} glazing={glazingOf(catalog, config.doors)} className="h-full w-full" />
             </span>
             <div className="min-w-0">
               <p className="atelier-summary__name">{combo?.name ?? preset?.name ?? "Configurație personalizată"}</p>
@@ -141,41 +145,44 @@ export function StepOffer({
             </div>
           </div>
           <dl>
-            <Row label="Dimensiuni" step="dimensiuni" onStep={onStep}>
+            <Row label="Dimensiuni" step="dimensiuni" anchor="dimensiuni" onStep={onStep}>
               {cm(config.widthMm)} × {cm(config.heightMm)} × {cm(config.depthMm)} cm
             </Row>
             {palette && (
-              <Row label="Culori" step="culori" onStep={onStep}>
+              <Row label="Culori" step="culori" anchor="culori" onStep={onStep}>
                 {palette.name}
               </Row>
             )}
-            <Row label="Corp" step="culori" onStep={onStep}>
+            <Row label="Corp" step="culori" anchor="corp" onStep={onStep}>
               <Decor look={carcass} name={carcassName} />
             </Row>
-            <Row label="Fronturi" step="culori" onStep={onStep}>
-              <Decor look={front} name={frontName} />
-            </Row>
-            <Row label={dressing ? "Interior" : "Compartimente"} step="interior" onStep={onStep}>
+            {/* only when a door or a drawer front is really made of it (not behind all-mirror doors) */}
+            {usesFronts(config) && (
+              <Row label="Fronturi" step="culori" anchor="fronturi" onStep={onStep}>
+                <Decor look={front} name={frontName} />
+              </Row>
+            )}
+            <Row label={dressing ? "Interior" : "Compartimente"} step="interior" anchor={bottom && !dressing ? "jos" : "coloane"} onStep={onStep}>
               {plural(config.columns.length, dressing ? "coloană" : "compartiment", dressing ? "coloane" : "compartimente")}
               {bottom ? ` · ${bottom}` : ""}
             </Row>
             {doors && (
-              <Row label="Uși" step="interior" onStep={onStep}>
+              <Row label="Uși" step="usi" anchor="usi" onStep={onStep}>
                 {doors}
               </Row>
             )}
             {mirror && (
-              <Row label="Oglindă" step="interior" onStep={onStep}>
+              <Row label="Oglindă" step="usi" anchor="oglinda" onStep={onStep}>
                 {decorName(mirror.name)}
               </Row>
             )}
             {glass && (
-              <Row label="Sticlă" step="interior" onStep={onStep}>
+              <Row label="Sticlă" step="usi" anchor="sticla" onStep={onStep}>
                 {decorName(glass.name)}
               </Row>
             )}
             {handle && (
-              <Row label="Mânere" step="interior" onStep={onStep}>
+              <Row label="Mânere" step="usi" anchor="manere" onStep={onStep}>
                 {handle}
               </Row>
             )}

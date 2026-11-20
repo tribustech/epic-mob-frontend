@@ -42,17 +42,26 @@ export const FINISH_INFO: Record<HandleFinish, { label: string; color: string }>
 };
 
 /**
- * Can these fronts take this handle? A recessed grip and a milled edge are cut into the front itself:
- * that needs painted fronts, and cannot be done on a hinged door covered by a mirror or glass (CRM
- * error MANER_FRONTURI otherwise). The reason is one plain line for the card.
+ * What stands between these fronts and this handle. A recessed grip and a milled edge are cut into the
+ * front itself: that needs painted fronts (`paint`), and cannot be done on a hinged door covered by a
+ * mirror or glass (`glazed`). The CRM answers MANER_FRONTURI otherwise.
  */
-export function handleUnavailable(config: Pick<AtelierConfig, "category" | "doors" | "fronts">, type: HandleKind): string | null {
-  if (type !== "INGROPAT" && type !== "PROFIL_J") return null;
-  if (config.fronts.kind !== "MDF_VOPSIT") return "Doar la fronturi vopsite";
+export function handleBlockers(
+  config: Pick<AtelierConfig, "category" | "doors" | "fronts">,
+  type: HandleKind,
+): { paint: boolean; glazed: boolean } {
+  if (type !== "INGROPAT" && type !== "PROFIL_J") return { paint: false, glazed: false };
   const d = config.doors;
-  if (config.category === "DRESSING" && d.type.startsWith("BATANTE") && (d.type !== "BATANTE" || (d.fills ?? []).some((f) => f !== "PANOU")))
-    return "Nu merge pe uși cu oglindă sau sticlă";
-  return null;
+  return {
+    paint: config.fronts.kind !== "MDF_VOPSIT",
+    glazed: config.category === "DRESSING" && d.type.startsWith("BATANTE") && (d.type !== "BATANTE" || (d.fills ?? []).some((f) => f !== "PANOU")),
+  };
+}
+
+/** Can these fronts take this handle? null = yes; else the reason, as one plain line for the card. */
+export function handleUnavailable(config: Pick<AtelierConfig, "category" | "doors" | "fronts">, type: HandleKind): string | null {
+  const { paint, glazed } = handleBlockers(config, type);
+  return paint ? "Doar la fronturi vopsite" : glazed ? "Nu merge pe uși cu oglindă sau sticlă" : null;
 }
 
 /** The handle the CRM uses when the client picks none (CRM effectiveHandle): push on comode and
@@ -109,4 +118,18 @@ export function withShownHandle(config: AtelierConfig): AtelierConfig {
   const shown = effectiveHandle(config);
   if (!shown || !shown.finish || config.handle?.finish === shown.finish) return config;
   return { ...config, handle: { type: shown.type, finish: shown.finish } };
+}
+
+/**
+ * Is anything on this furniture made of the fronts material? Doors in the fronts' colour, drawer fronts,
+ * the doors of a closed bottom. Not so for an open piece, or a wardrobe whose every door is mirror / glass
+ * (those are glued on body board) and that has no drawers.
+ */
+export function usesFronts(config: Pick<AtelierConfig, "category" | "doors" | "bottom" | "columns">): boolean {
+  if (config.category !== "DRESSING") return hasHandledFronts(config);
+  if (config.columns.some((c) => c.content === "BARA_SERTARE")) return true;
+  const d = config.doors;
+  if (d.type === "NONE") return false;
+  if (d.fills && d.fills.length > 0) return d.fills.some((f) => f === "PANOU");
+  return d.type === "GLISANTE" || d.type === "BATANTE";
 }

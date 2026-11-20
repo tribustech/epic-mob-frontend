@@ -145,3 +145,38 @@ export function activePaletteId(
     )?.id ?? null
   );
 }
+
+function rgbOf(hex: string): [number, number, number] | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/** The paint colour closest to a given colour (e.g. the look of the current fronts); null without colours. */
+export function nearestRal(ral: AtelierCatalog["ral"], color: string): AtelierCatalog["ral"][number] | null {
+  const target = rgbOf(color);
+  let best: AtelierCatalog["ral"][number] | null = null;
+  let bestD = Infinity;
+  for (const r of ral) {
+    const c = rgbOf(r.hex);
+    if (!c) continue;
+    // weighted RGB distance (the eye is most sensitive to green)
+    const d = target ? 2 * (c[0] - target[0]) ** 2 + 4 * (c[1] - target[1]) ** 2 + 3 * (c[2] - target[2]) ** 2 : 0;
+    if (d < bestD) {
+      best = r;
+      bestD = d;
+    }
+  }
+  return best ?? ral[0] ?? null;
+}
+
+/**
+ * Painted fronts that look like the current ones: the default flat model in the paint colour nearest
+ * to `color`. null when the CRM offers no painted fronts.
+ */
+export function paintedFrontsLike(catalog: AtelierCatalog, color: string): AtelierFronts | null {
+  const modelId = defaultVopsitModelId(catalog);
+  const ral = nearestRal(catalog.ral, color);
+  return modelId && ral ? { kind: "MDF_VOPSIT", modelId, ralCode: ral.code, faces: 1 } : null;
+}

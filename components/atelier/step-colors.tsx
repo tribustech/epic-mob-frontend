@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import { MOOD_LABELS, defaultVopsitModelId, type PaletteMood, type ResolvedPalette } from "@/lib/atelier/palettes";
 import type { AtelierCatalog, AtelierConfig, AtelierFronts, AtelierMaterial, FrontKind } from "@/lib/atelier/types";
@@ -11,11 +11,28 @@ import type { Act } from "./session";
 import { ralLabel, ralNameRo } from "@/lib/atelier/ral-names";
 import { Choice, Field, RadioGroup, Section, SelectedMark, decorName, decorTitle, fold } from "./ui";
 
+/** The three kinds of fronts, in plain words (the workshop calls them PAL, MDF melaminat, MDF vopsit). */
 const KIND_LABELS: Record<FrontKind, string> = {
-  PAL: "PAL",
-  MDF_MELAMINAT: "MDF melaminat",
-  MDF_VOPSIT: "MDF vopsit (RAL)",
+  PAL: "Aspect lemn și culori uni",
+  MDF_MELAMINAT: "Mat catifelat sau lucios",
+  MDF_VOPSIT: "Vopsit în orice culoare",
 };
+
+/** The paint colours people pick most for furniture, with everyday names; they lead the list. */
+const POPULAR_RAL: [code: string, name: string][] = [
+  ["RAL 9016", "Alb"],
+  ["RAL 9010", "Alb cald"],
+  ["RAL 9001", "Crem"],
+  ["RAL 1013", "Fildeș"],
+  ["RAL 7044", "Bej-gri"],
+  ["RAL 7035", "Gri deschis"],
+  ["RAL 7016", "Antracit"],
+  ["RAL 9005", "Negru"],
+  ["RAL 6021", "Verde salvie"],
+  ["RAL 5014", "Albastru porumbel"],
+  ["RAL 5011", "Bleumarin"],
+  ["RAL 8004", "Teracotă"],
+];
 
 const DEFAULT_RAL = "RAL 9016";
 const COLLAPSED = 8;
@@ -63,7 +80,7 @@ function materialItem(m: AtelierMaterial, kind: "PAL" | "MDF_MELAMINAT"): Swatch
   };
 }
 
-function SwatchTile({ item, selected, onPick }: { item: SwatchItem; selected: boolean; onPick: () => void }) {
+function SwatchTile({ item, selected, onPick, codes }: { item: SwatchItem; selected: boolean; onPick: () => void; codes: boolean }) {
   const crop = item.look.crop ? cropBox(item.look.crop) : null;
   return (
     <button
@@ -97,7 +114,7 @@ function SwatchTile({ item, selected, onPick }: { item: SwatchItem; selected: bo
         {selected && <SelectedMark className="absolute right-1 top-1" />}
       </span>
       <span className="atelier-tile__label">{item.label}</span>
-      {item.sub && <span className="atelier-tile__sub">{item.sub}</span>}
+      {codes && item.sub && <span className="atelier-tile__sub">{item.sub}</span>}
     </button>
   );
 }
@@ -108,14 +125,21 @@ function SwatchPicker({
   selectedId,
   onPick,
   placeholder,
+  collapsed = COLLAPSED,
+  allLabel = "Vezi toate",
 }: {
   label: string;
   items: SwatchItem[];
   selectedId: string | undefined;
   onPick: (id: string) => void;
   placeholder: string;
+  /** how many tiles before „Vezi toate" */
+  collapsed?: number;
+  allLabel?: string;
 }) {
   const [query, setQuery] = useState("");
+  /** „Detalii": the supplier filter and the decor / colour codes — for those who know what they look for */
+  const [details, setDetails] = useState(false);
   const [group, setGroup] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
 
@@ -141,7 +165,7 @@ function SwatchPicker({
     return at > 0 ? [list[at], ...list.slice(0, at), ...list.slice(at + 1)] : list;
   }, [items, query, activeGroup, leadId]);
 
-  const limit = expanded ? matches.length : query.trim() ? SEARCH_LIMIT : COLLAPSED;
+  const limit = expanded ? matches.length : query.trim() ? SEARCH_LIMIT : collapsed;
   let shown = matches.slice(0, limit);
   // …but a choice made elsewhere (a palette) must still be visible without opening anything
   if (selectedId && !shown.some((i) => i.id === selectedId)) {
@@ -149,19 +173,23 @@ function SwatchPicker({
     if (chosen) shown = [chosen, ...shown.slice(0, Math.max(0, limit - 1))];
   }
 
+  // the search comes with the full list (or with „Detalii"): eight tiles need no search box
+  const searching = expanded || details || query !== "";
   return (
     <div>
-      <div className="atelier-search">
-        <Search size={16} aria-hidden="true" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          aria-label={`Caută: ${label}`}
-        />
-      </div>
-      {groups.length > 0 && (
+      {searching && (
+        <div className="atelier-search">
+          <Search size={16} aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={placeholder}
+            aria-label={`Caută: ${label}`}
+          />
+        </div>
+      )}
+      {details && groups.length > 0 && (
         <RadioGroup className="atelier-scrollrow mt-2" selectOnArrow label={`${label}: producător`}>
           {[null, ...groups].map((g) => (
             <button
@@ -179,15 +207,20 @@ function SwatchPicker({
       )}
       <RadioGroup label={label} className={`atelier-tiles mt-3 ${expanded && matches.length > 12 ? "atelier-tiles--scroll" : ""}`}>
         {shown.map((item) => (
-          <SwatchTile key={item.id} item={item} selected={item.id === selectedId} onPick={() => onPick(item.id)} />
+          <SwatchTile key={item.id} item={item} selected={item.id === selectedId} codes={details} onPick={() => onPick(item.id)} />
         ))}
       </RadioGroup>
       {matches.length === 0 && <p className="atelier-hint mt-3">Nimic nu se potrivește căutării.</p>}
-      {matches.length > Math.min(limit, COLLAPSED) && (matches.length > limit || expanded) && (
-        <button type="button" className="atelier-textbtn mt-2" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
-          {expanded ? "Arată mai puține" : `Vezi toate (${matches.length})`}
+      <div className="atelier-swatchmore">
+        {matches.length > Math.min(limit, collapsed) && (matches.length > limit || expanded) && (
+          <button type="button" className="atelier-textbtn" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
+            {expanded ? "Arată mai puține" : `${allLabel} (${matches.length})`}
+          </button>
+        )}
+        <button type="button" className="atelier-textbtn atelier-textbtn--quiet" aria-expanded={details} onClick={() => setDetails((v) => !v)}>
+          {details ? "Ascunde detaliile" : "Detalii (coduri, producător)"}
         </button>
-      )}
+      </div>
     </div>
   );
 }
@@ -249,6 +282,7 @@ export function StepColors({
   front,
   act,
   noTwoFaces = false,
+  focus = null,
 }: {
   catalog: AtelierCatalog;
   config: AtelierConfig;
@@ -259,8 +293,13 @@ export function StepColors({
   act: Act;
   /** painting both faces could not be priced for this front model: the option is off */
   noTwoFaces?: boolean;
+  /** the part a „Modifică" link asked for („corp" / „fronturi" open the separate pickers) */
+  focus?: string | null;
 }) {
   const [mood, setMood] = useState<PaletteMood | null>(null);
+  // body and fronts one by one: closed until asked for, open when the colours are no ready-made combination
+  const [separate, setSeparate] = useState(activePalette === null || palettes.length === 0 || focus === "corp" || focus === "fronturi");
+  const [paintMore, setPaintMore] = useState((config.fronts.faces ?? 1) === 2);
   const [allPalettes, setAllPalettes] = useState(false);
   const { fronts } = config;
 
@@ -288,19 +327,27 @@ export function StepColors({
     }),
     [catalog],
   );
-  const ralItems = useMemo<SwatchItem[]>(
-    () =>
-      catalog.ral.map((r) => ({
+  const ralItems = useMemo<SwatchItem[]>(() => {
+    const popular = new Map(POPULAR_RAL);
+    const items = catalog.ral.map((r) => {
+      // an everyday name first, else the Romanian colour name; the code alone when we have none (never the English one)
+      const name = popular.get(r.code) ?? ralNameRo(r.name);
+      return {
         id: r.code,
-        label: r.code,
-        // Romanian colour name; the code alone when we have none (never the English one)
-        sub: ralNameRo(r.name) ?? "",
+        label: name ?? r.code,
+        sub: name ? r.code : "",
         group: null,
         look: { color: r.hex, imageUrl: null },
-        text: fold(`${r.code} ${r.code.replace(/\s+/g, "")} ${ralNameRo(r.name) ?? ""} ${r.name}`),
-      })),
-    [catalog],
-  );
+        text: fold(`${r.code} ${r.code.replace(/\s+/g, "")} ${name ?? ""} ${ralNameRo(r.name) ?? ""} ${r.name}`),
+      };
+    });
+    // the popular furniture colours lead, in their own order; then the whole chart
+    const rank = (id: string) => {
+      const at = POPULAR_RAL.findIndex(([code]) => code === id);
+      return at < 0 ? POPULAR_RAL.length : at;
+    };
+    return items.map((item, i) => ({ item, i })).sort((a, b) => rank(a.item.id) - rank(b.item.id) || a.i - b.i).map((x) => x.item);
+  }, [catalog]);
 
   const kinds = (Object.keys(KIND_LABELS) as FrontKind[]).filter((k) => catalog.fronts[k].length > 0);
   const setFronts = (next: AtelierFronts) => {
@@ -321,7 +368,11 @@ export function StepColors({
   return (
     <div className="atelier-stack">
       {palettes.length > 0 && (
-        <Section title="Combinații de culori" hint="Placa din spate e corpul, cea din față sunt fronturile. O atingere și vezi rezultatul în 3D.">
+        <Section
+          title="Combinații de culori"
+          anchor="culori"
+          hint="În fiecare poză: în spate corpul (interiorul și lateralele), în față fronturile (ușile și sertarele). O atingere și vezi rezultatul în 3D."
+        >
           {moods.length > 1 && (
             <RadioGroup className="atelier-scrollrow" selectOnArrow label="Filtrează combinațiile">
               {[null, ...moods].map((m) => (
@@ -366,12 +417,21 @@ export function StepColors({
         </Section>
       )}
 
-      <Section title="Alege separat" hint="Orice decor din catalog, pentru corp și pentru fronturi.">
-        <div className="atelier-box">
+      <section className="atelier-section">
+        <button type="button" className="atelier-disclosure" aria-expanded={separate} onClick={() => setSeparate((v) => !v)}>
+          <span className="min-w-0">
+            <span className="atelier-section__title">Alege separat</span>
+            <span className="atelier-hint block">Altă culoare pentru corp sau pentru fronturi, din tot catalogul.</span>
+          </span>
+          <ChevronDown size={18} aria-hidden="true" className={separate ? "rotate-180" : ""} />
+        </button>
+        {separate && (
+          <div className="mt-3">
+        <div className="atelier-box" data-anchor="corp">
           <div className="atelier-box__head">
             <div>
               <h3 className="atelier-box__title">Corp</h3>
-              <p className="atelier-hint">interior și laterale</p>
+              <p className="atelier-hint">Interiorul și lateralele</p>
             </div>
             <Current look={carcass} name={carcassName} />
           </div>
@@ -387,17 +447,17 @@ export function StepColors({
           />
         </div>
 
-        <div className="atelier-box mt-3">
+        <div className="atelier-box mt-3" data-anchor="fronturi">
           <div className="atelier-box__head">
             <div>
               <h3 className="atelier-box__title">Fronturi</h3>
-              <p className="atelier-hint">uși și sertare</p>
+              <p className="atelier-hint">Ușile și fețele sertarelor</p>
             </div>
             <Current look={front} name={frontName} />
           </div>
           {kinds.length > 1 && (
             <Choice
-              label="Material fronturi"
+              label="Fel de fronturi"
               className="mb-3"
               value={fronts.kind}
               options={kinds.map((k) => ({ value: k, label: KIND_LABELS[k] }))}
@@ -407,7 +467,7 @@ export function StepColors({
           {fronts.kind !== "MDF_VOPSIT" ? (
             <SwatchPicker
               key={fronts.kind}
-              label={`Decor fronturi ${KIND_LABELS[fronts.kind]}`}
+              label={`Fronturi: ${KIND_LABELS[fronts.kind].toLowerCase()}`}
               items={frontItems[fronts.kind]}
               selectedId={fronts.materialId}
               placeholder="Caută: stejar, alb, H1145…"
@@ -417,42 +477,55 @@ export function StepColors({
             <>
               <SwatchPicker
                 key="ral"
-                label="Culoare RAL"
+                label="Culoarea vopselei"
                 items={ralItems}
                 selectedId={fronts.ralCode}
-                placeholder="Caută: 9016, alb, antracit…"
+                collapsed={POPULAR_RAL.length}
+                allLabel="Toate culorile"
+                placeholder="Caută: alb, antracit, 9016…"
                 onPick={(ralCode) => setFronts({ ...fronts, ralCode })}
               />
-              <div className="atelier-rows mt-3">
-                {catalog.fronts.MDF_VOPSIT.length > 1 && (
-                  <Field label="Model front">
+              <button type="button" className="atelier-textbtn atelier-textbtn--quiet mt-2" aria-expanded={paintMore} onClick={() => setPaintMore((v) => !v)}>
+                {paintMore ? "Ascunde opțiunile de vopsire" : "Mai multe opțiuni de vopsire"}
+              </button>
+              {paintMore && (
+                <div className="atelier-rows mt-1">
+                  {catalog.fronts.MDF_VOPSIT.length > 1 && (
+                    <Field label="Modelul frontului">
+                      <Choice
+                        label="Modelul frontului"
+                        value={fronts.modelId ?? defaultVopsitModelId(catalog) ?? ""}
+                        options={catalog.fronts.MDF_VOPSIT.map((m) => ({ value: m.id, label: m.name }))}
+                        onChange={(modelId) => setFronts({ ...fronts, modelId })}
+                      />
+                    </Field>
+                  )}
+                  <Field
+                    label="Ce vopsim"
+                    hint={
+                      noTwoFaces
+                        ? "Vopsirea și pe interior nu e disponibilă momentan — o stabilim la măsurători."
+                        : "De obicei doar exteriorul: interiorul ușii se vede numai când o deschizi."
+                    }
+                  >
                     <Choice
-                      label="Model front"
-                      value={fronts.modelId ?? defaultVopsitModelId(catalog) ?? ""}
-                      options={catalog.fronts.MDF_VOPSIT.map((m) => ({ value: m.id, label: m.name }))}
-                      onChange={(modelId) => setFronts({ ...fronts, modelId })}
+                      label="Ce vopsim"
+                      value={fronts.faces ?? 1}
+                      options={[
+                        { value: 1, label: "Doar exteriorul" },
+                        { value: 2, label: "Și interiorul ușii", disabled: noTwoFaces },
+                      ]}
+                      onChange={(faces) => setFronts({ ...fronts, faces: faces as 1 | 2 })}
                     />
                   </Field>
-                )}
-                <Field
-                  label="Fețe vopsite"
-                  hint={noTwoFaces ? "Vopsirea pe două fețe nu e disponibilă momentan — o stabilim la măsurători." : undefined}
-                >
-                  <Choice
-                    label="Fețe vopsite"
-                    value={fronts.faces ?? 1}
-                    options={[
-                      { value: 1, label: "O față" },
-                      { value: 2, label: "Două fețe", disabled: noTwoFaces },
-                    ]}
-                    onChange={(faces) => setFronts({ ...fronts, faces: faces as 1 | 2 })}
-                  />
-                </Field>
-              </div>
+                </div>
+              )}
             </>
           )}
         </div>
-      </Section>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

@@ -3747,7 +3747,7 @@ select {
   --at-radius: 14px;
   --at-shadow: 0 1px 2px rgba(40, 30, 15, 0.05), 0 3px 10px rgba(40, 30, 15, 0.04);
   /* phones: one steady height per step (no shrinking on scroll, so nothing jumps under the finger) */
-  --at-viewer-h: clamp(10.25rem, 27svh, 15rem);
+  --at-viewer-h: clamp(11.5rem, 31svh, 16rem);
   background: var(--home-black);
   color: var(--at-ink);
   font-size: 0.9rem;
@@ -3789,7 +3789,8 @@ body:has(.atelier-page) .site-header {
 }
 
 /* the interior step is about the 3D view: a taller viewer there */
-.atelier-app[data-step="interior"] {
+.atelier-app[data-step="interior"],
+.atelier-app[data-step="usi"] {
   --at-viewer-h: clamp(11rem, 33svh, 19rem);
 }
 
@@ -5398,10 +5399,6 @@ body:has(.atelier-page) .site-header {
     height: clamp(4.6rem, 12svh, 6.4rem);
   }
 
-  .atelier-model .atelier-card__sub {
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-  }
 
   .atelier-stack > .atelier-section--cats + * {
     margin-top: 0.6rem;
@@ -5930,21 +5927,231 @@ body:has(.atelier-page) .site-header {
   font-size: 0.8rem;
 }
 
-.atelier-handle[aria-disabled="true"] {
-  cursor: not-allowed;
+.atelier-handle[data-locked] {
   box-shadow: none;
 }
 
-.atelier-handle[aria-disabled="true"]:hover {
-  border-color: var(--at-line);
-  transform: none;
+.atelier-handle[data-locked] .atelier-handle__art {
+  opacity: 0.5;
 }
 
-.atelier-handle[aria-disabled="true"] .atelier-handle__art,
-.atelier-handle[aria-disabled="true"] .atelier-card__name {
-  opacity: 0.45;
+.atelier-handle[data-locked] .atelier-card__name {
+  color: var(--at-muted);
+}
+
+.atelier-handle[data-locked][data-open] {
+  border-color: #cfc8bb;
+}
+
+.atelier-handlehelp {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  border-radius: 0.8rem;
+  background: #fdf3e7;
+  padding: 0.75rem 0.8rem;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: #4d3a1f;
+}
+
+.atelier-handlehelp .atelier-chip {
+  min-height: 2.75rem;
+  border-color: var(--at-accent);
+  font-weight: 700;
+}
+
+.atelier-nohandles {
+  display: grid;
+  justify-items: start;
+  gap: 0.6rem;
+  font-size: 0.86rem;
+}
+
+.atelier-nohandles .atelier-chip {
+  min-height: 2.75rem;
+  font-weight: 700;
+}
+
+/* a „Modifică" link landed here */
+.atelier-page [data-anchor] {
+  scroll-margin-top: 1rem;
+  border-radius: var(--at-radius);
+  transition: box-shadow 0.5s ease, background-color 0.5s ease;
+}
+
+.atelier-page [data-anchor].is-flash {
+  background-color: #fdf3e7;
+  box-shadow: 0 0 0 0.45rem #fdf3e7, 0 0 0 calc(0.45rem + 2px) var(--at-accent);
+}
+
+/* „Am anulat: …" */
+.atelier-undone {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 3.6rem;
+  z-index: 3;
+  max-width: calc(100% - 1.5rem);
+  border-radius: 999px;
+  background: rgba(26, 26, 26, 0.86);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #fff;
+  pointer-events: none;
+  animation: atelier-undone 3.2s ease both;
+}
+
+@keyframes atelier-undone {
+  0% { opacity: 0; transform: translateY(4px); }
+  8%, 85% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
 }
 
 .atelier-notice p + p {
   margin-top: 0.3rem;
+}
+
+.atelier-disclosure {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--at-line);
+  border-radius: var(--at-radius);
+  background: #fff;
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.atelier-disclosure svg {
+  flex-shrink: 0;
+  color: var(--at-muted);
+  transition: transform 0.18s ease;
+}
+
+.atelier-disclosure .atelier-section__title {
+  display: block;
+}
+
+.atelier-swatchmore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.atelier-textbtn--quiet {
+  font-weight: 500;
+  color: var(--at-muted);
+}
+
+/* model cards: the facts a newcomer looks for, as small chips (the starting width first) */
+.atelier-model__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+}
+
+.atelier-model__fact {
+  border-radius: 999px;
+  background: var(--at-panel);
+  padding: 0.05rem 0.45rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #4d4942;
+  white-space: nowrap;
+}
+
+.atelier-model__fact--size {
+  background: #fdf3e7;
+  color: var(--at-accent-dark);
+}
+
+.atelier-share__btn--main {
+  border-color: var(--at-accent);
+  color: var(--at-accent-dark);
+}
+
+a.atelier-share__btn--wa {
+  display: flex;
+  width: 100%;
+}
+
+/* short screens (a phone held sideways, a small phone): less chrome, more room for the choices */
+@media (max-height: 700px) and (max-width: 1023px) {
+  .atelier-foot {
+    padding-top: 0.4rem;
+    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .atelier-foot .atelier-price__value {
+    font-size: 1.45rem;
+  }
+
+  .atelier-foot .atelier-btn {
+    min-height: 2.6rem;
+  }
+}
+
+@media (max-height: 600px) and (max-width: 599px) {
+  .atelier-app,
+  .atelier-app[data-step] {
+    --at-viewer-h: 9.25rem;
+  }
+}
+
+@media (max-height: 559px) {
+  /* the site's own header takes a fifth of such a screen: a slim one here */
+  body:has(.atelier-app) {
+    --site-header-height: 3rem;
+  }
+
+  body:has(.atelier-app) .site-header__logo-image {
+    height: 2.25rem;
+  }
+
+  .atelier-foot .atelier-price__label {
+    display: none;
+  }
+
+  .atelier-steps {
+    padding: 0.15rem;
+  }
+
+  .atelier-app__head {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .atelier-app__title {
+    display: none;
+  }
+
+  /* price and buttons on one compact line */
+  .atelier-foot .atelier-price {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .atelier-foot .atelier-price__value {
+    font-size: 1.25rem;
+  }
+
+  .atelier-foot .atelier-btn {
+    min-height: 2.4rem;
+  }
+
+  .atelier-undone {
+    bottom: 3.4rem;
+  }
 }

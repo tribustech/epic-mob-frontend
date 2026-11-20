@@ -181,6 +181,8 @@ export interface OpenState {
   /** sliding doors are see-through outlines („open all"), so the whole interior shows */
   ghost: boolean;
   anyOpen: boolean;
+  /** every door stands open (a piece with drawers only: every drawer) */
+  allOpen: boolean;
 }
 
 /**
@@ -221,7 +223,10 @@ export function resolveOpen(
       return;
     amount[i] = own ? 1 : f.stagger;
   });
-  return { amount, slideX, slid, ghost, anyOpen: ghost || slid.some(Boolean) || amount.some((a) => a > 0) };
+  const openOf = (kind: "door" | "drawer") => plan.fronts.every((f, i) => !f || f.kind !== kind || amount[i] > 0);
+  const hasDoors = plan.doors + scene.doors.length > 0;
+  const allAreOpen = hasDoors ? openOf("door") && (scene.doors.length === 0 || ghost) : plan.drawers > 0 && openOf("drawer");
+  return { amount, slideX, slid, ghost, anyOpen: ghost || slid.some(Boolean) || amount.some((a) => a > 0), allOpen: allAreOpen };
 }
 
 /** After a tap: the new individual states. Drawers the tap left behind a closed door give up being open. */

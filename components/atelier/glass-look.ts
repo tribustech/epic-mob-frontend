@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import type { AtelierGlass } from "@/lib/atelier/types";
+import { currentGlass } from "@/lib/atelier/door-types";
+import type { AtelierCatalog, AtelierDoors, AtelierGlass } from "@/lib/atelier/types";
 
 /** How a mirror / glass with no known tint is drawn. */
 export const MIRROR_TINT = "#cfd8de";
@@ -40,4 +41,25 @@ export function glassSwatchStyle(kind: "OGLINDA" | "STICLA", glass?: Pick<Atelie
       ? `linear-gradient(125deg, ${mix(tint, 0.45)} 0%, ${mix(tint, 0.05)} 34%, ${mix(tint, 0.75)} 46%, ${mix(tint, 0.1)} 58%, ${mix(tint, -0.12)} 100%)`
       : `linear-gradient(125deg, ${mix(tint, 0.3)} 0%, ${mix(tint, 0)} 40%, ${mix(tint, 0.4)} 50%, ${mix(tint, -0.05)} 62%, ${mix(tint, -0.18)} 100%)`;
   return { backgroundColor: tint, backgroundImage: glint };
+}
+
+export type GlassLook = Pick<AtelierGlass, "tint" | "matte" | "opaque">;
+/** How the mirror and the glass on the doors look (for the small drawings). */
+export interface Glazing {
+  mirror?: GlassLook | null;
+  glass?: GlassLook | null;
+}
+
+/** The mirror / glass chosen for these doors, or the catalog's first (what a preset would get). */
+export function glazingOf(catalog: Pick<AtelierCatalog, "glass">, doors: Pick<AtelierDoors, "mirrorId" | "glassId">): Glazing {
+  return { mirror: currentGlass(catalog.glass?.mirrors, doors.mirrorId), glass: currentGlass(catalog.glass?.glasses, doors.glassId) };
+}
+
+/** Gradient stops (top-left → bottom-right) for a door face in the small drawings. */
+export function glassStops(kind: "OGLINDA" | "STICLA", look: GlassLook | null | undefined, fallback: string[]): string[] {
+  if (!look?.tint || !/^#?[0-9a-f]{6}$/i.test(look.tint.trim())) return fallback;
+  const t = look.tint.trim();
+  if (look.opaque) return [mix(t, 0.12), t, t, mix(t, -0.06)];
+  if (look.matte) return [mix(t, 0.4), mix(t, 0.3), mix(t, 0.34), mix(t, 0.22)];
+  return kind === "OGLINDA" ? [mix(t, 0.45), mix(t, 0.05), mix(t, 0.3), mix(t, -0.12)] : [mix(t, 0.35), mix(t, 0.05), mix(t, 0.2), mix(t, -0.1)];
 }

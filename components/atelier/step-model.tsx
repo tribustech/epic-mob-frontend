@@ -5,8 +5,10 @@ import { useState } from "react";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetAvailable, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
 import { CATEGORY_ORDER } from "@/lib/atelier/categories";
+import { doorOpening, hasGlass, hasMirror } from "@/lib/atelier/door-types";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "@/lib/atelier/types";
+import { glazingOf, type Glazing } from "./glass-look";
 import { paletteLooks, type MaterialLook } from "./material-look";
 import { MiniPreview } from "./mini-preview";
 
@@ -30,6 +32,26 @@ function bareName(name: string): string {
   return name.replace(/\s+\d+(?:,\d+)?\s?m$/u, "");
 }
 
+/** The two or three facts a newcomer looks for on a card: how it closes, mirror, drawers. */
+export function modelFacts(shape: LayoutPreset["shape"]): string[] {
+  const facts: string[] = [];
+  const has = (...contents: string[]) => shape.columns.some((c) => contents.includes(c.content));
+  if (shape.category === "DRESSING") {
+    const opening = doorOpening(shape.doors.type);
+    facts.push(opening === "GLISANTE" ? "Uși glisante" : opening === "BATANTE" ? "Uși batante" : "Fără uși");
+    if (hasMirror(shape)) facts.push("Cu oglindă");
+    else if (hasGlass(shape)) facts.push("Cu sticlă");
+    if (has("BARA_SERTARE")) facts.push("Cu sertare");
+  } else {
+    if (has("SERTARE") || shape.bottom?.type === "SERTARE") facts.push("Cu sertare");
+    if (has("USI") || shape.bottom?.type === "USI") facts.push("Cu uși");
+    if (has("USA_RIDICABILA")) facts.push("Uși care se ridică");
+    if (has("DESCHIS") && shape.category !== "SEPARATOR") facts.push("Cu nișă deschisă");
+    if (shape.category === "SEPARATOR" && !shape.bottom) facts.push("Deschis pe ambele fețe");
+  }
+  return facts.slice(0, 3);
+}
+
 function ModelCard({
   name,
   tagline,
@@ -38,8 +60,10 @@ function ModelCard({
   preset,
   carcass,
   front,
+  glazing,
   onPick,
 }: {
+  glazing: Glazing;
   name: string;
   tagline: string;
   badge?: string;
@@ -52,14 +76,21 @@ function ModelCard({
   return (
     <button type="button" className="atelier-card atelier-model" aria-pressed={selected} onClick={() => !selected && onPick()}>
       <span className="atelier-model__art">
-        <MiniPreview shape={preset.shape} carcass={carcass} front={front} className="h-full w-full" />
+        <MiniPreview shape={preset.shape} carcass={carcass} front={front} glazing={glazing} className="h-full w-full" />
         {badge && <span className="atelier-badge">{badge}</span>}
         {selected && <SelectedMark className="absolute right-2 top-2" />}
-        <span className="atelier-model__size">{sizeLabel(preset.shape.widthMm)}</span>
       </span>
       <span className="atelier-model__text">
         <span className="atelier-card__name">{bareName(name)}</span>
         <span className="atelier-card__sub">{tagline}</span>
+        <span className="atelier-model__facts">
+          <span className="atelier-model__fact atelier-model__fact--size">{sizeLabel(preset.shape.widthMm)}</span>
+          {modelFacts(preset.shape).map((fact) => (
+            <span key={fact} className="atelier-model__fact">
+              {fact}
+            </span>
+          ))}
+        </span>
       </span>
     </button>
   );
@@ -101,8 +132,10 @@ export function StepModel({
   const pickCategory = (category: AtelierCategory) => {
     if (category === config.category) return;
     // start the new category from its first ready-made model (or its plain defaults)
-    const first = presetsFor(category)[0];
+    const first = presetsFor(category).find((p) => presetAvailable(p, catalog));
     act(first ? { type: "applyPreset", shape: first.shape } : { type: "setCategory", category });
+    // the 3D now shows that first model: show the list where its card is marked as chosen
+    if (first) setTab("models");
     trackFunnel("category_selected", { category });
   };
 
@@ -133,11 +166,11 @@ export function StepModel({
 
       <section className="atelier-section">
         {combos.length > 0 && presets.length > 0 && (
-          <div className="atelier-switch" role="tablist" aria-label="Combinații sau modele">
+          <div className="atelier-switch" role="tablist" aria-label="Gata făcute, cu tot cu culori, sau doar forma">
             {(
               [
-                ["combos", `Combinații (${combos.length})`],
-                ["models", `Modele (${presets.length})`],
+                ["combos", `Gata făcute (${combos.length})`],
+                ["models", `Doar forma (${presets.length})`],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -158,8 +191,8 @@ export function StepModel({
         <div id="atelier-list-panel" role="tabpanel" aria-labelledby={`atelier-list-${list}`}>
           <p className="atelier-hint atelier-list-hint">
             {list === "combos"
-              ? "Model și culori alese de noi. Atinge una și o ajustezi după plac."
-              : "Toate modelele, în culorile alese de tine. Dimensiunile le potrivești la pasul 3."}
+              ? "Formă și culori alese de noi. Atinge una și o schimbi după plac."
+              : "Toate formele, în culorile tale de acum. Dimensiunile le potrivești la pasul 3."}
           </p>
           {list === "combos" ? (
             <div className="atelier-rail">
@@ -171,6 +204,7 @@ export function StepModel({
                     name={combo.name}
                     tagline={combo.tagline}
                     preset={preset}
+                    glazing={glazingOf(catalog, preset.shape.doors)}
                     carcass={looks.carcass}
                     front={looks.front}
                     selected={combo.paletteId === activePalette && shapeKey(preset.shape) === currentKey}
@@ -194,6 +228,7 @@ export function StepModel({
                   tagline={preset.tagline}
                   badge={preset.badge}
                   preset={preset}
+                  glazing={glazingOf(catalog, preset.shape.doors)}
                   carcass={carcass}
                   front={front}
                   selected={shapeKey(preset.shape) === currentKey}

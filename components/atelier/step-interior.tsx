@@ -15,14 +15,10 @@ import {
   autoShelves,
   categoryRules,
 } from "@/lib/atelier/categories";
-import { hasHandledFronts } from "@/lib/atelier/handles";
 import { MAX_COL_MM, MIN_COL_MM, areEven } from "@/lib/atelier/state";
-import type { AtelierCatalog, AtelierConfig, BottomType, ColumnContent } from "@/lib/atelier/types";
+import type { AtelierConfig, BottomType, ColumnContent } from "@/lib/atelier/types";
 import { ContentGlyph } from "./content-glyph";
-import { DoorsPanel } from "./doors-panel";
-import { HandlePicker } from "./handle-picker";
-import type { MaterialLook } from "./material-look";
-import type { Act } from "./session";
+import type { Act, StepId } from "./session";
 import { Choice, Field, LengthControl, Section, Stepper, cm, plural } from "./ui";
 
 /** Shorter chip labels for the dressing interiors (the full ones are in CONTENT_LABELS). */
@@ -235,6 +231,7 @@ function Columns({
 
   return (
     <Section
+      anchor="coloane"
       title={dressing ? `Coloane (${n})` : `Compartimente (${n})`}
       hint={(dressing ? "Atinge o coloană ca să-i alegi interiorul." : "Atinge un compartiment ca să-l schimbi.") + range}
       action={
@@ -290,12 +287,12 @@ const BOTTOMS: { value: BottomType; label: string; icon: React.ReactNode }[] = [
 ];
 
 /** Separator: optional closed bottom (drawers or doors) under the open shelves, with a PFL back. */
-function Bottom({ config, act }: { config: AtelierConfig; act: Act }) {
+function Bottom({ config, act, onStep }: { config: AtelierConfig; act: Act; onStep: (step: StepId, anchor?: string) => void }) {
   const bottom = config.bottom ?? { type: "NONE" as const };
   const active = bottom.type !== "NONE";
 
   return (
-    <Section title="Partea de jos" hint="Deschis până jos, sau cu sertare ori uși în partea de jos.">
+    <Section title="Partea de jos" anchor="jos" hint="Deschis până jos, sau cu sertare ori uși în partea de jos.">
       <div className="atelier-box">
         <Choice
           label="Partea de jos"
@@ -340,6 +337,12 @@ function Bottom({ config, act }: { config: AtelierConfig; act: Act }) {
                 />
               </Field>
             )}
+            <div className="atelier-field">
+              <p className="atelier-label">Mânere</p>
+              <button type="button" className="atelier-textbtn" onClick={() => onStep("usi", "manere")}>
+                Alege mânerele
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -348,28 +351,23 @@ function Bottom({ config, act }: { config: AtelierConfig; act: Act }) {
 }
 
 export function StepInterior({
-  catalog,
   config,
   act,
   column,
   onColumn,
-  front,
+  onStep,
 }: {
-  catalog: AtelierCatalog;
   config: AtelierConfig;
   act: Act;
-  /** the look of the fronts (the door chips are drawn with it) */
-  front: MaterialLook;
   column: number;
   onColumn: (index: number) => void;
+  /** to another step (the handles of a closed bottom are chosen at „Mânere") */
+  onStep: (step: StepId, anchor?: string) => void;
 }) {
   return (
     <div className="atelier-stack">
       <Columns config={config} act={act} index={column} onPick={onColumn} />
-      {config.category === "SEPARATOR" && <Bottom config={config} act={act} />}
-      {categoryRules(config.category).slidingDoors && <DoorsPanel catalog={catalog} config={config} act={act} front={front} />}
-      {/* one place for the handles, wherever a front takes one: hinged doors, drawers, a closed bottom */}
-      {hasHandledFronts(config) && <HandlePicker catalog={catalog} config={config} act={act} />}
+      {config.category === "SEPARATOR" && <Bottom config={config} act={act} onStep={onStep} />}
     </div>
   );
 }

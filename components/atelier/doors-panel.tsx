@@ -50,10 +50,11 @@ function OpeningGlyph({ kind }: { kind: DoorOpening }) {
   );
 }
 
+/** Plain words first („Alunecă lateral"); the trade name („uși glisante") is the small line under it. */
 const OPENINGS: { value: DoorOpening; name: string; benefit: string }[] = [
-  { value: "GLISANTE", name: "Glisante", benefit: "Alunecă lateral, nu ocupă loc" },
-  { value: "BATANTE", name: "Batante", benefit: "Se deschid spre tine, ca o ușă obișnuită" },
-  { value: "NONE", name: "Fără uși", benefit: "Totul la vedere" },
+  { value: "GLISANTE", name: "Alunecă lateral", benefit: "uși glisante — nu ocupă loc în cameră" },
+  { value: "BATANTE", name: "Se deschid spre tine", benefit: "uși batante — ca la un dulap obișnuit" },
+  { value: "NONE", name: "Fără uși", benefit: "totul la vedere" },
 ];
 
 /* ── the face of the doors ── */
@@ -99,7 +100,7 @@ function GlassRow({
   if (list.length === 0) return null;
 
   return (
-    <div className="atelier-glassrow">
+    <div className="atelier-glassrow" data-anchor={kind === "OGLINDA" ? "oglinda" : "sticla"}>
       <p className="atelier-label">
         {label}
         {selected && <span className="atelier-glassrow__current"> · {glassName(selected.name, kind)}</span>}
@@ -179,7 +180,7 @@ export function DoorsPanel({
   const isAlternate = fills.length > 1 && fills.every((f, i) => f === alternate[i]);
 
   return (
-    <Section title="Uși">
+    <Section title="Uși" anchor="usi">
       <div className="atelier-box">
         <RadioGroup label="Cum se deschid ușile" selectOnArrow className="atelier-openings">
           {openings.map((o) => (
@@ -188,6 +189,7 @@ export function DoorsPanel({
               type="button"
               role="radio"
               aria-checked={o.value === opening}
+              aria-label={`${o.name} (${o.benefit})`}
               className="atelier-card atelier-opening"
               onClick={() => setOpening(o.value)}
             >

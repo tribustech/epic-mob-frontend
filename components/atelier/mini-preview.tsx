@@ -6,6 +6,7 @@ import { DOOR_OVERLAP_MM, autoDoorCount, doorWidthMm } from "@/lib/atelier/doors
 import { doorFills } from "@/lib/atelier/door-types";
 import { FINISH_INFO, effectiveHandle } from "@/lib/atelier/handles";
 import type { DoorFill } from "@/lib/atelier/types";
+import { glassStops, type Glazing } from "./glass-look";
 import type { MaterialLook } from "./material-look";
 
 /**
@@ -55,6 +56,7 @@ export function MiniPreview({
   front,
   className,
   bold = false,
+  glazing,
 }: {
   shape: PresetShape;
   carcass: MaterialLook;
@@ -62,6 +64,8 @@ export function MiniPreview({
   className?: string;
   /** drawn very small (an icon): heavier lines, so doors and drawers still read */
   bold?: boolean;
+  /** the mirror / glass on the doors, to tint them as chosen (silver / bluish when not given) */
+  glazing?: Glazing;
 }) {
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const id = (name: string) => `mp-${uid}-${name}`;
@@ -428,6 +432,8 @@ export function MiniPreview({
       </pattern>
     ) : null;
 
+  const mirrorStops = glassStops("OGLINDA", glazing?.mirror, ["#eef3f6", "#cfdae1", "#dfe8ed", "#b9c8d1"]);
+  const glassFill = glassStops("STICLA", glazing?.glass, [shade(front.color, 0.35), "#9fb6c1", "#9fb6c1", shade(front.color, -0.05)]);
   const shadowW = W * k;
   return (
     <svg
@@ -442,15 +448,14 @@ export function MiniPreview({
         {pattern("carcass", carcass)}
         {pattern("front", front)}
         <linearGradient id={id("mirror")} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#eef3f6" />
-          <stop offset="0.45" stopColor="#cfdae1" />
-          <stop offset="0.55" stopColor="#dfe8ed" />
-          <stop offset="1" stopColor="#b9c8d1" />
+          {mirrorStops.map((c, n) => (
+            <stop key={n} offset={[0, 0.45, 0.55, 1][n]} stopColor={c} />
+          ))}
         </linearGradient>
         <linearGradient id={id("glass")} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor={shade(front.color, 0.35)} />
-          <stop offset="0.5" stopColor="#9fb6c1" />
-          <stop offset="1" stopColor={shade(front.color, -0.05)} />
+          {glassFill.map((c, n) => (
+            <stop key={n} offset={[0, 0.45, 0.55, 1][n]} stopColor={c} />
+          ))}
         </linearGradient>
         <radialGradient id={id("floor")} cx="0.5" cy="0.5" r="0.5">
           <stop offset="0" stopColor={STROKE} stopOpacity="0.26" />

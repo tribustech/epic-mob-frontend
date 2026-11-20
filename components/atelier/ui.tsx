@@ -116,15 +116,18 @@ export function Section({
   action,
   children,
   className = "",
+  anchor,
 }: {
   title: string;
   hint?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** name a „Modifică" link can jump to (the shell scrolls here and highlights it for a moment) */
+  anchor?: string;
 }) {
   return (
-    <section className={`atelier-section ${className}`}>
+    <section className={`atelier-section ${className}`} data-anchor={anchor}>
       <div className="atelier-section__head">
         <div className="min-w-0">
           <h2 className="atelier-section__title">{title}</h2>

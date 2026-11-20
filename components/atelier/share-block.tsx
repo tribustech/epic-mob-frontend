@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Link2, MessageCircle } from "lucide-react";
+import { Check, Link2, MessageCircle, Share2 } from "lucide-react";
 import { shareUrl } from "@/lib/atelier/share";
 import type { AtelierCategory, AtelierConfig } from "@/lib/atelier/types";
 import { contactDetails } from "@/lib/site-data";
@@ -65,44 +65,68 @@ export function ShareBlock({ config, price }: { config: AtelierConfig; price: nu
     }
   };
 
+  // phones: the system's own share sheet (messages, mail, any app); elsewhere the link is copied
+  const send = async () => {
+    const url = link();
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: "Configurația mea EpicMob", text: "Uite ce mobilier am configurat pe EpicMob:", url });
+        return;
+      } catch (error) {
+        // closed without sending: nothing to do; anything else falls back to copying
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
+    }
+    await copy();
+  };
+
   const whatsappHref = () => `${contactDetails.whatsapp}?text=${encodeURIComponent(whatsappText(config, price, link()))}`;
 
   return (
-    <Section
-      title="Arată-i cuiva configurația"
-      hint="Linkul deschide exact ce ai făcut aici. Îl poți trimite și ție, pentru mai târziu."
-    >
-      <div className="atelier-share">
-        <div className="atelier-share__actions">
-          <button type="button" className="atelier-share__btn" onClick={copy}>
-            {copied ? <Check size={18} aria-hidden="true" /> : <Link2 size={18} aria-hidden="true" />}
-            <span aria-live="polite">{copied ? "Link copiat" : "Copiază linkul"}</span>
-          </button>
-          {/* a real link (opens the app on phones); the message with the configuration is filled in at the tap */}
-          <a
-            className="atelier-share__btn atelier-share__btn--wa"
-            href={contactDetails.whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => {
-              e.currentTarget.href = whatsappHref();
-            }}
-          >
-            <MessageCircle size={18} aria-hidden="true" />
-            Discută configurația pe WhatsApp
-          </a>
+    <>
+      <Section
+        title="Arată-i cuiva configurația"
+        hint="Linkul deschide exact ce ai făcut aici. Îl poți trimite și ție, pentru mai târziu."
+      >
+        <div className="atelier-share">
+          <div className="atelier-share__actions">
+            <button type="button" className="atelier-share__btn atelier-share__btn--main" onClick={send}>
+              <Share2 size={18} aria-hidden="true" />
+              Trimite cuiva
+            </button>
+            <button type="button" className="atelier-share__btn" onClick={copy}>
+              {copied ? <Check size={18} aria-hidden="true" /> : <Link2 size={18} aria-hidden="true" />}
+              <span aria-live="polite">{copied ? "Link copiat" : "Copiază linkul"}</span>
+            </button>
+          </div>
+          {manual && (
+            <input
+              ref={field}
+              className="atelier-input atelier-share__link"
+              readOnly
+              value={manual}
+              aria-label="Linkul configurației (copiază-l de aici)"
+              onFocus={(e) => e.currentTarget.select()}
+            />
+          )}
         </div>
-        {manual && (
-          <input
-            ref={field}
-            className="atelier-input atelier-share__link"
-            readOnly
-            value={manual}
-            aria-label="Linkul configurației (copiază-l de aici)"
-            onFocus={(e) => e.currentTarget.select()}
-          />
-        )}
-      </div>
-    </Section>
+      </Section>
+
+      <Section title="Ai o întrebare?" hint="Scrie-ne direct nouă, la EpicMob. Mesajul pornește cu linkul configurației tale.">
+        {/* a real link (opens the app on phones); the message with the configuration is filled in at the tap */}
+        <a
+          className="atelier-share__btn atelier-share__btn--wa"
+          href={contactDetails.whatsapp}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => {
+            e.currentTarget.href = whatsappHref();
+          }}
+        >
+          <MessageCircle size={18} aria-hidden="true" />
+          Scrie-ne pe WhatsApp (EpicMob)
+        </a>
+      </Section>
+    </>
   );
 }

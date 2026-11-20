@@ -1,3 +1,4 @@
+import { categoryRules } from "@/lib/atelier/categories";
 import { COMBO_PRESETS, presetById, type PresetShape } from "@/lib/atelier/presets";
 import { resolvePalettes } from "@/lib/atelier/palettes";
 import { currentHandle, hasHandledFronts } from "@/lib/atelier/handles";
@@ -6,9 +7,26 @@ import { parseConfig } from "@/lib/atelier/share";
 import { atelierReducer, defaultConfig, type AtelierAction } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 
-/** The five screens of the configurator; the ids are also the funnel's `step` values. */
-export const STEP_IDS = ["model", "culori", "dimensiuni", "interior", "oferta"] as const;
+/** The screens of the configurator, in order; the ids are also the funnel's `step` values and the URL hashes. */
+export const STEP_IDS = ["model", "culori", "dimensiuni", "usi", "interior", "oferta"] as const;
 export type StepId = (typeof STEP_IDS)[number];
+
+/**
+ * The steps this piece of furniture really has. „Uși și mânere" exists for a dressing (it chooses its
+ * doors there) and for anything else whose fronts take a handle; furniture with neither (an open
+ * separator, an open shelf) skips it.
+ */
+export function stepsFor(config: AtelierConfig): StepId[] {
+  const doors = categoryRules(config.category).slidingDoors;
+  return STEP_IDS.filter((s) => s !== "usi" || doors || hasHandledFronts(config));
+}
+
+/** The step to show when `step` does not exist for this furniture: the next one that does. */
+export function nearestStep(step: StepId, config: AtelierConfig): StepId {
+  const steps = stepsFor(config);
+  if (steps.includes(step)) return step;
+  return STEP_IDS.slice(STEP_IDS.indexOf(step)).find((s) => steps.includes(s)) ?? "model";
+}
 
 export function stepLabel(step: StepId, config: AtelierConfig): string {
   switch (step) {
@@ -18,6 +36,8 @@ export function stepLabel(step: StepId, config: AtelierConfig): string {
       return "Culori";
     case "dimensiuni":
       return "Dimensiuni";
+    case "usi":
+      return categoryRules(config.category).slidingDoors ? "Uși și mânere" : "Mânere";
     case "interior":
       return config.category === "DRESSING" ? "Interior" : "Compartimente";
     case "oferta":
@@ -54,6 +74,10 @@ export interface AtelierSession {
   past: AtelierConfig[];
   step: StepId;
   contact: LeadContact;
+  /** what each entry of `past` changed, in plain words („culorile"), for the „Am anulat: …" note */
+  pastWhat: string[];
+  /** the change the last undo took back; `n` makes two undos of the same kind two notes */
+  undone: { what: string; n: number } | null;
   /** signature + time of the last change, to coalesce slider drags into one undo entry */
   last: { sig: string; at: number } | null;
   /** what the configurator changed on its own with the last change, to tell the client in one line each */
@@ -72,6 +96,7 @@ export type SessionAction =
   /** with `catalog`, the house rules run on top of the change (lib/atelier/house-rules.ts), as the same undo step */
   | { type: "config"; actions: AtelierAction[]; at: number; catalog?: AtelierCatalog }
   | { type: "dismissNotice" }
+  | { type: "dismissUndone" }
   | { type: "undo" }
   | { type: "step"; step: StepId }
   | { type: "contact"; contact: LeadContact }
@@ -84,6 +109,29 @@ const signature = (a: AtelierAction): string => {
   const index = "index" in a ? `#${a.index}` : "";
   return `${a.type}${index}:${a.type === "setSize" ? keys.join(",") : ""}`;
 };
+
+/** What a change was about, as the client would say it (the first action names it). */
+const CHANGE_NAMES: Partial<Record<AtelierAction["type"], string>> = {
+  setCategory: "modelul",
+  applyPreset: "modelul",
+  applyPalette: "culorile",
+  setCarcass: "culoarea corpului",
+  setFronts: "culoarea fronturilor",
+  setSize: "dimensiunile",
+  setLegs: "picioarele",
+  setDoors: "ușile",
+  setDoorFill: "fața unei uși",
+  setDoorFills: "fețele ușilor",
+  setDoorGlass: "tipul de oglindă sau sticlă",
+  setHandle: "mânerele",
+  setBottom: "partea de jos",
+  setColumnDoorRows: "ușile",
+  setColumnDoorsAcross: "ușile",
+};
+
+function changeName(actions: AtelierAction[]): string {
+  return (actions[0] && CHANGE_NAMES[actions[0].type]) ?? "interiorul";
+}
 
 const COALESCING = new Set<AtelierAction["type"]>([
   "setSize",
@@ -115,11 +163,20 @@ export function sessionReducer(state: AtelierSession, action: SessionAction): At
         state.last.sig === sig &&
         action.at - state.last.at < COALESCE_MS;
       const past = coalesce ? state.past : [...state.past, state.config].slice(-HISTORY_LIMIT);
-      return { ...state, config, past, last: { sig, at: action.at }, notices: notices.length ? notices : NO_NOTICES };
+      const pastWhat = coalesce ? state.pastWhat : [...state.pastWhat, changeName(action.actions)].slice(-HISTORY_LIMIT);
+      return { ...state, config, past, pastWhat, undone: null, last: { sig, at: action.at }, notices: notices.length ? notices : NO_NOTICES };
     }
     case "undo": {
       if (state.past.length === 0) return state;
-      return { ...state, config: state.past[state.past.length - 1], past: state.past.slice(0, -1), last: null, notices: NO_NOTICES };
+      return {
+        ...state,
+        config: state.past[state.past.length - 1],
+        past: state.past.slice(0, -1),
+        pastWhat: state.pastWhat.slice(0, -1),
+        undone: { what: state.pastWhat[state.pastWhat.length - 1] ?? "ultima schimbare", n: (state.undone?.n ?? 0) + 1 },
+        last: null,
+        notices: NO_NOTICES,
+      };
     }
     case "step":
       return action.step === state.step ? state : { ...state, step: action.step };
@@ -127,8 +184,10 @@ export function sessionReducer(state: AtelierSession, action: SessionAction): At
       return { ...state, contact: action.contact };
     case "dismissNotice":
       return state.notices.length ? { ...state, notices: NO_NOTICES } : state;
+    case "dismissUndone":
+      return state.undone ? { ...state, undone: null } : state;
     case "restore":
-      return { config: action.config, past: [], step: action.step, contact: action.contact, last: null, notices: NO_NOTICES };
+      return { config: action.config, past: [], pastWhat: [], undone: null, step: action.step, contact: action.contact, last: null, notices: NO_NOTICES };
   }
 }
 
@@ -146,7 +205,7 @@ export function initialSession(catalog: AtelierCatalog): AtelierSession {
       fronts: palette.fronts,
     });
   }
-  return { config: withGlassDefaults(config, catalog), past: [], step: "model", contact: EMPTY_CONTACT, last: null, notices: NO_NOTICES };
+  return { config: withGlassDefaults(config, catalog), past: [], pastWhat: [], undone: null, step: "model", contact: EMPTY_CONTACT, last: null, notices: NO_NOTICES };
 }
 
 /**
@@ -223,7 +282,7 @@ export function loadSession(
     let config = validStoredConfig(parsed.config, catalog);
     if (!config) return null;
     config = withGlassDefaults(config, catalog);
-    const step = STEP_IDS.find((s) => s === parsed.step) ?? "model";
+    const step = nearestStep(STEP_IDS.find((s) => s === parsed.step) ?? "model", config);
     return { config, step, contact: storedContact(parsed.contact) };
   } catch {
     return null;

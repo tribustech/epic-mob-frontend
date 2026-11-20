@@ -60,7 +60,7 @@ export function StepSize({
 
   return (
     <div className="atelier-stack">
-      <Section title="Dimensiuni" hint={`${rules.sizeHint} Aproximativ e de ajuns — măsurăm noi exact înainte de execuție.`}>
+      <Section title="Dimensiuni" anchor="dimensiuni" hint={`${rules.sizeHint} Aproximativ e de ajuns — măsurăm noi exact înainte de execuție.`}>
         <div className="space-y-3">
           <SizeCard icon={<ArrowLeftRight size={16} />} label="Lățime" range={rules.width}>
             <LengthControl

@@ -4,9 +4,9 @@ import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import type { AtelierConfig } from "@/lib/atelier/types";
-import { STEP_IDS, stepLabel, type StepId } from "./session";
+import { stepLabel, stepsFor, type StepId } from "./session";
 
-/** The five steps as tabs; on narrow screens the row scrolls and keeps the current step centred. */
+/** The steps of this piece of furniture as tabs; on narrow screens the row scrolls and keeps the current step centred. */
 export function StepBar({
   step,
   config,
@@ -20,6 +20,7 @@ export function StepBar({
   flagged: StepId | null;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
+  const steps = stepsFor(config);
 
   useEffect(() => {
     const list = listRef.current;
@@ -31,7 +32,7 @@ export function StepBar({
   }, [step]);
 
   const move = (dir: 1 | -1) => {
-    const next = STEP_IDS[STEP_IDS.indexOf(step) + dir];
+    const next = steps[steps.indexOf(step) + dir];
     if (!next) return;
     onStep(next);
     requestAnimationFrame(() => document.getElementById(`atelier-tab-${next}`)?.focus());
@@ -48,9 +49,9 @@ export function StepBar({
         else if (e.key === "ArrowLeft") move(-1);
       }}
     >
-      {STEP_IDS.map((id, i) => {
+      {steps.map((id, i) => {
         const selected = id === step;
-        const done = i < STEP_IDS.indexOf(step);
+        const done = i < steps.indexOf(step);
         return (
           <button
             key={id}

@@ -10,7 +10,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import type { AtelierScene, ColumnContent, HandleFinish, HandleKind, RailPosition, SceneDoor, ScenePiece } from "@/lib/atelier/types";
 import { RAIL_COUNT } from "@/lib/atelier/categories";
 import type { MaterialLook } from "./material-look";
-import { FINISH_LOOK, FrontHardware, GolaChannel, HANDLE_STRIP_MM, S, UNIT_BOX, noRaycast, type HardwareMaterials } from "./viewer/hardware";
+import { FINISH_LOOK, FrontHardware, GolaChannel, HANDLE_STRIP_MM, S, UNIT_BOX, gripPoint, noRaycast, type HardwareMaterials } from "./viewer/hardware";
 import { useTween } from "./viewer/motion";
 import {
   planScene,
@@ -64,6 +64,15 @@ export interface Viewer3DProps {
   handle?: HandleKind | "FARA" | null;
   /** colour of the visible metal (bar, knob, recessed grip, Gola channel); NEGRU when not given */
   handleFinish?: HandleFinish;
+  /**
+   * Where the camera looks while the client is choosing something (it eases there and back):
+   * "handles" = a close three-quarter view of one front, on the edge where its handle sits, so the
+   * handle type and its colour read clearly (falls back to the normal view when no front carries one);
+   * "doors" = the whole piece seen straight from the front. While a focus is set every door and
+   * drawer starts closed, `doorsOpen` is ignored and the „open all" button is hidden (single taps
+   * still work). null / undefined = the normal view.
+   */
+  focus?: "handles" | "doors" | null;
   /** the client opened / closed something in the model: one door, one drawer, one sliding door, or everything */
   onInteract?: (kind: "door" | "drawer" | "sliding" | "all", open: boolean) => void;
   /** the scene on screen is not the current configuration's (errors / price service down) */
@@ -237,37 +246,58 @@ function useRoomEnvironment(): THREE.Texture {
 }
 
 /**
- * What the mirrors show: a bright, warm room with a window wall, a ceiling light and a few dark
- * shapes, so a mirror reads as a mirror (light, with things moving in it as the model turns),
- * not as a grey sheet. Built once per renderer; no download.
+ * What the mirrors show: a bright room painted on a canvas (light ceiling and walls, a soft
+ * horizon, a light floor, streaks of daylight from the windows), so a mirror reads as a mirror
+ * (silvery, with light moving in it as the model turns), not as a board. Built once per renderer; no download.
  */
 const mirrorRoomCache = new WeakMap<THREE.WebGLRenderer, THREE.Texture>();
 function buildMirrorRoom(gl: THREE.WebGLRenderer): THREE.Texture {
-  const room = new THREE.Scene();
-  const box = new THREE.BoxGeometry(1, 1, 1);
-  const made: THREE.Material[] = [];
-  const add = (color: string, gain: number, size: [number, number, number], at: [number, number, number], inside = false) => {
-    const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(gain), side: inside ? THREE.BackSide : THREE.FrontSide });
-    made.push(material);
-    const mesh = new THREE.Mesh(box, material);
-    mesh.scale.set(...size);
-    mesh.position.set(...at);
-    room.add(mesh);
-  };
-  add("#e6ddd0", 1.05, [12, 6, 12], [0, 1.5, 0], true); // walls
-  add("#d9ccba", 1.05, [11.9, 0.1, 11.9], [0, -1.45, 0]); // floor
-  add("#ffffff", 1.25, [11.9, 0.1, 11.9], [0, 4.45, 0]); // ceiling
-  add("#fff6e8", 3.2, [0.1, 2.6, 3.4], [5.9, 1.9, 2.2]); // window, right
-  add("#fff6e8", 2.6, [3.2, 2.4, 0.1], [-2.4, 1.9, 5.9]); // window, behind the viewer
-  add("#fffaf0", 3.6, [2.2, 0.06, 1.2], [0.6, 4.35, 2.4]); // ceiling light
-  add("#5d5148", 1, [1.3, 2.3, 0.6], [2.6, -0.3, 5.5]); // a cabinet across the room
-  add("#7a6a5c", 1, [0.1, 2.2, 1.0], [-5.9, -0.3, 1.5]); // a door on the left wall
-  add("#a2907c", 1, [2.4, 0.5, 1.1], [-2.6, -1.2, 4.6]); // a bed / bench
+  const w = 1024;
+  const h = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    // ceiling → wall → a soft horizon → a light floor: nothing dark anywhere
+    const room = ctx.createLinearGradient(0, 0, 0, h);
+    room.addColorStop(0, "#ffffff");
+    room.addColorStop(0.3, "#f6f7f7");
+    room.addColorStop(0.44, "#e6e9ea");
+    room.addColorStop(0.535, "#d3d7d9");
+    room.addColorStop(0.55, "#c3c5c4");
+    room.addColorStop(0.575, "#d6d3cd");
+    room.addColorStop(0.75, "#dedad3");
+    room.addColorStop(1, "#e6e2dc");
+    ctx.fillStyle = room;
+    ctx.fillRect(0, 0, w, h);
+    // windows: soft, slightly slanted streaks of daylight around the room
+    const streak = (u: number, width: number, strength: number) => {
+      ctx.save();
+      ctx.translate(u * w, h * 0.42);
+      ctx.transform(1, 0, -0.28, 1, 0, 0);
+      const half = (width * w) / 2;
+      const g = ctx.createLinearGradient(-half, 0, half, 0);
+      g.addColorStop(0, "rgba(255,255,255,0)");
+      g.addColorStop(0.35, `rgba(255,255,255,${strength})`);
+      g.addColorStop(0.65, `rgba(255,255,255,${strength})`);
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(-half, -h * 0.26, half * 2, h * 0.4);
+      ctx.restore();
+    };
+    for (let i = 0; i < 6; i++) {
+      streak(0.04 + i / 6, 0.05, 0.95);
+      streak(0.04 + i / 6 + 0.062, 0.018, 0.7);
+    }
+  }
+  const source = new THREE.CanvasTexture(canvas);
+  source.colorSpace = THREE.SRGBColorSpace;
+  source.mapping = THREE.EquirectangularReflectionMapping;
   const pmrem = new THREE.PMREMGenerator(gl);
-  const texture = pmrem.fromScene(room, 0).texture;
+  const texture = pmrem.fromEquirectangular(source).texture;
   pmrem.dispose();
-  box.dispose();
-  made.forEach((m) => m.dispose());
+  source.dispose();
   return texture;
 }
 function useMirrorRoom(): THREE.Texture {
@@ -307,16 +337,21 @@ interface OpenPad {
 const NO_PAD: OpenPad = { x: 0, front: 0, top: 0 };
 
 /** Where the default camera stands for a W×H×D box centred on (0, H/2, 0), for this canvas aspect. */
-function defaultView(W: number, H: number, D: number, aspect: number, pad: OpenPad = NO_PAD) {
+function defaultView(
+  W: number,
+  H: number,
+  D: number,
+  aspect: number,
+  pad: OpenPad = NO_PAD,
+  fillY = VIEW_FILL_Y,
+  azimuth = VIEW_AZIMUTH,
+  elevation = VIEW_ELEVATION,
+) {
   const target = new THREE.Vector3(0, H / 2, 0);
-  const dir = new THREE.Vector3(
-    Math.sin(VIEW_AZIMUTH) * Math.cos(VIEW_ELEVATION),
-    Math.sin(VIEW_ELEVATION),
-    Math.cos(VIEW_AZIMUTH) * Math.cos(VIEW_ELEVATION),
-  );
+  const dir = new THREE.Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation));
   const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), dir).normalize();
   const up = new THREE.Vector3().crossVectors(dir, right).normalize();
-  const tanY = Math.tan(THREE.MathUtils.degToRad(VIEW_FOV) / 2) * VIEW_FILL_Y;
+  const tanY = Math.tan(THREE.MathUtils.degToRad(VIEW_FOV) / 2) * fillY;
   const tanX = Math.tan(THREE.MathUtils.degToRad(VIEW_FOV) / 2) * Math.max(aspect, 0.2) * VIEW_FILL_X;
   // Exact fit: every corner of the box must fall inside the (reduced) frustum.
   let dist = 0;
@@ -332,17 +367,72 @@ function defaultView(W: number, H: number, D: number, aspect: number, pad: OpenP
   return { target, position: target.clone().addScaledVector(dir, dist), dist };
 }
 
+/** Overlays (hint, caption, round buttons) take these strips of the canvas, px: the model is fitted between them. */
+interface Insets {
+  top: number;
+  bottom: number;
+}
+/** Where the camera goes while the client is choosing handles / door faces. */
+type FocusSpec = { kind: "doors" } | { kind: "handles"; point: [number, number, number]; side: 1 | -1; span: number };
+
+interface FitInput {
+  W: number;
+  H: number;
+  D: number;
+  aspect: number;
+  pad: OpenPad;
+  /** share of the canvas height that is free of overlays */
+  free: number;
+  focus: FocusSpec | null;
+}
+
+/** The view for the current state: the focus view if one is set, else the whole piece. */
+function viewFor(v: FitInput) {
+  const fillY = v.free < 1 ? v.free * 0.97 : VIEW_FILL_Y;
+  if (v.focus?.kind === "doors") return defaultView(v.W, v.H, v.D, v.aspect, NO_PAD, fillY, 0, THREE.MathUtils.degToRad(3));
+  if (v.focus?.kind === "handles") {
+    const azimuth = v.focus.side * THREE.MathUtils.degToRad(33);
+    const elevation = THREE.MathUtils.degToRad(11);
+    const dir = new THREE.Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation));
+    const tan = Math.tan(THREE.MathUtils.degToRad(VIEW_FOV) / 2);
+    // `span` metres of the front fill the free height (and must fit the width of a narrow canvas)
+    // a tall pane (desktop) would otherwise show only wood: step back so the handle stays in context
+    const span = v.focus.span * (v.aspect < 1.4 ? 2 : 1);
+    const dist = Math.max(span / 2 / (tan * fillY), (span * 0.8) / 2 / (tan * Math.max(v.aspect, 0.2)));
+    const target = new THREE.Vector3(...v.focus.point);
+    return { target, position: target.clone().addScaledVector(dir, dist), dist };
+  }
+  return defaultView(v.W, v.H, v.D, v.aspect, v.pad, fillY);
+}
+
 /**
  * Frames the whole piece with margin, for any canvas shape (wide desktop pane, short phone
  * strip). Re-frames when the model or the canvas changes noticeably — never in the middle of
  * a drag — and glides back to the default view when `resetSignal` changes.
  */
-function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: number; pad: OpenPad; resetSignal: number }) {
+function CameraRig({
+  W,
+  H,
+  D,
+  pad,
+  resetSignal,
+  insets,
+  focus,
+}: {
+  W: number;
+  H: number;
+  D: number;
+  pad: OpenPad;
+  resetSignal: number;
+  insets: Insets;
+  focus: FocusSpec | null;
+}) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const controls = useThree((s) => s.controls) as unknown as OrbitControlsLike | null;
   const size = useThree((s) => s.size);
   const invalidate = useThree((s) => s.invalidate);
   const aspect = size.height > 0 ? size.width / size.height : 1;
+  const free = size.height > 0 ? Math.max(0.4, 1 - (insets.top + insets.bottom) / size.height) : 1;
 
   // Buckets: re-frame only when the model or the canvas changes noticeably,
   // not on every 10 mm tweak (which would fight the customer's own orbiting).
@@ -350,23 +440,31 @@ function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: num
   const hB = Math.round(H / 0.15);
   const dB = Math.round(D / 0.1);
   const aB = Math.round(aspect * 12);
+  const fB = Math.round(free * 20);
 
   const dragging = useRef(false);
   const pending = useRef(false);
   /** set while the camera glides back to the default view */
   const glide = useRef<{ position: THREE.Vector3; target: THREE.Vector3 } | null>(null);
-  const latest = useRef({ W, H, D, aspect, pad });
+  const latest = useRef<FitInput>({ W, H, D, aspect, pad, free, focus });
   useEffect(() => {
-    latest.current = { W, H, D, aspect, pad };
+    latest.current = { W, H, D, aspect, pad, free, focus };
   });
+
+  // The picture is shifted so the model sits in the middle of the free area (between the overlays);
+  // the orbit centre stays the middle of the model.
+  useEffect(() => {
+    if (insets.top || insets.bottom) camera.setViewOffset(size.width, size.height, 0, (insets.bottom - insets.top) / 2, size.width, size.height);
+    else camera.clearViewOffset();
+    invalidate();
+  }, [camera, size.width, size.height, insets.top, insets.bottom, invalidate]);
 
   const frame = useRef<() => void>(() => {});
   /** keeps the viewing direction, changes only the distance (doors opened / closed) */
   const refit = useRef<() => void>(() => {});
   useEffect(() => {
     frame.current = () => {
-      const v = latest.current;
-      const view = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
+      const view = viewFor(latest.current);
       glide.current = null;
       camera.fov = VIEW_FOV;
       camera.position.copy(view.position);
@@ -384,7 +482,8 @@ function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: num
     };
     refit.current = () => {
       const v = latest.current;
-      const view = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
+      if (v.focus) return;
+      const view = viewFor(v);
       const target = controls ? controls.target.clone() : view.target;
       const dir = camera.position.clone().sub(target);
       if (dir.lengthSq() < 1e-6) return;
@@ -426,16 +525,35 @@ function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: num
     if (dragging.current) pending.current = true;
     else frame.current();
     // Deliberately keyed on the size buckets (see above), not on exact values.
-  }, [wB, hB, dB, aB, controls, camera]);
+  }, [wB, hB, dB, aB, fB, controls, camera]);
 
   const firstReset = useRef(resetSignal);
   useEffect(() => {
     if (resetSignal === firstReset.current) return;
-    const v = latest.current;
-    const view = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
+    const view = viewFor(latest.current);
     glide.current = { position: view.position, target: view.target };
     invalidate();
   }, [resetSignal, invalidate]);
+
+  // A focus set or lifted by the shell: ease to that view (and back to the whole piece).
+  const focusKey = focus ? (focus.kind === "doors" ? "doors" : `handles|${focus.point.map((n) => n.toFixed(2)).join(",")}|${focus.side}|${focus.span.toFixed(2)}`) : "";
+  const firstFocus = useRef(focusKey);
+  useEffect(() => {
+    if (focusKey === firstFocus.current) return;
+    firstFocus.current = focusKey;
+    const v = { ...latest.current, focus };
+    const whole = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
+    const view = viewFor(v);
+    if (controls) {
+      // the close view is nearer than the usual limit allows
+      controls.minDistance = Math.min(view.dist * 0.6, whole.dist * 0.4);
+      controls.maxDistance = whole.dist * 1.8;
+    }
+    glide.current = { position: view.position, target: view.target };
+    invalidate();
+    // `focus` itself is covered by focusKey
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusKey, controls, invalidate]);
 
   // Doors opening / closing change how much room the piece needs: step back (or return) along the
   // client's own viewing direction, so their rotation is kept.
@@ -450,7 +568,8 @@ function CameraRig({ W, H, D, pad, resetSignal }: { W: number; H: number; D: num
   useFrame((state, delta) => {
     const g = glide.current;
     if (!g) return;
-    const k = Math.min(1, delta * 6);
+    // (with frameloop="demand" the first delta after a pause is long: it must not snap the glide)
+    const k = Math.min(1, Math.min(delta, 0.05) * 6);
     camera.position.lerp(g.position, k);
     if (controls) controls.target.lerp(g.target, k);
     if (camera.position.distanceTo(g.position) < 0.004) {
@@ -517,6 +636,8 @@ function HoverGlow({ w, h, d }: { w: number; h: number; d: number }) {
 const FACE_MM = 4;
 /** The board of the door shows around the sheet, like a slim frame. */
 const FACE_MARGIN_MM = 12;
+/** A glass door is a pane in a frame this wide. */
+const FRAME_MM = 44;
 
 interface Margins {
   LEFT: number;
@@ -525,31 +646,100 @@ interface Margins {
   BOTTOM: number;
 }
 
+/** What a door carries on its face. */
+interface Face {
+  material: THREE.Material;
+  /** a pane you see through, held in a frame (clear, tinted and frosted glass); false = a sheet glued on the board */
+  pane: boolean;
+  /** strength of the light streak across it (0 = none) */
+  glint: number;
+}
+
 /** A mirror is never drilled: the sheet leaves a strip of board free where the handle (or the milled edge) goes. */
-function faceMargins(plan: FrontPlan, handle: EffectiveHandle): Margins {
-  const m: Margins = { LEFT: FACE_MARGIN_MM, RIGHT: FACE_MARGIN_MM, TOP: FACE_MARGIN_MM, BOTTOM: FACE_MARGIN_MM };
+function faceMargins(plan: FrontPlan, handle: EffectiveHandle, base: number): Margins {
+  const m: Margins = { LEFT: base, RIGHT: base, TOP: base, BOTTOM: base };
   if (!plan.hardware) return m;
   if (handle === "APLICAT" || handle === "BUTON" || handle === "INGROPAT") {
-    if (plan.mode === "T") m.BOTTOM = Math.min(HANDLE_STRIP_MM, plan.piece.h * 0.35);
-    else if (plan.mode === "L") m.RIGHT = Math.min(HANDLE_STRIP_MM, plan.piece.w * 0.35);
-    else if (plan.mode === "R") m.LEFT = Math.min(HANDLE_STRIP_MM, plan.piece.w * 0.35);
-  } else if (handle === "PROFIL_J") m[plan.edge] = 30;
+    if (plan.mode === "T") m.BOTTOM = Math.max(base, Math.min(HANDLE_STRIP_MM, plan.piece.h * 0.35));
+    else if (plan.mode === "L") m.RIGHT = Math.max(base, Math.min(HANDLE_STRIP_MM, plan.piece.w * 0.35));
+    else if (plan.mode === "R") m.LEFT = Math.max(base, Math.min(HANDLE_STRIP_MM, plan.piece.w * 0.35));
+  } else if (handle === "PROFIL_J") m[plan.edge] = Math.max(base, 30);
   return m;
 }
 
-/** The mirror / glass sheet on the face of a door (in the door's own frame). */
-function FaceSheet({ w, h, d, margins, material }: { w: number; h: number; d: number; margins: Margins; material: THREE.Material }) {
+/** A soft diagonal streak of light: what makes a flat sheet read as glass or mirror at a glance. */
+let glintTexture: THREE.Texture | null = null;
+function getGlintTexture(): THREE.Texture {
+  if (glintTexture) return glintTexture;
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, size, size, 0);
+    const band = (at: number, half: number, alpha: number) => {
+      g.addColorStop(Math.max(0, at - half), "rgba(255,255,255,0)");
+      g.addColorStop(at, `rgba(255,255,255,${alpha})`);
+      g.addColorStop(Math.min(1, at + half), "rgba(255,255,255,0)");
+    };
+    band(0.36, 0.13, 1);
+    band(0.56, 0.04, 0.55);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+  }
+  glintTexture = new THREE.CanvasTexture(canvas);
+  glintTexture.colorSpace = THREE.SRGBColorSpace;
+  return glintTexture;
+}
+const UNIT_PLANE = new THREE.PlaneGeometry(1, 1);
+const glintMaterials = new Map<number, THREE.Material>();
+function glintMaterial(strength: number): THREE.Material {
+  let m = glintMaterials.get(strength);
+  if (!m) {
+    m = new THREE.MeshBasicMaterial({ map: getGlintTexture(), transparent: true, opacity: strength, depthWrite: false, toneMapped: false });
+    glintMaterials.set(strength, m);
+  }
+  return m;
+}
+
+/** The mirror / glass on a door, in the door's own frame: a sheet on its face, or the pane inside its frame. */
+function FaceSheet({ w, h, d, margins, face }: { w: number; h: number; d: number; margins: Margins; face: Face }) {
   const fw = w - margins.LEFT - margins.RIGHT;
   const fh = h - margins.TOP - margins.BOTTOM;
   if (fw < 20 || fh < 20) return null;
+  const x = ((margins.LEFT - margins.RIGHT) / 2) * S;
+  const y = ((margins.BOTTOM - margins.TOP) / 2) * S;
+  // a pane sits in the middle of the frame's thickness; a sheet lies on the board
+  const z = face.pane ? 0 : (d / 2 + FACE_MM / 2) * S;
+  const front = z + (FACE_MM / 2 + 0.8) * S;
   return (
-    <mesh
-      geometry={UNIT_BOX}
-      position={[((margins.LEFT - margins.RIGHT) / 2) * S, ((margins.BOTTOM - margins.TOP) / 2) * S, (d / 2 + FACE_MM / 2) * S]}
-      scale={[fw * S, fh * S, FACE_MM * S]}
-      material={material}
-      renderOrder={1}
-    />
+    <>
+      <mesh geometry={UNIT_BOX} position={[x, y, z]} scale={[fw * S, fh * S, FACE_MM * S]} material={face.material} renderOrder={1} />
+      {face.glint > 0 && (
+        <mesh geometry={UNIT_PLANE} position={[x, y, front]} scale={[fw * S, fh * S, 1]} material={glintMaterial(face.glint)} renderOrder={2} raycast={noRaycast} />
+      )}
+    </>
+  );
+}
+
+/** The frame of a glass door: four bars of the door's board around the pane. */
+function DoorFrame({ w, h, d, margins, material }: { w: number; h: number; d: number; margins: Margins; material: THREE.Material }) {
+  const frontEdge = useContext(FrontEdge);
+  const innerH = h - margins.TOP - margins.BOTTOM;
+  const bars: { key: string; at: [number, number]; size: [number, number] }[] = [
+    { key: "top", at: [0, h / 2 - margins.TOP / 2], size: [w, margins.TOP] },
+    { key: "bottom", at: [0, -h / 2 + margins.BOTTOM / 2], size: [w, margins.BOTTOM] },
+    { key: "left", at: [-w / 2 + margins.LEFT / 2, (margins.BOTTOM - margins.TOP) / 2], size: [margins.LEFT, innerH] },
+    { key: "right", at: [w / 2 - margins.RIGHT / 2, (margins.BOTTOM - margins.TOP) / 2], size: [margins.RIGHT, innerH] },
+  ];
+  return (
+    <>
+      {bars.map((bar) => (
+        <mesh key={bar.key} geometry={UNIT_BOX} position={[bar.at[0] * S, bar.at[1] * S, 0]} scale={[bar.size[0] * S, bar.size[1] * S, d * S]} material={material} castShadow receiveShadow>
+          <Edges threshold={20} color={frontEdge.color} transparent opacity={frontEdge.opacity * 0.7} raycast={noRaycast} />
+        </mesh>
+      ))}
+    </>
   );
 }
 
@@ -575,7 +765,7 @@ interface FrontProps {
  * A hinged front (piece.hinge set by the CRM): a pivot group sits on the hinge edge and the
  * door hangs off it, so rotating the group swings the door outwards (towards +z).
  */
-function HingedFront({ plan, scene, material, face, handle, mats, wallHung, amount, hovered }: FrontProps & { face: THREE.Material | null }) {
+function HingedFront({ plan, scene, material, face, handle, mats, wallHung, amount, hovered }: FrontProps & { face: Face | null }) {
   const ref = useRef<THREE.Group>(null);
   const { x, y, z, w, h, d } = plan.piece;
   const hinge = plan.mode;
@@ -590,6 +780,7 @@ function HingedFront({ plan, scene, material, face, handle, mats, wallHung, amou
   const openRad = hinge === "T" ? -LIFT_OPEN_RAD : hinge === "R" ? SWING_OPEN_RAD : -SWING_OPEN_RAD;
   const geometry = useGrainBox(Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S, x * S, y * S, z * S, "y");
   const frontEdge = useContext(FrontEdge);
+  const margins = faceMargins(plan, handle, face?.pane ? FRAME_MM : FACE_MARGIN_MM);
 
   useTween(amount, (v) => {
     const g = ref.current;
@@ -602,10 +793,14 @@ function HingedFront({ plan, scene, material, face, handle, mats, wallHung, amou
   return (
     <group ref={ref} position={pivot} userData={{ openKey: plan.key }}>
       <group position={offset}>
-        <mesh material={material} geometry={geometry} castShadow receiveShadow>
-          <Edges threshold={20} color={frontEdge.color} transparent opacity={frontEdge.opacity} raycast={noRaycast} />
-        </mesh>
-        {face && <FaceSheet w={w} h={h} d={d} margins={faceMargins(plan, handle)} material={face} />}
+        {face?.pane ? (
+          <DoorFrame w={w} h={h} d={d} margins={margins} material={material} />
+        ) : (
+          <mesh material={material} geometry={geometry} castShadow receiveShadow>
+            <Edges threshold={20} color={frontEdge.color} transparent opacity={frontEdge.opacity} raycast={noRaycast} />
+          </mesh>
+        )}
+        {face && <FaceSheet w={w} h={h} d={d} margins={margins} face={face} />}
         {plan.hardware && <FrontHardware kind={handle} mode={hinge} edge={plan.edge} w={w} h={h} d={d} yMm={y} wallHung={wallHung} mats={mats} />}
         {hovered && <HoverGlow w={w} h={h} d={d} />}
       </group>
@@ -763,6 +958,7 @@ function RailMesh({ rail, scene, material }: { rail: Rail; scene: AtelierScene; 
 /* ── Sliding doors ── */
 
 const SLIDING_FACE_MARGIN: Margins = { LEFT: 16, RIGHT: 16, TOP: 16, BOTTOM: 16 };
+const SLIDING_FRAME: Margins = { LEFT: 38, RIGHT: 38, TOP: 38, BOTTOM: 52 };
 const meshRaycast = THREE.Mesh.prototype.raycast;
 
 function Door({
@@ -783,7 +979,7 @@ function Door({
   scene: AtelierScene;
   material: THREE.Material;
   /** the mirror / glass sheet on the door, if any */
-  face: THREE.Material | null;
+  face: Face | null;
   /** false while the doors are see-through ghosts („open all"): they must not shade the interior nor catch taps */
   solid: boolean;
   hovered: boolean;
@@ -802,10 +998,14 @@ function Door({
   return (
     <group position={[0, (bottom + door.h / 2) * S, (zMm + DOOR_THICKNESS_MM / 2 - scene.depthMm / 2) * S]}>
       <group ref={ref} userData={{ openKey }}>
-        <mesh material={material} geometry={geometry} renderOrder={2} castShadow={solid} receiveShadow={solid} raycast={solid ? meshRaycast : noRaycast}>
-          <Edges threshold={20} color={frontEdge.color} transparent opacity={solid ? frontEdge.opacity : 0.22} raycast={noRaycast} />
-        </mesh>
-        {solid && face && <FaceSheet w={door.w} h={door.h} d={DOOR_THICKNESS_MM} margins={SLIDING_FACE_MARGIN} material={face} />}
+        {solid && face?.pane ? (
+          <DoorFrame w={door.w} h={door.h} d={DOOR_THICKNESS_MM} margins={SLIDING_FRAME} material={material} />
+        ) : (
+          <mesh material={material} geometry={geometry} renderOrder={2} castShadow={solid} receiveShadow={solid} raycast={solid ? meshRaycast : noRaycast}>
+            <Edges threshold={20} color={frontEdge.color} transparent opacity={solid ? frontEdge.opacity : 0.22} raycast={noRaycast} />
+          </mesh>
+        )}
+        {solid && face && <FaceSheet w={door.w} h={door.h} d={DOOR_THICKNESS_MM} margins={face.pane ? SLIDING_FRAME : SLIDING_FACE_MARGIN} face={face} />}
         {solid && hovered && <HoverGlow w={door.w} h={door.h} d={DOOR_THICKNESS_MM} />}
       </group>
     </group>
@@ -819,64 +1019,83 @@ const faceKey = (fill: FaceFill, look: { tint?: string; matte?: boolean; opaque?
   `${fill}|${look.tint ?? ""}|${look.matte ? 1 : 0}|${look.opaque ? 1 : 0}`;
 const hexColor = (hex: string) => (/^#[0-9a-f]{6}$/i.test(hex) ? new THREE.Color(hex) : null);
 
-function makeFaceMaterial(key: string, frontColor: string, env: THREE.Texture, mirrorRoom: THREE.Texture): THREE.Material {
+function makeFace(key: string, frontColor: string, env: THREE.Texture, mirrorRoom: THREE.Texture): Face {
   const [fill, tintHex, matteFlag, opaqueFlag] = key.split("|");
   const tint = hexColor(tintHex);
   const matte = matteFlag === "1";
+  const white = new THREE.Color("#ffffff");
   if (fill === "OGLINDA") {
-    // a mirror is polished metal seen through glass: it shows the room, in the colour of its tint
-    return new THREE.MeshStandardMaterial({
-      color: tint ? tint.lerp(new THREE.Color("#ffffff"), 0.08) : "#f2f5f7",
-      metalness: 1,
-      roughness: matte ? 0.38 : 0.02,
-      envMap: mirrorRoom,
-      envMapIntensity: 1,
-    });
+    // a mirror is polished metal seen through glass: it shows the (bright) room, in the colour of its tint
+    const hsl = { h: 0, s: 0, l: 0 };
+    const color = tint ? tint.clone() : new THREE.Color("#e9eef0");
+    color.getHSL(hsl);
+    // a pale tint must stay a bright mirror; a dark one keeps its depth but still shines
+    if (hsl.l > 0.7) color.lerp(white, 0.5);
+    return {
+      material: new THREE.MeshStandardMaterial({
+        color,
+        metalness: 1,
+        roughness: matte ? 0.4 : 0.03,
+        envMap: mirrorRoom,
+        envMapIntensity: matte ? 1.1 : hsl.l < 0.35 ? 1.9 : 1.25,
+      }),
+      pane: false,
+      glint: matte ? 0 : hsl.l < 0.35 ? 0.12 : 0.24,
+    };
   }
   if (matte) {
-    // frosted glass: milky, nothing shows through
-    return new THREE.MeshPhysicalMaterial({
-      color: (tint ?? new THREE.Color("#dfe8e8")).lerp(new THREE.Color("#ffffff"), 0.3),
-      roughness: 0.6,
-      metalness: 0,
-      clearcoat: 0.3,
-      clearcoatRoughness: 0.55,
-      envMap: env,
-      envMapIntensity: 0.55,
-      transparent: true,
-      opacity: 0.96,
-    });
+    // frosted glass: a milky pane, shapes behind it stay a blur of light and shade
+    return {
+      material: new THREE.MeshStandardMaterial({
+        color: (tint ?? new THREE.Color("#e9eeee")).clone().lerp(white, 0.55),
+        roughness: 0.85,
+        metalness: 0,
+        envMapIntensity: 0.6,
+        transparent: true,
+        opacity: 0.9,
+      }),
+      pane: true,
+      glint: 0.06,
+    };
   }
   if (!tint || opaqueFlag === "1") {
     // lacquered (back-painted) glass: a solid colour under a glossy coat, nothing shows through.
     // Older CRM, no glass type: the front colour, cooled down.
-    return new THREE.MeshPhysicalMaterial({
-      color: tint ?? new THREE.Color(frontColor).lerp(new THREE.Color("#6f93a3"), 0.6),
-      roughness: 0.06,
-      metalness: 0,
-      clearcoat: 1,
-      clearcoatRoughness: 0.03,
-      envMap: tint ? mirrorRoom : env,
-      envMapIntensity: tint ? 0.5 : 0.8,
-      transparent: !tint,
-      opacity: tint ? 1 : 0.92,
-    });
+    const hsl = { h: 0, s: 0, l: 0 };
+    (tint ?? white).getHSL(hsl);
+    return {
+      material: new THREE.MeshPhysicalMaterial({
+        color: tint ?? new THREE.Color(frontColor).lerp(new THREE.Color("#6f93a3"), 0.6),
+        roughness: 0.06,
+        metalness: 0,
+        clearcoat: 1,
+        clearcoatRoughness: 0.03,
+        envMap: tint ? mirrorRoom : env,
+        envMapIntensity: tint ? (hsl.l < 0.35 ? 1.3 : 0.6) : 0.8,
+        transparent: !tint,
+        opacity: tint ? 1 : 0.92,
+      }),
+      pane: false,
+      glint: 0.1,
+    };
   }
-  // clear / tinted glass: the board behind shows through, more so the lighter the glass
+  // clear / tinted glass: a real pane, the shelves show behind it (the darker the tint, the less)
   const hsl = { h: 0, s: 0, l: 0 };
   tint.getHSL(hsl);
-  return new THREE.MeshPhysicalMaterial({
-    color: tint,
-    roughness: 0.05,
-    metalness: 0,
-    clearcoat: 1,
-    clearcoatRoughness: 0.03,
-    // the sheet shines like the mirrors do, only fainter
-    envMap: mirrorRoom,
-    envMapIntensity: 0.9,
-    transparent: true,
-    opacity: 0.36 + 0.42 * (1 - hsl.l),
-  });
+  return {
+    material: new THREE.MeshStandardMaterial({
+      color: tint,
+      roughness: 0.04,
+      metalness: 0,
+      envMap: mirrorRoom,
+      envMapIntensity: 1.4,
+      transparent: true,
+      opacity: 0.14 + 0.62 * (1 - hsl.l),
+      depthWrite: false,
+    }),
+    pane: true,
+    glint: 0.3,
+  };
 }
 
 /** One material per kind of mirror / glass in the scene (shared by all the doors that carry it). */
@@ -890,11 +1109,11 @@ function useFaceMaterials(scene: AtelierScene, frontColor: string) {
     return [...keys].sort().join(";");
   }, [scene]);
   const materials = useMemo(() => {
-    const map = new Map<string, THREE.Material>();
-    for (const key of signature.split(";")) if (key) map.set(key, makeFaceMaterial(key, frontColor, env, mirrorRoom));
+    const map = new Map<string, Face>();
+    for (const key of signature.split(";")) if (key) map.set(key, makeFace(key, frontColor, env, mirrorRoom));
     return map;
   }, [signature, frontColor, env, mirrorRoom]);
-  useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
+  useEffect(() => () => materials.forEach((f) => f.material.dispose()), [materials]);
   return materials;
 }
 
@@ -1048,8 +1267,8 @@ function Wardrobe({
           const face = fill ? (faces.get(faceKey(fill, piece)) ?? null) : null;
           const common = { plan: f, scene, handle, mats, wallHung: plan.wallHung, amount: open.amount[i] ?? 0, hovered: hover === f.key };
           return f.kind === "door" ? (
-            // a mirror / glass is glued on a board of the carcass material
-            <HingedFront key={`${i}-${f.mode}`} {...common} material={face ? carcassMat : frontMat} face={face} />
+            // a mirror / lacquered glass is glued on a board of the carcass material; a glass pane sits in a frame of the fronts' board
+            <HingedFront key={`${i}-${f.mode}`} {...common} material={face && !face.pane ? carcassMat : frontMat} face={face} />
           ) : (
             <DrawerFront key={`${i}-drawer`} {...common} material={frontMat} carcassMaterial={carcassMat} />
           );
@@ -1227,6 +1446,26 @@ function rememberHint() {
   }
 }
 
+/** The hint leaves by itself after this long. */
+const HINT_MS = 4000;
+/** Short viewports (a phone held sideways): no room for words over the model. */
+const SHORT_HIDE = "[@media(max-height:419px)]:hidden";
+
+/** Is the viewer phone-sized (narrower than Tailwind's `sm`, and not a short landscape strip)? */
+function usePhoneBox() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const measure = () => setPhone(window.innerWidth < 640 && window.innerHeight >= 420);
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, phone };
+}
+
 export default function Viewer3D({
   scene,
   columns,
@@ -1240,6 +1479,7 @@ export default function Viewer3D({
   handles = false,
   handle,
   handleFinish = "NEGRU",
+  focus = null,
   onInteract,
   stale = false,
 }: Viewer3DProps) {
@@ -1253,6 +1493,14 @@ export default function Viewer3D({
   // the "drag to rotate" hint has done its job once the client has touched the model
   const [interacted, setInteracted] = useState(false);
   const [tapHint, setTapHint] = useState(() => !hintSeen());
+  // the hint also leaves by itself: it must not sit on the model for long
+  const hasScene = !!scene;
+  useEffect(() => {
+    if (!hasScene || !tapHint) return;
+    const timer = setTimeout(() => setTapHint(false), HINT_MS);
+    return () => clearTimeout(timer);
+  }, [hasScene, tapHint]);
+  const { ref: boxRef, phone } = usePhoneBox();
 
   // what the fronts carry: the shell's choice, else the scene's, else the legacy flag (older CRM)
   const handleKind: EffectiveHandle = handle ?? scene?.handle ?? (handles ? "APLICAT" : "FARA");
@@ -1265,19 +1513,22 @@ export default function Viewer3D({
   // drawers come out with „open all" only when the client asked for it with the button
   // (the shell opening the doors for the interior step must not pull every drawer out)
   const [allDrawers, setAllDrawers] = useState(false);
-  const resetKey = `${doorsOpen}|${plan?.signature ?? ""}`;
+  // a focus (choosing handles / door faces) shows the piece closed; the shell's „open" waits
+  const allOpen = doorsOpen && !focus;
+  const resetKey = `${allOpen}|${focus ?? ""}|${plan?.signature ?? ""}`;
   const [seenResetKey, setSeenResetKey] = useState(resetKey);
   if (seenResetKey !== resetKey) {
     setSeenResetKey(resetKey);
     setOverrides({});
-    if (!doorsOpen) setAllDrawers(false);
+    if (!allOpen) setAllDrawers(false);
   }
   const open = useMemo(
-    () => (scene && plan ? resolveOpen(scene, plan, overrides, doorsOpen, allDrawers) : null),
-    [scene, plan, overrides, doorsOpen, allDrawers],
+    () => (scene && plan ? resolveOpen(scene, plan, overrides, allOpen, allDrawers) : null),
+    [scene, plan, overrides, allOpen, allDrawers],
   );
   const hasOpenables = !!plan && plan.doors + plan.drawers + plan.sliding > 0;
-  const anyOpen = open?.anyOpen ?? false;
+  // the button reads „close all" only when the piece really stands open, not after one door
+  const everythingOpen = open?.allOpen ?? false;
 
   const dismissHint = () => {
     if (!tapHint) return;
@@ -1285,7 +1536,7 @@ export default function Viewer3D({
     rememberHint();
   };
   const toggleAll = () => {
-    const next = !anyOpen;
+    const next = !everythingOpen;
     setOverrides({});
     setAllDrawers(next);
     setDoorsOpen(next);
@@ -1294,7 +1545,7 @@ export default function Viewer3D({
   };
   const toggleOne = (key: string) => {
     if (!scene || !plan) return;
-    const result = toggleOpen(scene, plan, overrides, doorsOpen, allDrawers, key);
+    const result = toggleOpen(scene, plan, overrides, allOpen, allDrawers, key);
     setOverrides(result.overrides);
     if (!result.changed) return;
     dismissHint();
@@ -1308,7 +1559,9 @@ export default function Viewer3D({
   const wallHung = plan?.wallHung ?? false;
   // opened doors and drawers stick out: the camera must leave room for them
   const pad = useMemo<OpenPad>(() => {
-    if (!scene || !plan || !open) return NO_PAD;
+    // one door or drawer opening must not push the camera back (the piece would shrink on a phone):
+    // only „open all" makes room
+    if (!scene || !plan || !open || !allOpen) return NO_PAD;
     let x = 0;
     let front = 0;
     let top = 0;
@@ -1333,20 +1586,53 @@ export default function Viewer3D({
       x = Math.max(x, past - edge);
     });
     return x <= 0 && front <= 0 && top <= 0 ? NO_PAD : { x: Math.max(0, x) * S, front: Math.max(0, front) * S, top: Math.max(0, top) * S };
-  }, [scene, plan, open]);
+  }, [scene, plan, open, allOpen]);
 
+  // the hint names only what the client can see and tap right now
+  const seenDoors = plan ? plan.doors + plan.sliding : 0;
+  const seenDrawers = plan ? plan.fronts.filter((f) => f?.kind === "drawer" && f.coveredBy.length === 0 && !f.behindSliding).length : 0;
   const hintText =
-    !plan || !hasOpenables
-      ? null
-      : plan.drawers === 0
+    seenDoors > 0 && seenDrawers > 0
+      ? "Atinge o ușă sau un sertar ca să-l deschizi"
+      : seenDoors > 0
         ? "Atinge o ușă ca să o deschizi"
-        : plan.doors + plan.sliding === 0
+        : seenDrawers > 0
           ? "Atinge un sertar ca să-l deschizi"
-          : "Atinge o ușă sau un sertar ca să-l deschizi";
-  const allLabel = anyOpen ? "Închide tot" : "Deschide tot";
+          : null;
+  const allLabel = everythingOpen ? "Închide tot" : "Deschide tot";
+  const showHint = !!scene && !!hintText && tapHint && !focus;
+
+  const focusSpec = useMemo<FocusSpec | null>(() => {
+    if (!focus || !scene || !plan) return null;
+    if (focus === "doors") return { kind: "doors" };
+    // the front nearest the middle of the piece that shows its handle (not the drawers behind doors)
+    let best: FrontPlan | null = null;
+    let bestOff = Infinity;
+    for (const f of plan.fronts) {
+      if (!f || !f.hardware || f.coveredBy.length > 0 || f.behindSliding) continue;
+      if (handleKind === "GOLA" && !f.channel) continue;
+      const off = Math.abs(f.piece.x + f.piece.w / 2 - scene.widthMm / 2) - (f.kind === "door" ? 1 : 0);
+      if (off < bestOff) {
+        best = f;
+        bestOff = off;
+      }
+    }
+    if (!best) return null;
+    const p = best.piece;
+    const [gx, gy] = gripPoint(best, handleKind, plan.wallHung);
+    return {
+      kind: "handles",
+      point: [(p.x + p.w / 2 + gx - scene.widthMm / 2) * S, (p.y + p.h / 2 + gy) * S, (p.z + p.d - scene.depthMm / 2) * S],
+      side: best.mode === "R" ? -1 : 1,
+      span: best.kind === "door" && p.h > 1400 ? 0.8 : 0.6,
+    };
+  }, [focus, scene, plan, handleKind]);
+  // on a phone the round buttons and the caption take a band at the bottom: the model is fitted above it
+  const insets = useMemo<Insets>(() => (phone ? { top: 4, bottom: 52 } : { top: 0, bottom: 0 }), [phone]);
 
   return (
     <div
+      ref={boxRef}
       className="relative h-full w-full overflow-hidden rounded-[var(--image-radius)] bg-[#ddd6cb]"
       style={{ backgroundImage: BACKDROP }}
     >
@@ -1395,7 +1681,7 @@ export default function Viewer3D({
             maxAzimuthAngle={Math.PI / 2.4}
             onStart={() => setInteracted(true)}
           />
-          <CameraRig W={W} H={H} D={D} pad={pad} resetSignal={resetSignal} />
+          <CameraRig W={W} H={H} D={D} pad={pad} resetSignal={resetSignal} insets={insets} focus={focusSpec} />
         </Canvas>
       ) : (
         <div className="flex h-full items-center justify-center text-sm text-[var(--home-ivory)]/60">
@@ -1403,29 +1689,26 @@ export default function Viewer3D({
         </div>
       )}
 
-      {hasOpenables && (
+      {hasOpenables && !focus && (
         <button
           type="button"
-          aria-pressed={anyOpen}
+          aria-pressed={everythingOpen}
           aria-label={allLabel}
           title={allLabel}
           onClick={toggleAll}
           className={`atelier-doors absolute left-2 top-2 flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold shadow-sm backdrop-blur transition-colors sm:left-3 sm:top-3 sm:px-3.5 ${
-            anyOpen ? "bg-[var(--home-orange)] text-white" : "bg-white/90 text-[var(--home-ivory)]/85 hover:text-[var(--home-ivory)]"
+            everythingOpen ? "bg-[var(--home-orange)] text-white" : "bg-white/90 text-[var(--home-ivory)]/85 hover:text-[var(--home-ivory)]"
           }`}
         >
-          {anyOpen ? <DoorOpen size={18} aria-hidden="true" /> : <DoorClosed size={18} aria-hidden="true" />}
-          <span className="max-sm:hidden">{allLabel}</span>
+          {everythingOpen ? <DoorOpen size={18} aria-hidden="true" /> : <DoorClosed size={18} aria-hidden="true" />}
+          <span className={`max-sm:hidden ${SHORT_HIDE}`}>{allLabel}</span>
         </button>
       )}
 
-      {scene && hintText && tapHint && (
-        <p
-          className={`pointer-events-none absolute left-16 right-3 top-2.5 flex justify-start transition-opacity duration-300 sm:left-0 sm:right-0 sm:top-3.5 sm:justify-center ${
-            updating || stale ? "max-sm:opacity-0" : ""
-          }`}
-        >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[12px] font-medium leading-tight text-[var(--home-ivory)]/85 shadow-sm backdrop-blur sm:text-[13px]">
+      {/* desktop: the hint is a pill at the top (there is room above the model) */}
+      {showHint && (
+        <p className={`pointer-events-none absolute left-0 right-0 top-3.5 flex justify-center max-sm:hidden ${SHORT_HIDE}`}>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[13px] font-medium leading-tight text-[var(--home-ivory)]/85 shadow-sm backdrop-blur">
             <Pointer size={15} aria-hidden="true" className="shrink-0 text-[var(--home-orange)]" />
             {hintText}
           </span>
@@ -1448,8 +1731,15 @@ export default function Viewer3D({
           >
             <ScanEye size={18} aria-hidden="true" />
           </button>
+          {/* phone: the hint takes the caption's place in the bottom band (the model is fitted above it) */}
+          {showHint && (
+            <p className={`pointer-events-none flex items-center gap-1 text-[0.72rem] font-medium leading-tight text-[var(--home-ivory)]/85 sm:hidden ${SHORT_HIDE}`}>
+              <Pointer size={14} aria-hidden="true" className="shrink-0 text-[var(--home-orange)]" />
+              {hintText}
+            </p>
+          )}
           <p
-            className={`pointer-events-none text-[0.7rem] text-[var(--home-ivory)]/60 ${interacted ? "max-sm:hidden" : ""}`}
+            className={`pointer-events-none text-[0.7rem] text-[var(--home-ivory)]/60 ${SHORT_HIDE} ${focus ? "hidden" : showHint || interacted ? "max-sm:hidden" : ""}`}
           >
             Trage pentru a roti<span className="max-lg:hidden"> · scroll / ciupește pentru zoom</span>
           </p>
