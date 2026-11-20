@@ -1,9 +1,18 @@
 {
+  "dressing-clasic-240": [
+    "alb-stejar-natur",
+    "stejar-natur",
+    "gri-casmir",
+    "antracit-stejar",
+    "nuc-crem"
+  ],
   "comoda-tv-240": [
     "alb-total"
   ],
   "dressing-hol-120": [
-    "casmir-alb"
+    "casmir-alb",
+    "alb-total",
+    "gri-casmir"
   ],
   "noptiera-50": [
     "stejar-casmir"

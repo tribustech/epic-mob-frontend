@@ -76,3 +76,95 @@ The photo is believable as a photo, and the mounting height is finally right (un
 5. `No lettering anywhere: plain book spines, no labels on jars or bottles, no markings on appliances.` Pseudo-text appears on books and a jar.
 6. `Props must be usable where they are: hooks at 1.70 m on a free wall, appliances centred under worktops, nothing hung above a mirror.` Small nonsense details are what make a room read as generated.
 7. For wall-hung pieces: `Give the mounting height twice, as a number and as a relation: "underside 140 cm above the floor, 50 cm above the worktop below it, 30 cm of wall between its top and the ceiling".` Mount heights were close but drifted 10–15 cm where only the number was given.
+
+---
+
+# Batch 1 (9 photos)
+
+Reviewed: `/tmp/claude-0/batch1/<slug>/<paletteId>.webp`, same method and standard as the pilot. Measurements are ±10%.
+
+## Verdicts
+
+| Photo | Verdict | Realism | Main reason |
+|---|---|---|---|
+| dressing-clasic-240 / alb-stejar-natur | ACCEPT | 8.5 | Matches render; ~20 cm dead gap between the wardrobe and the corner |
+| dressing-clasic-240 / alb-total | REJECT | 7.5 | Doors sit inside a visible carcass frame (render: doors cover the whole front); wide-angle stretching; not in the corner |
+| dressing-clasic-240 / antracit-stejar | ACCEPT | 8 | Matches render; anthracite body reads correctly around oak doors |
+| dressing-clasic-240 / gri-casmir | ACCEPT | 8.5 | Matches render; tight in the corner beside the balcony-door wall |
+| dressing-clasic-240 / nuc-crem | ACCEPT | 8.5 | Matches render; tight in the corner, room door and dresser give scale |
+| dressing-clasic-240 / stejar-natur | ACCEPT | 9 | Best of the six; corner, window, radiator, bench all make sense |
+| dressing-hol-120 / alb-total | ACCEPT | 8.5 | Matches render; corner beside the entrance door, bench and umbrella stand |
+| dressing-hol-120 / gri-casmir | ACCEPT | 8.5 | Matches render; wardrobe reaches the ceiling instead of ending 20 cm below |
+| suspendat-tv-180 / alb-total (regenerated) | REJECT (borderline) | 8.5 | Everything fixed except the box itself: still about 20% too long for its height |
+
+## Per photo
+
+### dressing-clasic-240 / alb-stejar-natur: ACCEPT, realism 8.5
+- Render match: 3 equal full-height doors, no handles, oak fronts with vertical grain, white top edge, side and recessed plinth.
+- Placement/scale: ends ~10 cm under the ceiling; switch and socket on the same wall give a believable 2.4–2.5 m height. Bed and rug at lower left.
+- Weak point: the wardrobe starts ~20 cm away from the left corner (behind the curtain) and the wall continues on the right, so neither end is in a corner as the brief asks. Reads as a normal freestanding wardrobe, not as a mistake.
+- Artefacts: none.
+
+### dressing-clasic-240 / alb-total: REJECT, realism 7.5
+- Mismatch vs render: the three doors are set inside a carcass frame. A ~8 cm white header runs above the doors, a stile on the left and a rail under them. In the render (and in the other five photos) the doors cover the whole front. It looks like a different wardrobe model.
+- Perspective: the near end is 787 px high and the far end 545 px (ratio 1.44 across 2.4 m). The brief asks for no wide-angle stretching; the wardrobe looks like it leans into the room.
+- Placement: far end stops ~40 cm short of the corner, with an armchair squeezed behind it. Near end stands free beside the room door.
+- Styling: an olive tree at the right edge (the prompt's avoid list names olive branches) and a large drum pendant cut by the top of the frame.
+- Correct: 3 equal doors, no handles, white on greige wall, plinth, ~10 cm under the ceiling, taller than the room door.
+- Prompt additions:
+  - `The three door panels cover the entire front of the wardrobe from the top edge down to the plinth and from side to side. No frame, header, stile or rail is visible around or between the doors.`
+  - `Camera 4 m back with a 35 mm lens; the far end of the wardrobe is at least 80% as high in the picture as the near end. No wide-angle stretching.`
+  - `The far end of the wardrobe touches the side wall in the room corner; nothing stands between the wardrobe and that wall. The reading chair is on another wall.`
+  - `No plant and no ceiling lamp in the frame.`
+
+### dressing-clasic-240 / antracit-stejar: ACCEPT, realism 8
+- Render match: 3 equal oak doors, anthracite side, thin anthracite top edge and plinth. Dark grey, not black.
+- Placement/scale: ~5–10 cm under the ceiling; by the switch it reads ~2.6 m. Laundry basket fills the ~60 cm between the wardrobe end and the corner, as the scene asked.
+- Weak points: perspective a bit strong (far end 79% of the near end). A white table in the lower-left corner is not clearly a nightstand or a dresser.
+- Artefacts: none.
+
+### dressing-clasic-240 / gri-casmir: ACCEPT, realism 8.5
+- Render match: 3 equal doors, cashmere body and fronts (greige, not pink), side panel and recessed plinth visible.
+- Placement/scale: tight in the corner, balcony door on the adjacent wall and not blocked. Reads ~2.5 m by the switch; small gap to the ceiling.
+- Weak point: the lit pendant is large in the foreground. Not a defect.
+- Artefacts: none.
+
+### dressing-clasic-240 / nuc-crem: ACCEPT, realism 8.5
+- Render match: 3 equal cream doors, walnut side, top edge and plinth. Cream is warm ivory as in the render.
+- Placement/scale: tight in the left corner; the room door on the same wall reads 2.1 m and the wardrobe is clearly taller.
+- Artefacts: none. The framed print is abstract shapes, no text.
+
+### dressing-clasic-240 / stejar-natur: ACCEPT, realism 9
+- Render match: 3 equal oak doors, oak side and plinth, vertical grain.
+- Placement/scale: tight in the corner next to the window wall, radiator under the window, bench at the bed's foot, grey floor separates from the oak.
+- Artefacts: none.
+
+### Variety across the six dressing-clasic-240 photos
+They are not near-clones: wall colour, floor, bedding and the neighbouring element (curtain, room door, balcony door, window with radiator, dresser, laundry basket) differ in each, and each room makes sense. Three things repeat and show the template:
+- The same linen drum pendant hangs at the top of 5 of the 6 photos.
+- 4 of the 6 use the identical composition: camera on the left, bed at lower left, switch and socket on the wall to the right of the wardrobe at the same spot.
+- All six are empty of personal objects.
+
+For the remaining colours of this product add: `No ceiling lamp in the frame.` `Camera on the right side of the room, bed at lower right, wardrobe corner on the right.` (alternate left/right per colour) and vary one visible element per photo (mirror, chair with clothes, plant, open curtain).
+
+### dressing-hol-120 / alb-total: ACCEPT, realism 8.5
+- Render match: 2 full-height doors, 2 vertical steel bar handles at the centre, white body, fronts and recessed plinth; width to height 0.49 (real 0.5).
+- Placement/scale: tight in the corner next to the entrance door, ~10–15 cm under the ceiling, clearly taller than the door. Shoe bench, shoes, umbrella stand, living room visible on the right.
+- Weak points: the socket sits at ~65 cm instead of 30; the bench is a little tall (~55 cm).
+- Artefacts: none.
+
+### dressing-hol-120 / gri-casmir: ACCEPT, realism 8.5
+- Render match: 2 full-height doors, steel bar handles, cashmere body and fronts, recessed plinth.
+- Placement/scale: tight in the corner beside the entrance door; wall lamp, runner, bathroom door and a second door at the end of the hall.
+- Weak point: the wardrobe top meets the ceiling (gap under 5 cm). The brief says 20 cm below a 2.60 m ceiling, so the client's 2.40 m wardrobe will not look built-in like this.
+- Optional improvement: `A clear 20 cm strip of wall is visible between the top of the wardrobe and the ceiling.`
+
+### suspendat-tv-180 / alb-total (regenerated): REJECT (borderline), realism 8.5
+- Fixed: new room (grey wall, window on the right, no door frame), 2 flap fronts, no handles, underside ~30 cm above the floor, height ~33 cm by the socket and switch, TV about 70% of the unit's length, TV 16:9, TV ~20 cm above the top.
+- Still wrong: the front is 5.95 : 1 (732 × 123 px) against 5.1 : 1 real, about 4.8–5.0 expected at this angle. It was 6.2 : 1 before. By the socket and switch the unit reads ~2.0 m long and the TV ~65". The model keeps the height and stretches the length together with the TV.
+- This is the only defect. If a third generation does not fix it, this photo is usable and the decision is Andrew's.
+- Prompt additions (replace the earlier ratio lines, which did not work):
+  - `The unit's front is half as high as the TV screen is high.`
+  - `The unit is short: only 4 times as long as the distance from its top to the floor (65 cm).`
+  - `The soundbar is 90 cm long and covers exactly one flap's width, half of the unit.`
+  - `The unit spans no more than 50% of the frame width.`
