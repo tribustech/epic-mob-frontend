@@ -18,7 +18,7 @@ export class CrmRejectedError extends Error {
   }
 }
 
-type CrmPath = "/api/atelier/catalog" | "/api/atelier/price" | "/api/atelier/lead";
+type CrmPath = "/api/atelier/catalog" | "/api/atelier/price" | "/api/atelier/lead" | "/api/atelier/event";
 
 export async function crmFetch<T>(
   path: CrmPath,

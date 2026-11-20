@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AtelierConfigurator } from "@/components/atelier/atelier-configurator";
 import { getAtelierCatalog } from "@/lib/atelier/crm";
-import type { AtelierCatalog, AtelierMaterial } from "@/lib/atelier/types";
+import { isHandleKind } from "@/lib/atelier/handles";
+import type { AtelierCatalog, AtelierGlass, AtelierMaterial } from "@/lib/atelier/types";
 
 // The catalog comes from the CRM (cached 10 minutes); regenerate on the same cadence
 // so a page built while the CRM was unreachable recovers on its own.
@@ -34,6 +35,16 @@ function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
     brand: m.brand ?? null,
     imageUrl: m.imageUrl ?? null,
   });
+  // mirror / glass types for the doors: only how they look, never a price
+  const glass = (g: AtelierGlass): AtelierGlass => ({
+    id: String(g.id),
+    name: String(g.name ?? ""),
+    tint: typeof g.tint === "string" && /^#[0-9a-f]{6}$/i.test(g.tint) ? g.tint : "#cfd8de",
+    ...(g.matte === true ? { matte: true } : {}),
+    ...(g.opaque === true ? { opaque: true } : {}),
+  });
+  const glassOf = (list: unknown): AtelierGlass[] =>
+    (Array.isArray(list) ? (list as AtelierGlass[]) : []).filter((g) => g && typeof g.id === "string" && g.id).map(glass);
   return {
     carcass: (catalog.carcass ?? []).map(material),
     fronts: {
@@ -42,23 +53,30 @@ function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
       MDF_VOPSIT: (catalog.fronts?.MDF_VOPSIT ?? []).map((m) => ({ id: m.id, name: m.name })),
     },
     ral: (catalog.ral ?? []).map((r) => ({ code: r.code, name: r.name, hex: r.hex })),
-    handles: { types: (catalog.handles?.types ?? []).map((t) => ({ type: t.type, label: t.label })) },
+    // only the handle types this site knows how to show
+    handles: {
+      types: (catalog.handles?.types ?? []).filter((t) => t && isHandleKind(t.type)).map((t) => ({ type: t.type, label: String(t.label ?? "") })),
+    },
+    // absent on an older CRM: the configurator then keeps the one-face-for-all-doors choice
+    ...(catalog.glass ? { glass: { mirrors: glassOf(catalog.glass.mirrors), glasses: glassOf(catalog.glass.glasses) } } : {}),
   };
 }
 
 function CatalogUnavailable() {
   return (
-    <div className="atelier-panel mx-auto max-w-2xl text-center">
-      <h2 className="atelier-panel__title">Atelierul 3D se odihnește puțin</h2>
-      <p className="mt-3 text-[var(--home-ivory)]/70">
-        Configuratorul nu este disponibil chiar acum. Spune-ne ce ai în minte și îți pregătim o ofertă
-        personalizată.
-      </p>
-      <Link href="/cere-oferta" className="portfolio-btn portfolio-btn--primary mt-6">
-        Cere ofertă
-        <ArrowRight size={16} aria-hidden="true" />
-      </Link>
-    </div>
+    <section className="home-shell py-12 sm:py-20">
+      <div className="atelier-panel mx-auto max-w-2xl text-center">
+        <h1 className="atelier-panel__title">Atelierul 3D se odihnește puțin</h1>
+        <p className="mt-3 text-base text-[var(--home-ivory)]/70">
+          Configuratorul nu este disponibil chiar acum. Spune-ne ce ai în minte și îți pregătim o ofertă
+          personalizată.
+        </p>
+        <Link href="/cere-oferta" className="portfolio-btn portfolio-btn--primary mt-6">
+          Cere ofertă
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
   );
 }
 
@@ -66,24 +84,8 @@ export default async function ConfiguratorPage() {
   const raw = await getAtelierCatalog();
   const catalog = raw ? publicCatalog(raw) : null;
 
+  // The tool starts right under the site header (its compact <h1> lives in the panel).
   return (
-    <main className="atelier-page min-h-screen">
-      <section className="home-shell pb-20 pt-8 sm:pt-12">
-        <header className="max-w-3xl">
-          <p className="home-kicker">Atelier 3D</p>
-          <h1 className="display-font mt-4 text-[clamp(2.4rem,5vw,4rem)] leading-[1.02] text-[var(--home-ivory)]">
-            Configurează-ți mobilierul
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--home-ivory)]/70">
-            Dressing, comodă, separator sau corpuri suspendate: alege dimensiunile, coloanele și materialele. Vezi
-            modelul în 3D și prețul estimativ pe loc,
-            apoi trimite-ne configurația — venim la măsurători.
-          </p>
-        </header>
-        <div className="mt-8 sm:mt-10">
-          {catalog ? <AtelierConfigurator catalog={catalog} /> : <CatalogUnavailable />}
-        </div>
-      </section>
-    </main>
+    <main className="atelier-page">{catalog ? <AtelierConfigurator catalog={catalog} /> : <CatalogUnavailable />}</main>
   );
 }

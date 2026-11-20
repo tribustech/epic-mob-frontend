@@ -63,6 +63,7 @@ export async function POST(request: Request) {
     config?: AtelierConfig;
     contact?: Partial<AtelierContact>;
     website?: string;
+    sessionId?: unknown;
   } | null;
   if (!payload || typeof payload !== "object") {
     return NextResponse.json({ error: "Date invalide." }, { status: 400 });
@@ -81,11 +82,14 @@ export async function POST(request: Request) {
   if (!input.ok) return NextResponse.json({ error: input.error }, { status: 400 });
   const { config, contact } = input;
   const subject = `Lead nou Atelier — ${contact.name}`;
+  // the configurator visit this request came from (lib/atelier/funnel.ts), so the CRM can link the two
+  const sessionId =
+    typeof payload.sessionId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(payload.sessionId) ? payload.sessionId : undefined;
 
   try {
     const lead = await crmFetch<LeadResult>("/api/atelier/lead", {
       method: "POST",
-      body: { config, contact },
+      body: { config, contact, ...(sessionId ? { sessionId } : {}) },
       // the CRM writes client + project + quote in one transaction (up to 15 s) — the 8 s default is too short
       timeoutMs: 20_000,
     });

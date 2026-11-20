@@ -343,3 +343,32 @@ test("door type helpers: opening + face round-trip; hinged mirror keeps the hand
   c = atelierReducer(c, { type: "setDoors", doors: { type: "BATANTE_OGLINDA" } });
   assert.deepEqual(c.handle, { type: "PUSH" });
 });
+
+test("equal columns stay equal when the width changes (whole centimetres, remainder on the last)", () => {
+  const s = atelierReducer(base(2400, cols(800, 800, 800)), { type: "setSize", widthMm: 1600 });
+  assert.deepEqual(s.columns.map((c) => c.widthMm), [530, 530, 540]);
+  assertValid(s);
+  const wide = atelierReducer(base(2400, cols(800, 800, 800)), { type: "setSize", widthMm: 4000 });
+  assert.deepEqual(wide.columns.map((c) => c.widthMm), [1000, 1000, 1000, 1000]);
+  assertValid(wide);
+});
+
+test("hand-set widths are scaled, not equalised", () => {
+  const s = atelierReducer(base(2400, cols(600, 1000, 800)), { type: "setSize", widthMm: 3000 });
+  assert.deepEqual(s.columns.map((c) => c.widthMm), [775, 1200, 1025]);
+  assertValid(s);
+});
+
+test("addColumn on equal columns re-splits evenly; removeColumn keeps the rest equal", () => {
+  const added = atelierReducer(base(3000, cols(1000, 1000, 1000)), { type: "addColumn" });
+  assert.deepEqual(added.columns.map((c) => c.widthMm), [750, 750, 750, 750]);
+  const removed = atelierReducer(added, { type: "removeColumn", index: 1 });
+  assert.deepEqual(removed.columns.map((c) => c.widthMm), [1000, 1000, 1000]);
+  assertValid(removed);
+});
+
+test("equalizeColumns evens out hand-set widths", () => {
+  const s = atelierReducer(base(2400, cols(600, 1000, 800)), { type: "equalizeColumns" });
+  assert.deepEqual(s.columns.map((c) => c.widthMm), [800, 800, 800]);
+  assert.equal(atelierReducer(s, { type: "equalizeColumns" }), s);
+});
