@@ -535,3 +535,33 @@ C1–C5: every chest is the only cabinet in its photo, tops relate correctly to 
 
 - A16 (process, not prompt): before generating, check each render's section order (left/right) and handle type against the catalogue preset and the prompt; do not generate while they disagree. comoda-cafea-120 is the second stale render after suspendat-tv-180.
 - For any piece standing beside a washing machine: `State its width as a multiple of the 60 cm machine and say that its front is set back behind the machine's front.`
+
+---
+
+# Batch 10 (v3) (12 photos)
+
+Reviewed: `/tmp/claude-0/batch10/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Measurements are pixel estimates, ±10%. All 12 accepted.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-3-usi-150 / alb-stejar-natur (redo) | ACCEPT | 8.5 | Ratio now 0.68 (real 0.71); near side is a plain white rectangle of real depth; tight in the corner |
+| comoda-mixta-180 / nuc-crem (redo) | ACCEPT | 9 | No coat or hook; lamp and plates only; door handles sit a little lower than in the render |
+| comoda-birou-90 / alb-stejar-natur | ACCEPT | 8.5 | 3 drawers left, door right, black channels; top level with the desk; printer on top |
+| comoda-birou-90 / alb-total | ACCEPT | 8.5 | Matches render; reads ~10% wide; top 2–3 cm above the desk |
+| separator-biblioteca-120 / alb-total | ACCEPT | 8.5 | 3 × 5, open both sides, bed zone visible through it; slightly wide (1.53 tall-to-wide against 1.67); its wall end is not clearly attached |
+| separator-cuburi-150 / alb-total | ACCEPT | 9 | 4 × 4 cubes against a wall, wall visible through; three fabric boxes |
+| separator-inalt-240 / bardolino-gri | ACCEPT | 8.5 | 4 × 7, one end at a wall, bed zone behind, plant at the free end; ceiling is cropped so the top gap cannot be read; far end 78% of near end |
+| separator-ingust-90 / salvie-stejar | ACCEPT | 9 | 2 columns × 5 open compartments, 2 sage drawers with gold knobs; screens the entrance from the living room |
+| separator-scund-200 / antracit-stejar | ACCEPT | 8 | 4 × 3 behind the sofa; reads about 10–12% too tall for its length (compartments nearly square; render: clearly wider than high) |
+| separator-sertare-160 / gri-casmir | ACCEPT | 8.5 | Bookcase against an office wall; 2 × 4 open compartments, 4 drawers with black bars; a floor lamp is switched on at the frame edge |
+| separator-sertare-160 / stejar-alb | ACCEPT | 9 | Divider between sofa and desk zone, seen through |
+| separator-usi-180 / alb-stejar-natur | ACCEPT | 8.5 | 3 × 4 open compartments, 3 oak doors without handles, against a living-room wall; 11 of 12 compartments are styled (brief: one third) |
+
+Separators: each either divides two zones with the room visible through it (biblioteca, inalt, ingust, scund, sertare stejar-alb) or stands against a wall as a bookcase where the brief allows it (cuburi, sertare gri-casmir, usi). Walkways at the free ends are clear. A15 holds: sides are plain rectangles 30–40 cm deep.
+
+## Optional prompt lines (no rejects)
+
+- separator-scund-200 remaining colours: `Each compartment is clearly wider than high (50 × 37 cm); the top of the unit is only a hand's width above the sofa back.`
+- separator-inalt-240 remaining colours: `The ceiling is visible above the unit along its whole length, with a 5–10 cm gap.`
+- separator-usi-180 and other shelving: `Only 4 of the 12 compartments hold anything; the other 8 are empty.` Stating the count works better than "one third".
+- A14: extend to floor lamps (`all lamps switched off`).
