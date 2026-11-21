@@ -13,6 +13,7 @@ import { trackPixel } from "@/lib/meta-pixel";
 import { PriceLine, ProductPicture, Swatch } from "./product-card";
 import { formatPrice } from "./price";
 import { offerEndText } from "@/lib/shop/offers";
+import { AdminPricePanel } from "@/components/admin/admin-price-panel";
 
 const Viewer3D = dynamic(() => import("@/components/atelier/viewer-3d"), {
   ssr: false,
@@ -228,6 +229,7 @@ export function ProductView({
           {done ? "Adăugat" : "Adaugă în coș"}
         </button>
       </div>
+      <AdminPricePanel config={config} offerPercent={item.offer?.percent ?? null} />
     </div>
   );
 }

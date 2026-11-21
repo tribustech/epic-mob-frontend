@@ -36,6 +36,7 @@ import { StepModel } from "./step-model";
 import { StepOffer } from "./step-offer";
 import { StepSize } from "./step-size";
 import { formatLei, issueMessage, plural } from "./ui";
+import { AdminPricePanel } from "@/components/admin/admin-price-panel";
 
 // three.js needs the browser (WebGL); keep it out of SSR and out of the initial bundle.
 const Viewer3D = dynamic(() => import("./viewer-3d"), {
@@ -701,6 +702,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
           </footer>
         </div>
       </div>
+      <AdminPricePanel config={config} />
     </MotionConfig>
   );
 }
