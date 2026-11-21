@@ -603,3 +603,42 @@ Lamps: the only lamp (desk lamp, suspendat-clasic alb-total) is off. Shelf fill:
 - Low pieces (up to 1.5 m): `The top surface of the piece is visible from above` (camera at 1.4 m). It fixes height drift better than a number.
 - Floating TV units: `The gap between the floor and the underside is almost as tall as the unit itself (30 cm against 35 cm).` Two of three read ~20 cm.
 - Wall units above something: keep the relation line `50 cm of free wall between the worktop / machine and the underside`; current results give 25–40 cm.
+
+---
+
+# Batch 12 (v3) (10 photos, final)
+
+Reviewed: `/tmp/claude-0/batch12/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Heights measured against sockets (30 cm), switches (105 cm), doors (205 cm), counters and washing machines; ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| separator-cuburi-150 / stejar-natur (redo) | ACCEPT | 9 | Top surface visible with the mug on it; reads ~140–150 cm; divider between sofa and dining |
+| suspendat-aventos-180 / supermat-alb | ACCEPT | 9 | 2 flaps, no handles; above a desk; underside ~135 cm (brief 155), top ~178; lamp off |
+| suspendat-baie-nisa-90 / alb-total | ACCEPT | 8.5 | Niche with 2 shelves left, door right, black knob as in the render; above the washing machine with only ~25–30 cm gap (underside ~110, brief 135) |
+| suspendat-baie-nisa-90 / stejar-alb | ACCEPT | 8.5 | Oak body, white door; above the WC cistern panel; underside ~105–135 cm depending on reference, top below the door frame |
+| suspendat-bucatarie-180 / alb-stejar-natur | ACCEPT | 8.5 | 3 oak doors, white body, channel under the doors; above a grey coffee counter, ~50 cm gap; top ~12 cm above the door frame; reads ~15% large |
+| suspendat-bucatarie-180 / alb-total | REJECT | 8 | Believable kitchen, but the cabinet reads ~230 × 96 cm instead of 180 × 72: top ~27 cm above the door frame and only ~25 cm under the ceiling |
+| suspendat-etajera-150 / alb-total | ACCEPT | 8.5 | 3 niches above a coffee counter; underside ~147 cm; reads ~20% large; only 1 of 3 niches filled; sun patches on the floor |
+| suspendat-etajera-150 / stejar-natur | ACCEPT | 8.5 | Above a sofa; underside ~130 cm, 45 cm above the sofa back; reads ~20% large |
+| suspendat-hol-90 / alb-stejar-natur | REJECT (borderline) | 8.5 | Cabinet matches the render, but its underside is level with the light switch (~105 cm, brief 140) directly above a sitting bench: nobody could sit under it |
+| suspendat-mixt-200 / casmir-alb | ACCEPT | 9 | Door, niche with 1 shelf, door; steel channel under the doors; underside ~30 cm, top ~86 cm; picture above; lamp off |
+
+Mount heights: nothing hangs too high. The one height problem is a top edge pushed up by an oversized cabinet (bucatarie alb-total). Everything else is at the brief or below it.
+
+## Rejects
+
+### suspendat-bucatarie-180 / alb-total
+- `The cabinet is 72 cm high: about one third of the height of the room door beside it. Each door is 60 cm wide and 72 cm high, only slightly taller than wide.`
+- `The top of the cabinet is only 12 cm above the top of the door frame; a 43 cm strip of wall is visible between the cabinet and the ceiling.`
+- `The cabinet is 180 cm long, shorter than the counter below it.`
+
+### suspendat-hol-90 / alb-stejar-natur
+- `The underside of the cabinet is 35 cm above the light switch and 95 cm above the bench seat: an adult can sit on the bench with free wall above the head.`
+- `The three coat hooks hang on the wall in the gap between the bench and the cabinet, not beside it.`
+- `Wall lamp switched off.`
+
+## Overall summary of the v3 round (batches 8–12)
+
+1. 50 variants reviewed; 48 are accepted (7 of them after one redo) and 2 need a redo: suspendat-bucatarie-180/alb-total and suspendat-hol-90/alb-stejar-natur. comoda-cafea-120/alb-total, held in batch 9, is cleared now that the render was corrected to door left, drawers right, knobs.
+2. Fronts, counts, handles and colours matched the renders throughout; the recurring defect was scale (pieces 15–30% too large against the door), fixed best by relation lines ("one third of the door height", "top surface visible from above").
+3. Andrew's original complaints are addressed: no wall unit hangs too high (they tend to hang 10–25 cm low), no dark chests, nightstands and chests are at believable sizes, and every piece stands in a room where it belongs.

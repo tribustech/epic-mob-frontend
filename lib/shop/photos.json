@@ -213,6 +213,16 @@
     "alb-casmir",
     "alb-stejar-natur"
   ],
+  "suspendat-aventos-180": [
+    "supermat-alb"
+  ],
+  "suspendat-etajera-150": [
+    "stejar-natur",
+    "alb-total"
+  ],
+  "suspendat-mixt-200": [
+    "casmir-alb"
+  ],
   "suspendat-hol-90": [
     "gri-casmir"
   ],
@@ -257,6 +267,14 @@
     "stejar-alb"
   ],
   "separator-cuburi-150": [
-    "alb-total"
+    "alb-total",
+    "stejar-natur"
+  ],
+  "suspendat-baie-nisa-90": [
+    "alb-total",
+    "stejar-alb"
+  ],
+  "suspendat-bucatarie-180": [
+    "alb-stejar-natur"
   ]
 }
