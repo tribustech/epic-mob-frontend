@@ -5,7 +5,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, CircleAlert, Minus, PhoneCall, Plus, Ruler, ShoppingBag, Trash2, Truck } from "lucide-react";
 import { trackPixel } from "@/lib/meta-pixel";
 import { MAX_QTY, cartCount, clearCart, setQty, useCart, type CartLine } from "@/lib/shop/cart";
-import { DELIVERY_TEXT, productBySlug, renderOf } from "@/lib/shop/products";
+import { DELIVERY_TEXT, pictureOf, productBySlug } from "@/lib/shop/products";
 import { formatPrice } from "./price";
 
 type Status = { kind: "idle" } | { kind: "sending" } | { kind: "sent"; total: number | null } | { kind: "error"; message: string };
@@ -24,8 +24,7 @@ function check(form: { name: string; phone: string; city: string }): Partial<Rec
 
 function lineImage(l: CartLine): string | null {
   const product = productBySlug(l.slug);
-  if (product?.photo && product.paletteIds[0] === l.paletteId) return product.photo;
-  return renderOf(l.slug, l.paletteId) ?? product?.photo ?? null;
+  return product ? pictureOf(l.slug, l.paletteId) : null;
 }
 
 export function CartView() {

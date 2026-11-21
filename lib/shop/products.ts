@@ -4,6 +4,7 @@ import { hasHandledFronts } from "../atelier/handles";
 import { PALETTES } from "../atelier/palettes";
 import { LAYOUT_PRESETS, type LayoutPreset } from "../atelier/presets";
 import type { AtelierCategory, AtelierHandle } from "../atelier/types.ts";
+import PHOTOS from "./photos.json";
 import RENDERS from "./renders.json";
 
 /**
@@ -13,7 +14,7 @@ import RENDERS from "./renders.json";
  * costs exactly what the same configuration costs there, and „Personalizează" opens it there.
  */
 
-export type ShopRoom = "dormitor" | "living" | "hol" | "copii" | "birou" | "baie";
+export type ShopRoom = "dormitor" | "living" | "hol" | "bucatarie" | "baie" | "copii" | "birou";
 export type ShopCategory = "dulapuri" | "comode" | "biblioteci" | "suspendate";
 
 export const SHOP_CATEGORIES: { id: ShopCategory; label: string; atelier: AtelierCategory; blurb: string }[] = [
@@ -27,12 +28,19 @@ export const ROOM_LABELS: Record<ShopRoom, string> = {
   dormitor: "Dormitor",
   living: "Living",
   hol: "Hol",
+  bucatarie: "Bucătărie",
+  baie: "Baie",
   copii: "Camera copilului",
   birou: "Birou",
-  baie: "Baie",
 };
 
-/** Where each model goes (filters, „Pentru dormitor" on the home page). Unlisted models: by category. */
+/**
+ * Where each model goes (filters, „Potrivit pentru" on the product page). Unlisted models: by category.
+ * A room is listed only where the piece really works there: wall units always hang above something
+ * (desk, worktop, washing machine, sofa), so they are not tagged for a bare hall wall. The kitchen has
+ * no fitted kitchen (the configurator builds no worktop or appliance units): only the pieces that stand
+ * beside one (pantry, service cupboard, coffee sideboard, wall cabinet, open shelf).
+ */
 const ROOMS: Record<string, ShopRoom[]> = {
   "dressing-clasic-240": ["dormitor"],
   "dressing-hol-120": ["hol"],
@@ -49,30 +57,43 @@ const ROOMS: Record<string, ShopRoom[]> = {
   "dressing-oglinda-mijloc-240": ["dormitor"],
   "dressing-oglinzi-300": ["dormitor"],
   "dressing-sticla-300": ["dormitor"],
-  "dressing-ingust-90": ["hol", "copii"],
+  "dressing-ingust-90": ["hol", "copii", "dormitor"],
+  "dressing-3-usi-150": ["dormitor", "copii"],
+  "dressing-camara-90": ["bucatarie"],
+  "dressing-serviciu-80": ["hol", "bucatarie"],
+  "dressing-baie-60": ["baie"],
+  "dressing-birou-100": ["birou"],
   "comoda-clasica-160": ["dormitor"],
   "comoda-4-sertare-100": ["dormitor", "copii"],
   "comoda-tv-200": ["living"],
   "comoda-tv-240": ["living"],
-  "noptiera-50": ["dormitor"],
+  "noptiera-50": ["dormitor", "copii"],
   "comoda-hol-120": ["hol"],
-  "comoda-mixta-180": ["living"],
+  "comoda-mixta-180": ["living", "bucatarie"],
   "comoda-inalta-80": ["dormitor", "copii"],
   "comoda-nisa-140": ["living", "copii", "birou"],
+  "comoda-pantofar-80": ["hol"],
+  "comoda-cafea-120": ["bucatarie", "living"],
+  "comoda-baie-80": ["baie"],
+  "comoda-birou-90": ["birou"],
   "separator-biblioteca-120": ["living", "birou"],
-  "separator-sertare-160": ["living", "birou"],
-  "separator-usi-180": ["living"],
+  "separator-sertare-160": ["living", "birou", "copii"],
+  "separator-usi-180": ["living", "birou"],
   "separator-inalt-240": ["living"],
   "separator-scund-200": ["living"],
   "separator-ingust-90": ["hol", "living"],
-  "suspendat-clasic-120": ["hol", "birou"],
+  "separator-cuburi-150": ["living", "copii", "birou"],
+  "separator-copii-120": ["copii"],
+  "suspendat-clasic-120": ["birou", "baie", "bucatarie"],
   "suspendat-tv-180": ["living", "dormitor"],
   "suspendat-tv-240": ["living"],
   "suspendat-baie-60": ["baie"],
   "suspendat-aventos-180": ["birou", "dormitor"],
-  "suspendat-etajera-150": ["living", "birou", "copii"],
+  "suspendat-etajera-150": ["living", "birou", "copii", "bucatarie"],
   "suspendat-mixt-200": ["living", "hol"],
   "suspendat-hol-90": ["hol", "baie"],
+  "suspendat-bucatarie-180": ["bucatarie"],
+  "suspendat-baie-nisa-90": ["baie"],
 };
 
 /**
@@ -84,6 +105,28 @@ const USUAL: string[] = ["alb-total", "stejar-natur", "gri-casmir", "alb-stejar-
 const WHITE_BODY: string[] = ["alb-casmir", "alb-total", "alb-stejar-natur", "alb-antracit", "alb-gri-matase", "alb-stejar-deschis"];
 const MAX_VARIANTS = 6;
 
+/**
+ * Models added after the first range sell a short, hand-picked list of colours instead of the usual
+ * six (owner, 2026-11-21: more products, fewer colour combinations). The first is the default. The same
+ * owner rules hold and are tested: no dark comode or wall units, white body behind a mirror.
+ */
+const COLOURS: Record<string, string[]> = {
+  "dressing-3-usi-150": ["alb-total", "alb-stejar-natur", "gri-casmir", "stejar-natur"],
+  "dressing-camara-90": ["alb-total", "alb-stejar-natur", "gri-casmir", "salvie-stejar"],
+  "dressing-serviciu-80": ["alb-total", "gri-casmir", "alb-stejar-natur", "alb-gri-matase"],
+  "dressing-baie-60": ["alb-total", "alb-stejar-natur", "alb-casmir", "gri-casmir"],
+  "dressing-birou-100": ["alb-stejar-natur", "alb-total", "stejar-natur", "gri-casmir"],
+  "comoda-pantofar-80": ["alb-total", "alb-stejar-natur", "gri-casmir", "casmir-alb"],
+  "comoda-cafea-120": ["alb-stejar-natur", "alb-total", "salvie-stejar", "nuc-crem"],
+  "comoda-baie-80": ["alb-casmir", "alb-total", "gri-casmir", "alb-stejar-natur"],
+  "comoda-birou-90": ["alb-stejar-natur", "alb-total", "gri-casmir", "stejar-casmir"],
+  // open on both faces: only the body colour shows, so four different bodies
+  "separator-cuburi-150": ["alb-total", "stejar-natur", "gri-casmir", "antracit-stejar"],
+  "separator-copii-120": ["alb-total", "stejar-alb", "denim-alb", "salvie-stejar"],
+  "suspendat-bucatarie-180": ["alb-total", "alb-stejar-natur", "gri-casmir", "salvie-stejar"],
+  "suspendat-baie-nisa-90": ["alb-total", "stejar-alb", "alb-casmir", "gri-casmir"],
+};
+
 export interface ShopProduct {
   slug: string;
   preset: LayoutPreset;
@@ -93,8 +136,6 @@ export interface ShopProduct {
   paletteIds: string[];
   /** the shop's own handle for this model (variety across the shop); dropped where the fronts or the catalog cannot take it */
   handle?: AtelierHandle;
-  /** AI photo of the default variant in a room (public/magazin/foto/<slug>.webp), when generated */
-  photo?: string;
 }
 
 const CATEGORY_OF: Record<AtelierCategory, ShopCategory> = {
@@ -109,6 +150,20 @@ const DEFAULT_ROOM: Record<AtelierCategory, ShopRoom> = { DRESSING: "dormitor", 
 export function renderOf(slug: string, paletteId: string): string | null {
   const list = (RENDERS as Record<string, string[]>)[slug];
   return list?.includes(paletteId) ? `/magazin/randari/${slug}/${paletteId}.webp` : null;
+}
+
+/**
+ * Room photo of one colour (public/magazin/foto/<slug>/<palette>.webp), listed in photos.json by
+ * `node scripts/shop-photos-manifest.cjs` once the photo has been checked against the render and the brief.
+ */
+export function photoOf(slug: string, paletteId: string): string | null {
+  const list = (PHOTOS as Record<string, string[]>)[slug];
+  return list?.includes(paletteId) ? `/magazin/foto/${slug}/${paletteId}.webp` : null;
+}
+
+/** The best picture of one colour: its room photo, else its 3D render. */
+export function pictureOf(slug: string, paletteId: string): string | null {
+  return photoOf(slug, paletteId) ?? renderOf(slug, paletteId);
 }
 
 /**
@@ -142,50 +197,20 @@ export const HANDLES: Record<string, AtelierHandle> = {
   "suspendat-aventos-180": { type: "PUSH" },
   "suspendat-mixt-200": { type: "GOLA", finish: "INOX" },
   "suspendat-hol-90": { type: "BUTON", finish: "AURIU" },
+  "dressing-3-usi-150": { type: "APLICAT", finish: "INOX" },
+  "comoda-pantofar-80": { type: "PUSH" },
+  "dressing-camara-90": { type: "APLICAT", finish: "NEGRU" },
+  "dressing-serviciu-80": { type: "PUSH" },
+  "dressing-baie-60": { type: "APLICAT", finish: "INOX" },
+  "dressing-birou-100": { type: "BUTON", finish: "INOX" },
+  "comoda-cafea-120": { type: "BUTON", finish: "NEGRU" },
+  "comoda-baie-80": { type: "GOLA", finish: "INOX" },
+  "comoda-birou-90": { type: "GOLA", finish: "NEGRU" },
+  "separator-copii-120": { type: "BUTON", finish: "AURIU" },
+  "suspendat-bucatarie-180": { type: "GOLA", finish: "INOX" },
+  "suspendat-baie-nisa-90": { type: "BUTON", finish: "NEGRU" },
 };
 
-/** Photos already generated (public/magazin/foto/<slug>.webp). Kept in code so the build needs no fs. */
-export const PHOTOS: ReadonlySet<string> = new Set<string>([
-  "comoda-4-sertare-100",
-  "comoda-clasica-160",
-  "comoda-hol-120",
-  "comoda-inalta-80",
-  "comoda-mixta-180",
-  "comoda-nisa-140",
-  "comoda-tv-200",
-  "comoda-tv-240",
-  "dressing-clasic-240",
-  "dressing-copii-150",
-  "dressing-deschis-280",
-  "dressing-dormitor-180",
-  "dressing-familie-300",
-  "dressing-hol-120",
-  "dressing-hol-oglinda-160",
-  "dressing-ingust-90",
-  "dressing-mare-360",
-  "dressing-oglinda-240",
-  "dressing-oglinda-mijloc-240",
-  "dressing-oglinda-una-180",
-  "dressing-oglinzi-300",
-  "dressing-sertare-200",
-  "dressing-sticla-300",
-  "dressing-tavan-270",
-  "noptiera-50",
-  "separator-biblioteca-120",
-  "separator-inalt-240",
-  "separator-ingust-90",
-  "separator-scund-200",
-  "separator-sertare-160",
-  "separator-usi-180",
-  "suspendat-aventos-180",
-  "suspendat-baie-60",
-  "suspendat-clasic-120",
-  "suspendat-etajera-150",
-  "suspendat-hol-90",
-  "suspendat-mixt-200",
-  "suspendat-tv-180",
-  "suspendat-tv-240",
-]);
 
 /** Extra body colours for open models, after USUAL (their fronts do not show, so only the body counts). */
 const OPEN_EXTRA: string[] = ["sonoma-alb", "tabac-negru", "beton-grafit"];
@@ -204,6 +229,7 @@ const LIGHT_EXTRA: string[] = ["stejar-alb", "alb-casmir", "nuc-alb", "alb-steja
 const isDark = (id: string) => PALETTES.find((p) => p.id === id)?.mood === "INCHIS";
 
 function variantsOf(preset: LayoutPreset): string[] {
+  if (COLOURS[preset.id]) return COLOURS[preset.id];
   if (NO_DARK.has(preset.category)) {
     const own = preset.paletteId && !isDark(preset.paletteId) ? preset.paletteId : "alb-total";
     const pool = [own, ...USUAL, ...LIGHT_EXTRA, ...OPEN_EXTRA].filter((id) => !isDark(id));
@@ -229,6 +255,70 @@ function variantsOf(preset: LayoutPreset): string[] {
   return [own, ...pool.filter((id) => id !== own)].slice(0, MAX_VARIANTS);
 }
 
+/**
+ * The one or two colours of each model that get a room photo (owner, 2026-11-21: a photo for 1–2 colours,
+ * not for every combination). The default colour comes first. The other colours show their 3D render.
+ * New models are photographed in what sells: white, white with natural oak, cashmere where it fits.
+ * Niche models that few people search for (tall and slim dividers, Aventos band, floating console) get
+ * one photo only.
+ * Colours with an accepted photo were preferred; the ones still to be photographed are briefed in
+ * scripts/shop-art-direction-v3.json.
+ */
+export const PHOTO_COLOURS: Record<string, string[]> = {
+  "dressing-clasic-240": ["alb-stejar-natur", "antracit-stejar"],
+  "dressing-hol-120": ["casmir-alb", "stejar-natur"],
+  "dressing-dormitor-180": ["alb-total", "nuc-crem"],
+  "dressing-oglinda-240": ["alb-casmir", "alb-stejar-natur"],
+  "dressing-familie-300": ["stejar-casmir", "alb-total"],
+  "dressing-mare-360": ["gri-casmir", "alb-stejar-natur"],
+  "dressing-deschis-280": ["stejar-natur", "alb-total"],
+  "dressing-sertare-200": ["antracit-stejar", "alb-stejar-natur"],
+  "dressing-copii-150": ["denim-alb", "alb-total"],
+  "dressing-tavan-270": ["supermat-crem", "stejar-natur"],
+  "dressing-hol-oglinda-160": ["alb-casmir"],
+  "dressing-oglinda-una-180": ["alb-casmir", "alb-antracit"],
+  "dressing-oglinda-mijloc-240": ["alb-casmir", "alb-stejar-natur"],
+  "dressing-oglinzi-300": ["alb-casmir", "alb-gri-matase"],
+  "dressing-sticla-300": ["grafit-total", "alb-total"],
+  "dressing-ingust-90": ["alb-total", "stejar-natur"],
+  "dressing-3-usi-150": ["alb-total", "alb-stejar-natur"],
+  "dressing-camara-90": ["alb-total", "alb-stejar-natur"],
+  "dressing-serviciu-80": ["alb-total", "gri-casmir"],
+  "dressing-baie-60": ["alb-total", "alb-stejar-natur"],
+  "dressing-birou-100": ["alb-stejar-natur", "stejar-natur"],
+  "comoda-clasica-160": ["stejar-alb", "gri-casmir"],
+  "comoda-4-sertare-100": ["alb-total", "salvie-stejar"],
+  "comoda-tv-200": ["alb-total", "stejar-natur"],
+  "comoda-tv-240": ["alb-total", "nuc-crem"],
+  "noptiera-50": ["stejar-casmir", "alb-total"],
+  "comoda-hol-120": ["casmir-alb", "stejar-natur"],
+  "comoda-mixta-180": ["nuc-crem", "salvie-stejar"],
+  "comoda-inalta-80": ["gri-casmir", "alb-stejar-natur"],
+  "comoda-nisa-140": ["salvie-stejar"],
+  "comoda-pantofar-80": ["alb-total", "alb-stejar-natur"],
+  "comoda-cafea-120": ["alb-stejar-natur", "alb-total"],
+  "comoda-baie-80": ["alb-casmir", "gri-casmir"],
+  "comoda-birou-90": ["alb-stejar-natur", "alb-total"],
+  "separator-biblioteca-120": ["stejar-natur", "alb-total"],
+  "separator-sertare-160": ["stejar-alb", "gri-casmir"],
+  "separator-usi-180": ["alb-stejar-natur"],
+  "separator-inalt-240": ["bardolino-gri"],
+  "separator-scund-200": ["antracit-stejar"],
+  "separator-ingust-90": ["salvie-stejar"],
+  "separator-cuburi-150": ["alb-total", "stejar-natur"],
+  "separator-copii-120": ["alb-total", "stejar-alb"],
+  "suspendat-clasic-120": ["alb-total", "stejar-natur"],
+  "suspendat-tv-180": ["alb-total", "stejar-natur"],
+  "suspendat-tv-240": ["alb-total", "nuc-crem"],
+  "suspendat-baie-60": ["alb-casmir", "alb-stejar-natur"],
+  "suspendat-aventos-180": ["supermat-alb"],
+  "suspendat-etajera-150": ["stejar-natur", "alb-total"],
+  "suspendat-mixt-200": ["casmir-alb"],
+  "suspendat-hol-90": ["gri-casmir", "alb-stejar-natur"],
+  "suspendat-bucatarie-180": ["alb-total", "alb-stejar-natur"],
+  "suspendat-baie-nisa-90": ["alb-total", "stejar-alb"],
+};
+
 export const SHOP_PRODUCTS: ShopProduct[] = LAYOUT_PRESETS.map((preset) => {
   const slug = preset.id;
   const product: ShopProduct = {
@@ -239,7 +329,6 @@ export const SHOP_PRODUCTS: ShopProduct[] = LAYOUT_PRESETS.map((preset) => {
     paletteIds: variantsOf(preset),
   };
   if (HANDLES[slug]) product.handle = HANDLES[slug];
-  if (PHOTOS.has(slug)) product.photo = `/magazin/foto/${slug}.webp`;
   return product;
 });
 
