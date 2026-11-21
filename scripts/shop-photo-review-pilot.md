@@ -494,3 +494,44 @@ Door counts: both dressing-camara-90 photos have exactly 4 doors in 2 rows and b
 
 - A15: `The piece is a solid box with its real depth: the side nearer the camera is visible as a plain rectangle of the stated depth with square corners; the far side is never visible; no chamfered or angled side panels.`
 - Tighten A10 in the wording sent to the model: name the forbidden items positively per room (`No coat or wall hook in this living room / bedroom / office.`) instead of the general rule; the general form was ignored again.
+
+---
+
+# Batch 9 (v3) (10 photos)
+
+Reviewed: `/tmp/claude-0/batch9/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Measurements are pixel estimates, ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-baie-80 / alb-casmir | REJECT (borderline) | 8.5 | Door + 3 drawers, steel channels, white body: right. But it reads ~100 cm wide (1.08 wide-to-high against 0.94; 1.8 × the washing machine's width instead of 1.33) and as deep as the machine |
+| comoda-baie-80 / gri-casmir | ACCEPT | 9 | Matches render; bathroom with tub, washing machine, towels and basket on top; ratio 0.97 |
+| comoda-cafea-120 / alb-stejar-natur | REJECT | 8.5 | Mirrored against the catalogue: drawers left, door right (preset: door left, drawers right). Knobs, colours and room are right |
+| comoda-cafea-120 / alb-total | HOLD (ACCEPT once the render is fixed) | 8.5 | Matches the catalogue preset (door left, 3 drawers right, black knobs) but not the render on disk, which is wrong |
+| comoda-inalta-80 / alb-stejar-natur | ACCEPT | 8.5 | 5 oak drawers, steel bars, white body; top ~15 cm above the door handle; reads slightly wide |
+| comoda-inalta-80 / gri-casmir | ACCEPT | 8.5 | 5 drawers, steel bars, greige; beside the room door |
+| comoda-mixta-180 / salvie-stejar | ACCEPT | 8.5 | Door + 4 drawers + door, gold bars, sage on light oak; a lit candle lantern on top |
+| comoda-nisa-140 / salvie-stejar | ACCEPT | 8.5 | 3 drawers left, niche with 2 shelves right, black bars; sofa arm close to the right end |
+| comoda-pantofar-80 / alb-stejar-natur | ACCEPT | 9 | 2 doors, no handles; slim (~30 cm) beside the entrance door; hooks, key bowl, mat |
+| comoda-pantofar-80 / alb-total | ACCEPT | 8.5 | 2 doors, no handles; slim; round mirror reflects wall and ceiling correctly; reads ~5% wide |
+
+C1–C5: every chest is the only cabinet in its photo, tops relate correctly to door handles, all colours are light. A15: all sides are plain rectangles of believable depth.
+
+## Rejects
+
+### comoda-cafea-120: the render on disk is wrong
+`public/magazin/randari/comoda-cafea-120/*.webp` shows 3 drawers on the LEFT, a door on the RIGHT and black Gola channels. The catalogue (`lib/atelier/presets.ts`: USI 600 + SERTARE 600; `lib/shop/products.ts`: BUTON NEGRU) and the v3 prompt say door left, drawers right, black knobs. The render looks like the comoda-birou-90 configuration. Re-render before publishing either photo.
+- alb-total: matches the catalogue. Accept once the render is regenerated and agrees.
+- alb-stejar-natur: mirrored against the catalogue (probably copied from the wrong render). Regenerate with the corrected render and add:
+  - `The door is on the LEFT half, the three drawers are on the RIGHT half.`
+  - `One small black knob on the door, near its right edge at the top; one centred on each drawer.`
+
+### comoda-baie-80 / alb-casmir
+- Prompt additions:
+  - `The cabinet is only one third wider than the washing machine beside it (80 cm against 60 cm) and slightly taller than wide.`
+  - `The cabinet is shallower than the washing machine: its front is set back 20 cm behind the machine's front.`
+  - `No wall hook.`
+
+## New general rule
+
+- A16 (process, not prompt): before generating, check each render's section order (left/right) and handle type against the catalogue preset and the prompt; do not generate while they disagree. comoda-cafea-120 is the second stale render after suspendat-tv-180.
+- For any piece standing beside a washing machine: `State its width as a multiple of the 60 cm machine and say that its front is set back behind the machine's front.`
