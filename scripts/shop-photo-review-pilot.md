@@ -708,3 +708,44 @@ Ten new models/variants (briefs from `shop-art-direction-v3.json`, renders from 
 
 - No new general rule needed. 9 of 10 pass; the open pieces (cuier, open nightstand) and the mirror wardrobes came out right the first time.
 - The only failure repeats two old ones together: TV unit drifting into a bedroom, and the piece plus TV scaled up together so that only the door and socket give it away. For low TV units, always state the top height as a relation to the door handle ("less than half the handle height").
+
+---
+
+# Batch 16
+
+16 photos: 6 redos of the batch 14 rejects, 1 new wall unit, 9 kitchens (first kitchens reviewed). `comoda-tv-160/alb-total` skipped (old reject, redo still running). All cm figures are pixel estimates, +-10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-4-sertare-100/gri-casmir (redo) | ACCEPT | 8/10 | The wardrobe is gone; the chest is the only cabinet. 4 drawers with steel GOLA channels, plinth, about 100 cm high (top at door-handle level). Wall mirror reflects curtain and the bed that is in the foreground. |
+| comoda-clasica-160/stejar-natur (redo) | ACCEPT | 8/10 | TV and wardrobe are gone. 2 x 3 drawers, black knobs, plinth: matches render. About 2:1, top about 85-90 cm. Plant and a small sculpture on top, framed print above. |
+| comoda-hol-120/nuc-crem (redo) | ACCEPT | 7.5/10 | Lamp is off, fruit bowl replaced by an empty dish. 2 cream doors, black bar handles, walnut body and plinth: matches render. Hall with entrance door and mat; a window and a rope basket are unusual for a hall but believable. |
+| dressing-ingust-90/gri-casmir (redo) | ACCEPT | 8/10 | Front now about 2.5:1 and as wide as the door leaf beside it (reads 88-90 cm). 2 doors, 2 black knobs. Stands in a recess under a bulkhead, reads about 220 cm; fine. |
+| dressing-sticla-300/grafit-total (redo) | ACCEPT | 8/10 | No glowing lines any more. 3 glass doors in graphite frames, hanging / shelves / double rail inside as in the render. Glass reflects window and bed faintly, plausible. |
+| dressing-hol-oglinda-160/alb-casmir (redo) | ACCEPT | 7.5/10 | Now a near-frontal view, no stretching. 4 mirror doors with cashmere strips and 4 black handles placed as in the render. Reads about 175 cm wide against the 205 cm door (about 10% wide, at the limit). Mirrors show the opposite hall wall with hooks and an inner door, no camera. |
+| suspendat-pat-240/alb-stejar-natur | REJECT | 6/10 | Piece is right (4 oak doors, white body, no handles, about 40 cm high). Two brief breaches: (1) hung low: underside about 133 cm, top about 172 cm, some 38 cm under the door-frame top (brief: underside 150, top 190, 15-20 cm under the frame top); (2) the bed reads about 210 cm wide, so the 240 cm cabinet overhangs it by only about 20 cm on the left and 3 cm on the right (brief: 40 cm each side) and looks like a 180 cm unit. |
+| bucatarie-240/alb-stejar-natur | ACCEPT | 8/10 | Lowers: 3 drawers, door with handle under the sink, plain dishwasher front, oven with hob: as render. Uppers: 4 doors with handles as render, slim hood under the 4th. Pale grey stone worktop, grey tiles, kettle, board, herb pot. Worktop about 88 cm against the room door, total about 212 cm. |
+| bucatarie-240/alb-total | ACCEPT | 7.5/10 | Same layout, black handles as in the render, oak worktop, white square tiles. Coffee maker; a book instead of the fruit bowl. Strong sun patches (brief says overcast), harmless. |
+| bucatarie-compacta-180/alb-total | ACCEPT | 7.5/10 | Sink door, 3 drawers, oven with hob; 3 upper doors, the third shorter over the slim hood: as render. Steel handles, oak worktop, sage tiles, toaster, utensil jar, sofa edge. Left end is free-standing on a longer wall instead of wall to wall; believable. Worktop about 90 cm, total about 225 cm. |
+| bucatarie-260/alb-casmir | ACCEPT | 8.5/10 | 3 drawers, hob over 3 drawers, plain dishwasher front, sink over 2 doors; 5 upper doors, second one short over the hood: as render. Cashmere fronts, white body and plinth, steel handles. Worktop about 84 cm, total about 225 cm, door handle about 102 cm. Tea towel tucked on the dishwasher front. |
+| bucatarie-260/alb-total | ACCEPT | 8/10 | Same layout in white, dark grey stone worktop as briefed, coffee maker and herb pot. Gap between worktop and uppers reads about 48 cm (a little tight), total about 217 cm. |
+| bucatarie-frigider-300/alb-total | ACCEPT | 8/10 | Fridge column with tall door + short top door tight to the left wall; 3 drawers, sink door, plain front, oven with hob; 4 uppers, hood under the last: as render. Steel handles, marble-look worktop. Worktop about 89 cm, total about 217 cm. Chopping board instead of lemons. |
+| bucatarie-frigider-300/gri-casmir | ACCEPT | 8/10 | Same layout, all cashmere including plinth, oak worktop, zellige tiles, spice rack, board, jar. Last upper sits a few mm lower than its neighbours; not noticeable. |
+| bucatarie-coloane-380/alb-total | ACCEPT | 8/10 | Fridge column; oven column (2 drawers, oven, microwave, small door); 3 drawers; 2 sink doors; plain dishwasher front; 3 drawers under the hob. Uppers: door, pair, door, door over hood: as render. Black handles, dark concrete worktop, coffee machine, stools. Worktop about 87 cm, total about 220 cm. |
+| bucatarie-coloane-380/stejar-alb | ACCEPT | 7.5/10 | Same layout, white fronts, oak plinth, end panel and oven-column frame as render, white worktop, metro tiles, bowl, kettle, unlabelled bottle. An apron hangs from the fridge handle down to the floor; slightly untidy but real. |
+
+## Rejects
+
+**suspendat-pat-240/alb-stejar-natur**
+- Hang the cabinet higher: its underside is 150 cm from the floor, level with the top third of the room door; its top is 190 cm, only 15-20 cm below the top of the door frame.
+- Leave 45 cm of bare wall between the headboard top and the cabinet underside.
+- The bed is 160 cm wide, narrower than the cabinet: the cabinet sticks out 40 cm past the headboard on the left and 40 cm on the right. The headboard is two thirds of the cabinet width.
+- Camera 4 m back, 35 mm; the far door of the cabinet is at least 80% as wide as the near one.
+
+## Patterns
+
+- All six redos fixed their flagged defect without introducing a new one.
+- Kitchens: 9 of 9 pass. Module order, door/drawer counts, handle positions, the handle-less dishwasher front and the slim hood follow the renders; worktops follow the briefs; worktop height reads 84-90 cm and total height 212-226 cm against doors and switches.
+- Kitchen note, no rule change: on runs of 3 m and more the far module is 71-77% of the near one. That is geometry at 4 m and 15-25 degrees, not lens stretching, so A9's 80% should not be enforced on kitchens longer than 2.6 m.
+- Small props drift from the brief (book instead of fruit bowl, board instead of lemons). Not worth redos.
+- Wall units over a bed still tend to hang 15-20 cm low and the bed grows with them: keep stating the height as a relation to the door frame and the bed width as a fraction of the cabinet.

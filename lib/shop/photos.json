@@ -18,6 +18,7 @@
   "comoda-clasica-160": [
     "stejar-alb",
     "alb-total",
+    "stejar-natur",
     "gri-casmir",
     "alb-stejar-natur",
     "nuc-crem"
@@ -105,6 +106,7 @@
   "dressing-ingust-90": [
     "alb-total",
     "stejar-natur",
+    "gri-casmir",
     "alb-stejar-natur",
     "antracit-stejar",
     "nuc-crem"
@@ -112,6 +114,7 @@
   "comoda-4-sertare-100": [
     "alb-total",
     "stejar-natur",
+    "gri-casmir",
     "alb-stejar-natur",
     "nuc-crem",
     "salvie-stejar"
@@ -137,7 +140,8 @@
     "alb-total",
     "stejar-natur",
     "gri-casmir",
-    "alb-stejar-natur"
+    "alb-stejar-natur",
+    "nuc-crem"
   ],
   "comoda-mixta-180": [
     "nuc-crem",
@@ -244,6 +248,21 @@
     "alb-total",
     "alb-stejar-natur"
   ],
+  "bucatarie-240": [
+    "alb-stejar-natur",
+    "alb-total"
+  ],
+  "bucatarie-compacta-180": [
+    "alb-total"
+  ],
+  "bucatarie-frigider-300": [
+    "gri-casmir",
+    "alb-total"
+  ],
+  "bucatarie-coloane-380": [
+    "stejar-alb",
+    "alb-total"
+  ],
   "dressing-oglinda-glisanta-200": [
     "alb-casmir",
     "alb-stejar-natur"
@@ -264,6 +283,10 @@
     "alb-total"
   ],
   "suspendat-pat-240": [
+    "alb-total"
+  ],
+  "bucatarie-260": [
+    "alb-casmir",
     "alb-total"
   ]
 }
