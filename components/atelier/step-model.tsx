@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetAvailable, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
-import { CATEGORY_ORDER } from "@/lib/atelier/categories";
+import { CATEGORY_DISPLAY } from "@/lib/atelier/categories";
 import { doorOpening, hasGlass, hasMirror } from "@/lib/atelier/door-types";
+import { paletteAllowed } from "@/lib/atelier/house-rules";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "@/lib/atelier/types";
 import { glazingOf, type Glazing } from "./glass-look";
@@ -20,6 +21,8 @@ export const CATEGORY_SHORT: Record<AtelierCategory, string> = {
   COMODA: "Comodă",
   SEPARATOR: "Separator",
   SUSPENDAT: "Suspendat",
+  BUCATARIE: "Bucătărie",
+  BAIE: "Baie",
 };
 
 /** „2,4 m" / „50 cm": the width a model starts from, shown as its own badge so it never truncates. */
@@ -118,7 +121,9 @@ export function StepModel({
   const combos = COMBO_PRESETS.flatMap((combo) => {
     const preset = presetById(combo.presetId);
     const palette = palettes.find((p) => p.id === combo.paletteId);
-    return preset && palette && preset.category === config.category && presetAvailable(preset, catalog) ? [{ combo, preset, palette }] : [];
+    // house rule: no dark chests of drawers or wall units, not even as a featured combination
+    const shown = preset && palette && preset.category === config.category && presetAvailable(preset, catalog) && paletteAllowed(preset.category, palette.id);
+    return shown ? [{ combo, preset, palette }] : [];
   });
   // Two lists share the space: ready-made combinations (model + colours) and the plain models.
   // Open on the one that holds the current choice.
@@ -143,7 +148,7 @@ export function StepModel({
     <div className="atelier-stack">
       <Section title="Ce construim?" className="atelier-section--cats">
         <RadioGroup label="Tip de mobilier" className="atelier-cats">
-          {CATEGORY_ORDER.map((id) => {
+          {CATEGORY_DISPLAY.map((id) => {
             const sample = presetsFor(id)[0];
             return (
               <button
@@ -244,7 +249,7 @@ export function StepModel({
       </section>
 
       <p className="atelier-hint">
-        Bucătărie sau altceva?{" "}
+        Vrei altceva decât ce vezi aici?{" "}
         <Link href="/cere-oferta" className="atelier-link">
           Cere o ofertă personalizată
         </Link>

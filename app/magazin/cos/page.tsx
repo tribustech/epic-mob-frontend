@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CartView } from "@/components/shop/cart-view";
 
 export const metadata: Metadata = {
-  title: { absolute: "Coșul tău | Magazin EpicMob" },
+  title: { absolute: "Coșul tău | Magazin Epic Mob" },
   robots: { index: false },
   alternates: { canonical: "/magazin/cos" },
 };

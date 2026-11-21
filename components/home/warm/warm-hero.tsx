@@ -154,7 +154,7 @@ export function WarmHero() {
               className="hero2__next"
               aria-label={`Următorul: ${nextSlide.room}`}
             >
-              <span className="hero2__next-label">Next</span>
+              <span className="hero2__next-label">Următorul</span>
               <span className="hero2__next-thumb">
                 <Image
                   src={nextSlide.image}

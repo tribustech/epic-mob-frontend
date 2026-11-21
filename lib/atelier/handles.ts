@@ -23,17 +23,26 @@ export interface HandleInfo {
   benefit: string;
   /** photo under /public */
   image: string;
+  /** the name people may have heard in a showroom, shown small next to the plain name */
+  trade?: string;
 }
 
-/** Plain-word names for the handle types (the CRM labels are workshop jargon: „Profil J", „Push (TIP-ON)"). */
+/**
+ * Plain-word names for the handle types (the CRM labels are workshop jargon: „Profil J", „Push (TIP-ON)"),
+ * and one line each that says what your hand does — a newcomer tells „îngropat", „muchie" and „șină" apart
+ * by that, not by the trade name.
+ */
 export const HANDLE_INFO: Record<HandleKind, HandleInfo> = {
-  APLICAT: { name: "Mâner bară", benefit: "Clasic, ușor de prins", image: "/handles/aplicat.webp" },
-  BUTON: { name: "Buton", benefit: "Mic și discret", image: "/handles/buton.webp" },
-  INGROPAT: { name: "Mâner îngropat", benefit: "Nu iese în afară", image: "/handles/ingropat.webp" },
-  PROFIL_J: { name: "Muchie frezată", benefit: "Fără mâner, tragi de margine", image: "/handles/profil-j.webp" },
-  GOLA: { name: "Profil ascuns", benefit: "Linie continuă de aluminiu", image: "/handles/gola.webp" },
-  PUSH: { name: "Fără mâner", benefit: "Apeși și se deschide", image: "/handles/push.webp" },
+  APLICAT: { name: "Mâner bară", benefit: "Bară de metal, o prinzi cu toată mâna", image: "/handles/aplicat.webp" },
+  BUTON: { name: "Buton", benefit: "Mic și rotund, îl prinzi cu două degete", image: "/handles/buton.webp" },
+  INGROPAT: { name: "Mâner îngropat", benefit: "Scobitură în ușă, prinzi cu degetele", image: "/handles/ingropat.webp" },
+  PROFIL_J: { name: "Muchie oblică", benefit: "Marginea ușii e tăiată oblic, tragi de ea", image: "/handles/profil-j.webp" },
+  GOLA: { name: "Profil ascuns", benefit: "Canal de aluminiu lângă ușă, bagi degetele și tragi", image: "/handles/gola.webp", trade: "Gola" },
+  PUSH: { name: "Fără mâner", benefit: "Apeși pe ușă și se deschide singură", image: "/handles/push.webp" },
 };
+
+/** Handles cut into the front itself: they can only be made on painted fronts. */
+export const needsPaintedFronts = (type: HandleKind): boolean => type === "INGROPAT" || type === "PROFIL_J";
 
 export const FINISH_INFO: Record<HandleFinish, { label: string; color: string }> = {
   NEGRU: { label: "Negru", color: "#26221f" },
@@ -50,7 +59,7 @@ export function handleBlockers(
   config: Pick<AtelierConfig, "category" | "doors" | "fronts">,
   type: HandleKind,
 ): { paint: boolean; glazed: boolean } {
-  if (type !== "INGROPAT" && type !== "PROFIL_J") return { paint: false, glazed: false };
+  if (!needsPaintedFronts(type)) return { paint: false, glazed: false };
   const d = config.doors;
   return {
     paint: config.fronts.kind !== "MDF_VOPSIT",
@@ -61,7 +70,7 @@ export function handleBlockers(
 /** Can these fronts take this handle? null = yes; else the reason, as one plain line for the card. */
 export function handleUnavailable(config: Pick<AtelierConfig, "category" | "doors" | "fronts">, type: HandleKind): string | null {
   const { paint, glazed } = handleBlockers(config, type);
-  return paint ? "Doar la fronturi vopsite" : glazed ? "Nu merge pe uși cu oglindă sau sticlă" : null;
+  return paint ? "Doar la uși vopsite" : glazed ? "Nu merge pe uși cu oglindă sau sticlă" : null;
 }
 
 /** The handle the CRM uses when the client picks none (CRM effectiveHandle): push on comode and
@@ -75,6 +84,7 @@ export function categoryDefaultHandle(category: AtelierCategory): HandleKind | n
 export function hasHandledFronts(config: Pick<AtelierConfig, "category" | "doors" | "bottom" | "columns">): boolean {
   if (config.category === "DRESSING") return config.doors.type.startsWith("BATANTE");
   if (config.category === "SEPARATOR") return !!config.bottom && config.bottom.type !== "NONE";
+  if (config.category === "BUCATARIE" || config.category === "BAIE") return true;
   if (config.category === "COMODA" || config.category === "SUSPENDAT")
     return config.columns.some((c) => FRONT_CONTENTS.has(c.content));
   return false;
@@ -132,4 +142,25 @@ export function usesFronts(config: Pick<AtelierConfig, "category" | "doors" | "b
   if (d.type === "NONE") return false;
   if (d.fills && d.fills.length > 0) return d.fills.some((f) => f === "PANOU");
   return d.type === "GLISANTE" || d.type === "BATANTE";
+}
+
+/**
+ * What the fronts of this furniture are, in the client's words: „uși", „sertare" or both
+ * (nobody outside a workshop says „fronturi").
+ */
+export function frontsNoun(config: Pick<AtelierConfig, "category" | "doors" | "bottom" | "columns">): { plain: string; the: string } {
+  const kitchen = config.category === "BUCATARIE" || config.category === "BAIE";
+  const d = config.doors;
+  // a wardrobe is „its doors" even when there are drawers behind them
+  const wardrobeDoors =
+    config.category === "DRESSING" && d.type !== "NONE" && (d.fills?.length ? d.fills.some((f) => f === "PANOU") : d.type === "GLISANTE" || d.type === "BATANTE");
+  const drawers = kitchen || (!wardrobeDoors && config.columns.some((c) => c.content === "SERTARE" || c.content === "BARA_SERTARE"));
+  const doors =
+    kitchen ||
+    wardrobeDoors ||
+    (config.category !== "DRESSING" &&
+      (config.columns.some((c) => c.content === "USI" || c.content === "USA_RIDICABILA") || (!!config.bottom && config.bottom.type !== "NONE")));
+  if (drawers && !doors) return { plain: "sertare", the: "sertarele" };
+  if (doors && !drawers) return { plain: "uși", the: "ușile" };
+  return { plain: "uși și sertare", the: "ușile și sertarele" };
 }

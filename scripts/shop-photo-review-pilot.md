@@ -535,3 +535,121 @@ C1–C5: every chest is the only cabinet in its photo, tops relate correctly to 
 
 - A16 (process, not prompt): before generating, check each render's section order (left/right) and handle type against the catalogue preset and the prompt; do not generate while they disagree. comoda-cafea-120 is the second stale render after suspendat-tv-180.
 - For any piece standing beside a washing machine: `State its width as a multiple of the 60 cm machine and say that its front is set back behind the machine's front.`
+
+---
+
+# Batch 10 (v3) (12 photos)
+
+Reviewed: `/tmp/claude-0/batch10/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Measurements are pixel estimates, ±10%. All 12 accepted.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-3-usi-150 / alb-stejar-natur (redo) | ACCEPT | 8.5 | Ratio now 0.68 (real 0.71); near side is a plain white rectangle of real depth; tight in the corner |
+| comoda-mixta-180 / nuc-crem (redo) | ACCEPT | 9 | No coat or hook; lamp and plates only; door handles sit a little lower than in the render |
+| comoda-birou-90 / alb-stejar-natur | ACCEPT | 8.5 | 3 drawers left, door right, black channels; top level with the desk; printer on top |
+| comoda-birou-90 / alb-total | ACCEPT | 8.5 | Matches render; reads ~10% wide; top 2–3 cm above the desk |
+| separator-biblioteca-120 / alb-total | ACCEPT | 8.5 | 3 × 5, open both sides, bed zone visible through it; slightly wide (1.53 tall-to-wide against 1.67); its wall end is not clearly attached |
+| separator-cuburi-150 / alb-total | ACCEPT | 9 | 4 × 4 cubes against a wall, wall visible through; three fabric boxes |
+| separator-inalt-240 / bardolino-gri | ACCEPT | 8.5 | 4 × 7, one end at a wall, bed zone behind, plant at the free end; ceiling is cropped so the top gap cannot be read; far end 78% of near end |
+| separator-ingust-90 / salvie-stejar | ACCEPT | 9 | 2 columns × 5 open compartments, 2 sage drawers with gold knobs; screens the entrance from the living room |
+| separator-scund-200 / antracit-stejar | ACCEPT | 8 | 4 × 3 behind the sofa; reads about 10–12% too tall for its length (compartments nearly square; render: clearly wider than high) |
+| separator-sertare-160 / gri-casmir | ACCEPT | 8.5 | Bookcase against an office wall; 2 × 4 open compartments, 4 drawers with black bars; a floor lamp is switched on at the frame edge |
+| separator-sertare-160 / stejar-alb | ACCEPT | 9 | Divider between sofa and desk zone, seen through |
+| separator-usi-180 / alb-stejar-natur | ACCEPT | 8.5 | 3 × 4 open compartments, 3 oak doors without handles, against a living-room wall; 11 of 12 compartments are styled (brief: one third) |
+
+Separators: each either divides two zones with the room visible through it (biblioteca, inalt, ingust, scund, sertare stejar-alb) or stands against a wall as a bookcase where the brief allows it (cuburi, sertare gri-casmir, usi). Walkways at the free ends are clear. A15 holds: sides are plain rectangles 30–40 cm deep.
+
+## Optional prompt lines (no rejects)
+
+- separator-scund-200 remaining colours: `Each compartment is clearly wider than high (50 × 37 cm); the top of the unit is only a hand's width above the sofa back.`
+- separator-inalt-240 remaining colours: `The ceiling is visible above the unit along its whole length, with a 5–10 cm gap.`
+- separator-usi-180 and other shelving: `Only 4 of the 12 compartments hold anything; the other 8 are empty.` Stating the count works better than "one third".
+- A14: extend to floor lamps (`all lamps switched off`).
+
+---
+
+# Batch 11 (v3) (12 photos)
+
+Reviewed: `/tmp/claude-0/batch11/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Heights were measured against sockets (30 cm), switches (105 cm), washing machines (85 cm) and desks (75 cm); ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-baie-80 / alb-casmir (redo) | ACCEPT | 9 | Now ~1.4 × the washing machine's width, slightly taller than wide; no hook; towels and basket |
+| comoda-cafea-120 / alb-stejar-natur (redo) | ACCEPT | 9 | Door left, 3 drawers right, black knobs placed as in the new render |
+| separator-copii-120 / alb-total | ACCEPT (borderline) | 8.5 | 3 × 2 open compartments, 3 drawers, gold knobs; reads ~135–140 cm high (top ~30 cm above the switch instead of 15); drawers a little lower than in the render |
+| separator-copii-120 / stejar-alb | ACCEPT | 8.5 | Oak body, white drawers; divides door side from desk; sun patches on the floor |
+| separator-cuburi-150 / stejar-natur | REJECT (borderline) | 8 | 4 × 4 and the divider placement are right, but the top is above eye level and almost level with the door top: it reads as a ~1.9 m bookcase, not a 1.5 m one. The door itself is undersized (~1.8 m by the switch) |
+| suspendat-baie-60 / alb-casmir | ACCEPT | 8.5 | 1 door, steel knob low on the opening side; beside the mirror, above the washing machine; underside ~110–115 cm (brief 135 above a machine), top ~185 |
+| suspendat-baie-60 / alb-stejar-natur | ACCEPT | 9 | Above the WC cistern panel; underside ~115–120 cm, top ~190–200 |
+| suspendat-clasic-120 / alb-total | ACCEPT | 9 | Above the desk; underside ~130 cm (brief 140), top ~190, level with the door frame; desk lamp off |
+| suspendat-clasic-120 / stejar-natur | ACCEPT | 9 | Above washer + dryer under a worktop, same width; underside ~130 cm, ~40 cm above the worktop |
+| suspendat-tv-180 / stejar-natur | ACCEPT | 9 | Front 5.1 : 1 as real; TV ~130 cm, 22 cm above the unit, centre ~115 cm; underside ~20 cm (brief 30) |
+| suspendat-tv-240 / alb-total | ACCEPT | 8.5 | Flap, niche, flap with black channels under the flaps as in the render; underside ~30 cm; TV ~150 cm, 19 cm above |
+| suspendat-tv-240 / nuc-crem | ACCEPT | 8.5 | Walnut body, cream flaps; underside ~20 cm; TV ~160 cm (65" is 145), two thirds of the unit |
+
+Mount heights: no wall unit hangs too high. All seven are at or 10–20 cm below the brief; tops stay at or under door-frame height, TV centres at 1.10–1.20 m.
+Lamps: the only lamp (desk lamp, suspendat-clasic alb-total) is off. Shelf fill: copii 2 of 6, cuburi 7 of 16, as briefed.
+
+## Reject
+
+### separator-cuburi-150 / stejar-natur
+- Prompt additions:
+  - `The top of the bookcase is below the camera: its top surface is visible from above, with the mug standing on it.`
+  - `The room door behind is 2.05 m: the door rises 55 cm (more than one cube row and a half) above the top of the bookcase.`
+  - `The top of the bookcase is 45 cm above the light switch.`
+
+## New general rules
+
+- Low pieces (up to 1.5 m): `The top surface of the piece is visible from above` (camera at 1.4 m). It fixes height drift better than a number.
+- Floating TV units: `The gap between the floor and the underside is almost as tall as the unit itself (30 cm against 35 cm).` Two of three read ~20 cm.
+- Wall units above something: keep the relation line `50 cm of free wall between the worktop / machine and the underside`; current results give 25–40 cm.
+
+---
+
+# Batch 12 (v3) (10 photos, final)
+
+Reviewed: `/tmp/claude-0/batch12/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Heights measured against sockets (30 cm), switches (105 cm), doors (205 cm), counters and washing machines; ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| separator-cuburi-150 / stejar-natur (redo) | ACCEPT | 9 | Top surface visible with the mug on it; reads ~140–150 cm; divider between sofa and dining |
+| suspendat-aventos-180 / supermat-alb | ACCEPT | 9 | 2 flaps, no handles; above a desk; underside ~135 cm (brief 155), top ~178; lamp off |
+| suspendat-baie-nisa-90 / alb-total | ACCEPT | 8.5 | Niche with 2 shelves left, door right, black knob as in the render; above the washing machine with only ~25–30 cm gap (underside ~110, brief 135) |
+| suspendat-baie-nisa-90 / stejar-alb | ACCEPT | 8.5 | Oak body, white door; above the WC cistern panel; underside ~105–135 cm depending on reference, top below the door frame |
+| suspendat-bucatarie-180 / alb-stejar-natur | ACCEPT | 8.5 | 3 oak doors, white body, channel under the doors; above a grey coffee counter, ~50 cm gap; top ~12 cm above the door frame; reads ~15% large |
+| suspendat-bucatarie-180 / alb-total | REJECT | 8 | Believable kitchen, but the cabinet reads ~230 × 96 cm instead of 180 × 72: top ~27 cm above the door frame and only ~25 cm under the ceiling |
+| suspendat-etajera-150 / alb-total | ACCEPT | 8.5 | 3 niches above a coffee counter; underside ~147 cm; reads ~20% large; only 1 of 3 niches filled; sun patches on the floor |
+| suspendat-etajera-150 / stejar-natur | ACCEPT | 8.5 | Above a sofa; underside ~130 cm, 45 cm above the sofa back; reads ~20% large |
+| suspendat-hol-90 / alb-stejar-natur | REJECT (borderline) | 8.5 | Cabinet matches the render, but its underside is level with the light switch (~105 cm, brief 140) directly above a sitting bench: nobody could sit under it |
+| suspendat-mixt-200 / casmir-alb | ACCEPT | 9 | Door, niche with 1 shelf, door; steel channel under the doors; underside ~30 cm, top ~86 cm; picture above; lamp off |
+
+Mount heights: nothing hangs too high. The one height problem is a top edge pushed up by an oversized cabinet (bucatarie alb-total). Everything else is at the brief or below it.
+
+## Rejects
+
+### suspendat-bucatarie-180 / alb-total
+- `The cabinet is 72 cm high: about one third of the height of the room door beside it. Each door is 60 cm wide and 72 cm high, only slightly taller than wide.`
+- `The top of the cabinet is only 12 cm above the top of the door frame; a 43 cm strip of wall is visible between the cabinet and the ceiling.`
+- `The cabinet is 180 cm long, shorter than the counter below it.`
+
+### suspendat-hol-90 / alb-stejar-natur
+- `The underside of the cabinet is 35 cm above the light switch and 95 cm above the bench seat: an adult can sit on the bench with free wall above the head.`
+- `The three coat hooks hang on the wall in the gap between the bench and the cabinet, not beside it.`
+- `Wall lamp switched off.`
+
+## Overall summary of the v3 round (batches 8–12)
+
+1. 50 variants reviewed; 48 are accepted (7 of them after one redo) and 2 need a redo: suspendat-bucatarie-180/alb-total and suspendat-hol-90/alb-stejar-natur. comoda-cafea-120/alb-total, held in batch 9, is cleared now that the render was corrected to door left, drawers right, knobs.
+2. Fronts, counts, handles and colours matched the renders throughout; the recurring defect was scale (pieces 15–30% too large against the door), fixed best by relation lines ("one third of the door height", "top surface visible from above").
+3. Andrew's original complaints are addressed: no wall unit hangs too high (they tend to hang 10–25 cm low), no dark chests, nightstands and chests are at believable sizes, and every piece stands in a room where it belongs.
+
+---
+
+# Batch 13 (v3) (2 redos)
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| suspendat-bucatarie-180 / alb-total (redo) | ACCEPT | 9 | Cabinet now ~80 cm high against the door; top ~12 cm above the door frame, clear wall under the ceiling; underside ~138 cm, ~50 cm above the counter; shorter than the counter |
+| suspendat-hol-90 / alb-stejar-natur (redo) | ACCEPT | 8.5 | Underside ~123 cm, ~23 cm above the switch and ~83 cm above the bench seat (brief 140); hooks in the gap; lamp off. Minor: thin white slivers on both sides, the right one with a clipped top corner (A15), and the hooks sit low (~110 cm) |
+
+With these two, all 50 v3 variants are accepted.

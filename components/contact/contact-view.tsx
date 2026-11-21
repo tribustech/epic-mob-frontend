@@ -4,6 +4,7 @@ import { readAttribution } from "@/lib/attribution";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { trackPixel } from "@/lib/meta-pixel";
+import { ConsentNote } from "@/components/legal/consent-note";
 import {
   ArrowRight,
   Check,
@@ -257,6 +258,7 @@ export function ContactView() {
                   </>
                 )}
               </button>
+              <ConsentNote subject="mesajul tău" className="mt-4 text-espresso" />
             </form>
           )}
         </section>

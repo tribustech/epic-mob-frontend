@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createContext, memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Edges, OrbitControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { DoorClosed, DoorOpen, Pointer, ScanEye } from "lucide-react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
@@ -10,8 +10,23 @@ import type { ThreeEvent } from "@react-three/fiber";
 import type { AtelierScene, ColumnContent, HandleFinish, HandleKind, RailPosition, SceneDoor, ScenePiece } from "@/lib/atelier/types";
 import { RAIL_COUNT } from "@/lib/atelier/categories";
 import type { MaterialLook } from "./material-look";
-import { FINISH_LOOK, FrontHardware, GolaChannel, HANDLE_STRIP_MM, S, UNIT_BOX, gripPoint, noRaycast, type HardwareMaterials } from "./viewer/hardware";
-import { useTween } from "./viewer/motion";
+import { UNIT_BOX_EDGES, boardEdges, grainBox, mergeBoards, mergeParts, notchedPanel, panelEdges, type Axis, type BoardSpec, type Notch } from "./viewer/geometry";
+import {
+  FINISH_LOOK,
+  FrontHardware,
+  GOLA_RECESS_MM,
+  GOLA_THICK_MM,
+  HANDLE_STRIP_MM,
+  Outline,
+  S,
+  UNIT_BOX,
+  gripNotch,
+  gripPoint,
+  lineMaterial,
+  noRaycast,
+  type HardwareMaterials,
+} from "./viewer/hardware";
+import { refreshShadows, useTween } from "./viewer/motion";
 import {
   planScene,
   resolveOpen,
@@ -77,6 +92,8 @@ export interface Viewer3DProps {
   onInteract?: (kind: "door" | "drawer" | "sliding" | "all", open: boolean) => void;
   /** the scene on screen is not the current configuration's (errors / price service down) */
   stale?: boolean;
+  /** kitchens: the worktop decor */
+  worktop?: MaterialLook | null;
 }
 
 /* ── Shared textures: one THREE.Texture per imageUrl for the whole page ── */
@@ -84,6 +101,24 @@ export interface Viewer3DProps {
 type TextureEntry = THREE.Texture | "loading" | "failed";
 const textureCache = new Map<string, TextureEntry>();
 const textureListeners = new Set<() => void>();
+/** How many live materials use each texture; the ones nobody uses are dropped once the cache outgrows TEXTURE_KEEP. */
+const textureUsers = new Map<string, number>();
+const TEXTURE_KEEP = 8;
+function retainTexture(key: string) {
+  textureUsers.set(key, (textureUsers.get(key) ?? 0) + 1);
+}
+function releaseTexture(key: string) {
+  const left = (textureUsers.get(key) ?? 1) - 1;
+  if (left > 0) textureUsers.set(key, left);
+  else textureUsers.delete(key);
+  // oldest first (a Map keeps insertion order); a decor being tried again is simply fetched from the HTTP cache
+  for (const [k, entry] of textureCache) {
+    if (textureCache.size <= TEXTURE_KEEP) break;
+    if (textureUsers.has(k) || !(entry instanceof THREE.Texture)) continue;
+    entry.dispose();
+    textureCache.delete(k);
+  }
+}
 const subscribeTextures = (fn: () => void) => {
   textureListeners.add(fn);
   return () => {
@@ -128,7 +163,7 @@ function requestTexture(url: string, grainHorizontal: boolean, crop?: Crop) {
     (loaded) => {
       const t = crop ? croppedTexture(loaded, crop) : loaded;
       t.colorSpace = THREE.SRGBColorSpace;
-      t.anisotropy = 8;
+      t.anisotropy = 4;
       // Geometry UVs are in metres (see grainBox): the photo tiles at its real scale instead of
       // being stretched over each panel. Along the grain the repeats are mirrored (no visible
       // joint); across it they simply repeat, which reads as one more plank edge, whereas
@@ -156,48 +191,28 @@ function useOptionalTexture(look: MaterialLook): THREE.Texture | null {
     () => undefined,
   );
   useEffect(() => {
-    if (url) requestTexture(url, look.grainHorizontal === true, look.crop);
+    if (!url) return;
+    const key = textureKey(url, look.crop);
+    requestTexture(url, look.grainHorizontal === true, look.crop);
+    retainTexture(key);
+    return () => releaseTexture(key);
   }, [url, look.grainHorizontal, look.crop]);
   return entry instanceof THREE.Texture ? entry : null;
 }
 
-type Axis = "x" | "y" | "z";
-const AXES: readonly Axis[] = ["x", "y", "z"];
-
-/**
- * A box whose UVs are world metres, with the wood grain (the texture's V axis) running along
- * `grain`: the height of doors and sides, the length of shelves and plinths. `origin` (metres)
- * shifts the pattern, so neighbouring panels don't repeat the same knots.
- */
-function grainBox(w: number, h: number, d: number, origin: [number, number, number], grain: Axis | "auto") {
-  const geometry = new THREE.BoxGeometry(w, h, d);
-  const size = { x: w, y: h, z: d };
-  const longest = AXES.reduce((best, axis) => (size[axis] > size[best] ? axis : best), "y" as Axis);
-  const wanted = grain === "auto" ? longest : grain;
-  const position = geometry.getAttribute("position");
-  const normal = geometry.getAttribute("normal");
-  const uv = geometry.getAttribute("uv");
-  const read = (attr: THREE.BufferAttribute | THREE.InterleavedBufferAttribute, i: number) => ({
-    x: attr.getX(i),
-    y: attr.getY(i),
-    z: attr.getZ(i),
-  });
-  for (let i = 0; i < position.count; i++) {
-    const n = read(normal, i);
-    const p = read(position, i);
-    const across = AXES.find((axis) => Math.abs(n[axis]) > 0.5) ?? "z";
-    const inPlane = AXES.filter((axis) => axis !== across);
-    const along = inPlane.includes(wanted) ? wanted : size[inPlane[0]] >= size[inPlane[1]] ? inPlane[0] : inPlane[1];
-    const side = inPlane.find((axis) => axis !== along) ?? inPlane[0];
-    uv.setXY(i, p[side] + origin[AXES.indexOf(side)], p[along] + origin[AXES.indexOf(along)]);
-  }
-  uv.needsUpdate = true;
+/** The board of a front or a door (metres), with the scoop of its handle routed in when it has one. */
+function usePanel(w: number, h: number, d: number, ox: number, oy: number, oz: number, grain: Axis | "auto", notch: Notch | null = null) {
+  const geometry = useMemo(
+    () => (notch ? notchedPanel(w, h, d, [ox, oy, oz], notch) : grainBox(w, h, d, [ox, oy, oz], grain)),
+    [w, h, d, ox, oy, oz, grain, notch],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
   return geometry;
 }
 
-function useGrainBox(w: number, h: number, d: number, ox: number, oy: number, oz: number, grain: Axis | "auto") {
-  const geometry = useMemo(() => grainBox(w, h, d, [ox, oy, oz], grain), [w, h, d, ox, oy, oz, grain]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
+/** Disposes a geometry built in a useMemo when it is replaced or the component goes away. */
+function useOwned<T extends { dispose: () => void } | null>(geometry: T): T {
+  useEffect(() => () => geometry?.dispose(), [geometry]);
   return geometry;
 }
 
@@ -300,16 +315,14 @@ function buildMirrorRoom(gl: THREE.WebGLRenderer): THREE.Texture {
   source.dispose();
   return texture;
 }
-function useMirrorRoom(): THREE.Texture {
-  const gl = useThree((s) => s.gl);
-  return useMemo(() => {
-    let texture = mirrorRoomCache.get(gl);
-    if (!texture) {
-      texture = buildMirrorRoom(gl);
-      mirrorRoomCache.set(gl, texture);
-    }
-    return texture;
-  }, [gl]);
+/** Painted the first time a mirror or a pane of glass is shown (most pieces have none). */
+function mirrorRoomOf(gl: THREE.WebGLRenderer): THREE.Texture {
+  let texture = mirrorRoomCache.get(gl);
+  if (!texture) {
+    texture = buildMirrorRoom(gl);
+    mirrorRoomCache.set(gl, texture);
+  }
+  return texture;
 }
 
 function StudioEnvironment() {
@@ -333,8 +346,10 @@ interface OpenPad {
   x: number;
   front: number;
   top: number;
+  /** where the free corners of the open doors and drawers stand (metres, scene space): the view must hold them too */
+  points: readonly (readonly [number, number, number])[];
 }
-const NO_PAD: OpenPad = { x: 0, front: 0, top: 0 };
+const NO_PAD: OpenPad = { x: 0, front: 0, top: 0, points: [] };
 
 /** Where the default camera stands for a W×H×D box centred on (0, H/2, 0), for this canvas aspect. */
 function defaultView(
@@ -364,6 +379,11 @@ function defaultView(
         const towards = corner.dot(dir);
         dist = Math.max(dist, Math.abs(corner.dot(right)) / tanX + towards, Math.abs(corner.dot(up)) / tanY + towards);
       }
+  for (const p of pad.points) {
+    corner.set(p[0], p[1] - H / 2, p[2]);
+    const towards = corner.dot(dir);
+    dist = Math.max(dist, Math.abs(corner.dot(right)) / tanX + towards, Math.abs(corner.dot(up)) / tanY + towards);
+  }
   return { target, position: target.clone().addScaledVector(dir, dist), dist };
 }
 
@@ -384,6 +404,8 @@ interface FitInput {
   /** share of the canvas height that is free of overlays */
   free: number;
   focus: FocusSpec | null;
+  /** the side the default view looks from (radians; an L kitchen is seen from its open side) */
+  azimuth: number;
 }
 
 /** The view for the current state: the focus view if one is set, else the whole piece. */
@@ -397,12 +419,12 @@ function viewFor(v: FitInput) {
     const tan = Math.tan(THREE.MathUtils.degToRad(VIEW_FOV) / 2);
     // `span` metres of the front fill the free height (and must fit the width of a narrow canvas)
     // a tall pane (desktop) would otherwise show only wood: step back so the handle stays in context
-    const span = v.focus.span * (v.aspect < 1.4 ? 2 : 1);
+    const span = v.focus.span * (v.aspect < 1.4 ? 1.7 : 1);
     const dist = Math.max(span / 2 / (tan * fillY), (span * 0.8) / 2 / (tan * Math.max(v.aspect, 0.2)));
     const target = new THREE.Vector3(...v.focus.point);
     return { target, position: target.clone().addScaledVector(dir, dist), dist };
   }
-  return defaultView(v.W, v.H, v.D, v.aspect, v.pad, fillY);
+  return defaultView(v.W, v.H, v.D, v.aspect, v.pad, fillY, v.azimuth);
 }
 
 /**
@@ -418,7 +440,9 @@ function CameraRig({
   resetSignal,
   insets,
   focus,
+  azimuth,
 }: {
+  azimuth: number;
   W: number;
   H: number;
   D: number;
@@ -446,9 +470,9 @@ function CameraRig({
   const pending = useRef(false);
   /** set while the camera glides back to the default view */
   const glide = useRef<{ position: THREE.Vector3; target: THREE.Vector3 } | null>(null);
-  const latest = useRef<FitInput>({ W, H, D, aspect, pad, free, focus });
+  const latest = useRef<FitInput>({ W, H, D, aspect, pad, free, focus, azimuth });
   useEffect(() => {
-    latest.current = { W, H, D, aspect, pad, free, focus };
+    latest.current = { W, H, D, aspect, pad, free, focus, azimuth };
   });
 
   // The picture is shifted so the model sits in the middle of the free area (between the overlays);
@@ -525,7 +549,7 @@ function CameraRig({
     if (dragging.current) pending.current = true;
     else frame.current();
     // Deliberately keyed on the size buckets (see above), not on exact values.
-  }, [wB, hB, dB, aB, fB, controls, camera]);
+  }, [wB, hB, dB, aB, fB, azimuth, controls, camera]);
 
   const firstReset = useRef(resetSignal);
   useEffect(() => {
@@ -542,7 +566,7 @@ function CameraRig({
     if (focusKey === firstFocus.current) return;
     firstFocus.current = focusKey;
     const v = { ...latest.current, focus };
-    const whole = defaultView(v.W, v.H, v.D, v.aspect, v.pad);
+    const whole = defaultView(v.W, v.H, v.D, v.aspect, v.pad, undefined, v.azimuth);
     const view = viewFor(v);
     if (controls) {
       // the close view is nearer than the usual limit allows
@@ -557,7 +581,7 @@ function CameraRig({
 
   // Doors opening / closing change how much room the piece needs: step back (or return) along the
   // client's own viewing direction, so their rotation is kept.
-  const padKey = `${pad.x.toFixed(2)}|${pad.front.toFixed(2)}|${pad.top.toFixed(2)}`;
+  const padKey = pad.points.map((p) => `${p[0].toFixed(2)},${p[1].toFixed(2)},${p[2].toFixed(2)}`).join("|");
   const firstPad = useRef(padKey);
   useEffect(() => {
     if (padKey === firstPad.current) return;
@@ -592,30 +616,251 @@ const FRONT_EDGE_ON_LIGHT = { color: "#2a2420", opacity: 0.5 };
 const FRONT_EDGE_ON_DARK = { color: "#b9b2a8", opacity: 0.55 };
 const FrontEdge = createContext(FRONT_EDGE_ON_LIGHT);
 
-/** A panel that never moves: carcass, back, plinth (and fronts that do not open). */
-function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierScene; material: THREE.Material }) {
-  const { x, y, z, w, h, d } = piece;
-  const geometry = useGrainBox(
-    Math.max(w, 1) * S,
-    Math.max(h, 1) * S,
-    Math.max(d, 1) * S,
-    x * S,
-    y * S,
-    z * S,
-    piece.role === "FRONT" ? "y" : "auto",
-  );
+const centred = (p: ScenePiece, scene: AtelierScene): [number, number, number] => [
+  (p.x + p.w / 2 - scene.widthMm / 2) * S,
+  (p.y + p.h / 2) * S,
+  (p.z + p.d / 2 - scene.depthMm / 2) * S,
+];
+
+/**
+ * Everything that never moves — carcass, backs, plinths, worktops, fronts that do not open — as one
+ * mesh per material and one line object per kind of outline: a kitchen of 170 boards is 4 draw calls,
+ * not 250. Rebuilt only when the boards themselves change.
+ */
+interface Statics {
+  carcass: THREE.BufferGeometry | null;
+  back: THREE.BufferGeometry | null;
+  worktop: THREE.BufferGeometry | null;
+  front: THREE.BufferGeometry | null;
+  corpEdges: ReturnType<typeof boardEdges>;
+  frontEdges: ReturnType<typeof boardEdges>;
+}
+
+function buildStatics(scene: AtelierScene, moving: string, legB: THREE.Matrix4 | null): Statics {
+  const groups: Record<"carcass" | "back" | "worktop" | "front", BoardSpec[]> = { carcass: [], back: [], worktop: [], front: [] };
+  const corpEdges: BoardSpec[] = [];
+  const frontEdges: BoardSpec[] = [];
+  scene.pieces.forEach((piece, i) => {
+    if (piece.role === "APARAT" || moving[i] === "1") return;
+    const board: BoardSpec = {
+      size: [Math.max(piece.w, 1) * S, Math.max(piece.h, 1) * S, Math.max(piece.d, 1) * S],
+      at: centred(piece, scene),
+      origin: [piece.x * S, piece.y * S, piece.z * S],
+      grain: piece.role === "FRONT" ? "y" : "auto",
+      matrix: piece.leg === "B" ? legB : null,
+    };
+    groups[piece.role === "FRONT" ? "front" : piece.role === "SPATE" ? "back" : piece.role === "BLAT" ? "worktop" : "carcass"].push(board);
+    if (piece.role === "FRONT") frontEdges.push(board);
+    else if (piece.role === "CORP") corpEdges.push(board);
+  });
+  return {
+    carcass: mergeBoards(groups.carcass),
+    back: mergeBoards(groups.back),
+    worktop: mergeBoards(groups.worktop),
+    front: mergeBoards(groups.front),
+    corpEdges: boardEdges(corpEdges),
+    frontEdges: boardEdges(frontEdges),
+  };
+}
+
+const StaticPieces = memo(function StaticPieces({
+  scene,
+  moving,
+  legB,
+  carcass,
+  back,
+  worktop,
+  front,
+}: {
+  scene: AtelierScene;
+  /** per scene piece: "1" = a front that opens (drawn on its own) */
+  moving: string;
+  legB: THREE.Matrix4 | null;
+  carcass: THREE.Material;
+  back: THREE.Material;
+  worktop: THREE.Material;
+  front: THREE.Material;
+}) {
+  const built = useMemo(() => buildStatics(scene, moving, legB), [scene, moving, legB]);
+  useEffect(() => () => Object.values(built).forEach((g) => g?.dispose()), [built]);
   const frontEdge = useContext(FrontEdge);
-  const edge = piece.role === "FRONT" ? frontEdge : piece.role === "CORP" ? CORP_EDGE : null;
   return (
-    <mesh
-      position={[(x + w / 2 - scene.widthMm / 2) * S, (y + h / 2) * S, (z + d / 2 - scene.depthMm / 2) * S]}
-      material={material}
-      geometry={geometry}
-      castShadow
-      receiveShadow
-    >
-      {edge && <Edges threshold={20} color={edge.color} transparent opacity={edge.opacity} raycast={noRaycast} />}
-    </mesh>
+    <>
+      {built.carcass && <mesh geometry={built.carcass} material={carcass} castShadow receiveShadow />}
+      {built.back && <mesh geometry={built.back} material={back} castShadow receiveShadow />}
+      {built.worktop && <mesh geometry={built.worktop} material={worktop} castShadow receiveShadow />}
+      {built.front && <mesh geometry={built.front} material={front} castShadow receiveShadow />}
+      {built.corpEdges && <Outline geometry={built.corpEdges} material={lineMaterial(CORP_EDGE.color, CORP_EDGE.opacity)} />}
+      {built.frontEdges && <Outline geometry={built.frontEdges} material={lineMaterial(frontEdge.color, frontEdge.opacity)} />}
+    </>
+  );
+});
+
+/* ── Kitchens: the second wall of an L, the worktop and the appliances (drawn only, never priced) ── */
+
+/**
+ * The group that turns the second wall of an L into place. Its pieces come in the second wall's own
+ * coordinates (x along it as you face it, z from the wall into the room) and are drawn like the others
+ * (centred on the scene); the group rotates them by ±90° and moves them onto the side wall.
+ */
+export function legBTransform(scene: AtelierScene): { position: [number, number, number]; rotation: [number, number, number] } | null {
+  const k = scene.kitchen;
+  if (!k || k.layout === "LINIAR" || !k.legBLengthMm) return null;
+  const W = scene.widthMm;
+  const D = scene.depthMm;
+  const left = k.layout === "L_STANGA";
+  const theta = left ? Math.PI / 2 : -Math.PI / 2;
+  // three.js rotation about y: x' = x cos + z sin, z' = −x sin + z cos (cos = 0 here)
+  const rx = (_a: number, b: number) => (left ? b : -b);
+  const rz = (a: number) => (left ? -a : a);
+  const tx = left ? 0 : W;
+  const tz = left ? k.legBLengthMm : 0;
+  return {
+    position: [(rx(W / 2, D / 2) + tx - W / 2) * S, 0, (rz(W / 2) + tz - D / 2) * S],
+    rotation: [0, theta, 0],
+  };
+}
+
+export interface ApplianceMaterials {
+  inox: THREE.Material;
+  glass: THREE.Material;
+  basin: THREE.Material;
+  white: THREE.Material;
+  ring: THREE.Material;
+  ceramic: THREE.Material;
+}
+type ApplianceMaterial = keyof ApplianceMaterials;
+const APPLIANCE_MATERIALS: readonly ApplianceMaterial[] = ["inox", "glass", "basin", "white", "ring", "ceramic"];
+
+/**
+ * Every sink, hob, oven, microwave, fridge, hood, basin and washer of the scene, each drawn in the
+ * box the CRM gives for it — as one geometry per material (six draw calls for all of them).
+ */
+function buildAppliances(scene: AtelierScene, legB: THREE.Matrix4 | null): Record<ApplianceMaterial, THREE.BufferGeometry | null> {
+  const parts: Record<ApplianceMaterial, THREE.BufferGeometry[]> = { inox: [], glass: [], basin: [], white: [], ring: [], ceramic: [] };
+  for (const piece of scene.pieces) {
+    if (piece.role !== "APARAT") continue;
+    const matrix = piece.leg === "B" ? legB : null;
+    const add = (material: ApplianceMaterial, g: THREE.BufferGeometry) => {
+      if (matrix) g.applyMatrix4(matrix);
+      parts[material].push(g);
+    };
+    const box = (size: [number, number, number], at: [number, number, number], material: ApplianceMaterial) =>
+      add(material, new THREE.BoxGeometry(...size).translate(...at));
+    const [cx, cy, cz] = centred(piece, scene);
+    const w = piece.w * S;
+    const h = piece.h * S;
+    const d = piece.d * S;
+    switch (piece.appliance) {
+      case "CHIUVETA": {
+        // a stainless rim on the worktop, the basin as a darker inset, a tap at the back
+        const top = cy + h / 2;
+        const tapX = cx;
+        const tapZ = cz - d / 2 + 0.035;
+        box([w, 0.004, d], [cx, top + 0.002, cz], "inox");
+        box([w - 0.05, 0.003, d - 0.05], [cx, top + 0.0045, cz], "basin");
+        box([0.028, 0.26, 0.028], [tapX, top + 0.13, tapZ], "inox");
+        box([0.024, 0.024, 0.2], [tapX, top + 0.25, tapZ + 0.09], "inox");
+        box([0.012, 0.05, 0.035], [tapX + 0.03, top + 0.22, tapZ], "inox");
+        break;
+      }
+      case "PLITA": {
+        const top = cy + h / 2;
+        const rings: [number, number, number][] = [
+          [-0.14, -0.1, 0.085],
+          [0.14, -0.1, 0.07],
+          [-0.14, 0.12, 0.07],
+          [0.14, 0.12, 0.095],
+        ];
+        box([w, h, d], [cx, cy, cz], "glass");
+        for (const [rx, rz, r] of rings)
+          add("ring", new THREE.RingGeometry(r - 0.004, r, 40).rotateX(-Math.PI / 2).translate(cx + rx, top + 0.0008, cz + rz));
+        break;
+      }
+      case "CUPTOR":
+      case "MICROUNDE": {
+        const front = cz + d / 2;
+        const strip = piece.appliance === "CUPTOR" ? 0.07 : 0;
+        box([w, h, d], [cx, cy, cz], "glass");
+        if (strip > 0) box([w, strip, 0.004], [cx, cy + h / 2 - strip / 2, front + 0.002], "inox");
+        box([w * 0.7, 0.016, 0.016], [cx, cy + h / 2 - strip - 0.035, front + 0.03], "inox");
+        if (piece.appliance === "MICROUNDE") box([0.08, h * 0.8, 0.003], [cx + w / 2 - 0.06, cy, front + 0.002], "inox");
+        break;
+      }
+      case "FRIGIDER":
+        box([w, h, d], [cx, cy, cz], "white");
+        break;
+      case "LAVOAR": {
+        // a countertop basin with a tap behind it
+        const bottom = cy - h / 2;
+        const tapZ = cz - d / 2 - 0.03;
+        box([w, h * 0.85, d], [cx, bottom + (h * 0.85) / 2, cz], "ceramic");
+        box([w - 0.04, 0.004, d - 0.04], [cx, bottom + h * 0.85 + 0.001, cz], "white");
+        box([0.03, 0.28, 0.03], [cx, bottom + 0.14, tapZ], "inox");
+        box([0.026, 0.026, 0.14], [cx, bottom + 0.27, tapZ + 0.06], "inox");
+        break;
+      }
+      case "MASINA_SPALAT": {
+        // a front-loading washer: white body, round dark door, a control strip
+        const front = cz + d / 2;
+        const r = Math.min(w, h) * 0.27;
+        box([w, h, d], [cx, cy, cz], "white");
+        box([w * 0.9, 0.09, 0.004], [cx, cy + h / 2 - 0.07, front + 0.002], "ring");
+        add("glass", new THREE.CircleGeometry(r, 40).translate(cx, cy - h * 0.06, front + 0.004));
+        add("inox", new THREE.RingGeometry(r, r + 0.025, 40).translate(cx, cy - h * 0.06, front + 0.005));
+        break;
+      }
+      case "HOTA":
+        box([w, h, d], [cx, cy, cz], "inox");
+        break;
+      default:
+        break;
+    }
+  }
+  return {
+    inox: mergeParts(parts.inox),
+    glass: mergeParts(parts.glass),
+    basin: mergeParts(parts.basin),
+    white: mergeParts(parts.white),
+    ring: mergeParts(parts.ring),
+    ceramic: mergeParts(parts.ceramic),
+  };
+}
+
+const Appliances = memo(function Appliances({ scene, legB, mats }: { scene: AtelierScene; legB: THREE.Matrix4 | null; mats: ApplianceMaterials }) {
+  const built = useMemo(() => buildAppliances(scene, legB), [scene, legB]);
+  useEffect(() => () => Object.values(built).forEach((g) => g?.dispose()), [built]);
+  return (
+    <>
+      {APPLIANCE_MATERIALS.map((key) => {
+        const geometry = built[key];
+        return geometry ? <mesh key={key} geometry={geometry} material={mats[key]} castShadow receiveShadow raycast={noRaycast} /> : null;
+      })}
+    </>
+  );
+});
+
+/** Kitchens: the wall(s) behind the cabinets, so the room reads as a kitchen. */
+function KitchenWalls({ scene }: { scene: AtelierScene }) {
+  const W = scene.widthMm * S;
+  const D = scene.depthMm * S;
+  const H = (scene.heightMm + 250) * S;
+  const k = scene.kitchen;
+  const side = k && k.layout !== "LINIAR" ? (k.layout === "L_STANGA" ? -1 : 1) : 0;
+  return (
+    <group>
+      <mesh position={[0, H / 2, -D / 2 - 0.001]} receiveShadow raycast={noRaycast}>
+        <planeGeometry args={[W + (side ? 0 : 0.6), H]} />
+        <meshStandardMaterial color="#ece7df" roughness={0.95} />
+      </mesh>
+      {side !== 0 && (
+        <mesh position={[(side * W) / 2 + side * 0.001, H / 2, 0]} rotation={[0, -side * (Math.PI / 2), 0]} receiveShadow raycast={noRaycast}>
+          <planeGeometry args={[D, H]} />
+          {/* this wall faces away from the key light: lifted, or it goes dark grey */}
+          <meshStandardMaterial color="#e6e0d7" roughness={0.95} emissive="#e6e0d7" emissiveIntensity={0.4} />
+        </mesh>
+      )}
+    </group>
   );
 }
 
@@ -625,10 +870,12 @@ function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierSc
 const HOVER_MATERIAL = new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.2, depthWrite: false, toneMapped: false });
 
 function HoverGlow({ w, h, d }: { w: number; h: number; d: number }) {
+  const scale: [number, number, number] = [(w + 3) * S, (h + 3) * S, (d + 9) * S];
   return (
-    <mesh geometry={UNIT_BOX} scale={[(w + 3) * S, (h + 3) * S, (d + 9) * S]} material={HOVER_MATERIAL} raycast={noRaycast} renderOrder={4}>
-      <Edges threshold={20} color="#d96f0a" lineWidth={1.6} transparent opacity={0.9} raycast={noRaycast} />
-    </mesh>
+    <>
+      <mesh geometry={UNIT_BOX} scale={scale} material={HOVER_MATERIAL} raycast={noRaycast} renderOrder={4} />
+      <Outline geometry={UNIT_BOX_EDGES} material={lineMaterial("#d96f0a", 0.9, 1.6)} scale={scale} />
+    </>
   );
 }
 
@@ -722,26 +969,63 @@ function FaceSheet({ w, h, d, margins, face }: { w: number; h: number; d: number
   );
 }
 
-/** The frame of a glass door: four bars of the door's board around the pane. */
-function DoorFrame({ w, h, d, margins, material }: { w: number; h: number; d: number; margins: Margins; material: THREE.Material }) {
+/** The frame of a glass door: four bars of the door's board around the pane (one mesh, one outline). */
+const DoorFrame = memo(function DoorFrame({
+  w,
+  h,
+  d,
+  left,
+  right,
+  top,
+  bottom,
+  ox,
+  oy,
+  material,
+}: {
+  w: number;
+  h: number;
+  d: number;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  /** where the door stands (scene mm): shifts the decor like on any other board */
+  ox: number;
+  oy: number;
+  material: THREE.Material;
+}) {
   const frontEdge = useContext(FrontEdge);
-  const innerH = h - margins.TOP - margins.BOTTOM;
-  const bars: { key: string; at: [number, number]; size: [number, number] }[] = [
-    { key: "top", at: [0, h / 2 - margins.TOP / 2], size: [w, margins.TOP] },
-    { key: "bottom", at: [0, -h / 2 + margins.BOTTOM / 2], size: [w, margins.BOTTOM] },
-    { key: "left", at: [-w / 2 + margins.LEFT / 2, (margins.BOTTOM - margins.TOP) / 2], size: [margins.LEFT, innerH] },
-    { key: "right", at: [w / 2 - margins.RIGHT / 2, (margins.BOTTOM - margins.TOP) / 2], size: [margins.RIGHT, innerH] },
-  ];
+  const built = useMemo(() => {
+    const innerH = h - top - bottom;
+    const bar = (cx: number, cy: number, bw: number, bh: number, grain: Axis): BoardSpec => ({
+      size: [bw * S, bh * S, d * S],
+      at: [cx * S, cy * S, 0],
+      origin: [(ox + w / 2 + cx) * S, (oy + h / 2 + cy) * S, 0],
+      grain,
+    });
+    const bars = [
+      bar(0, h / 2 - top / 2, w, top, "x"),
+      bar(0, -h / 2 + bottom / 2, w, bottom, "x"),
+      bar(-w / 2 + left / 2, (bottom - top) / 2, left, innerH, "y"),
+      bar(w / 2 - right / 2, (bottom - top) / 2, right, innerH, "y"),
+    ];
+    return { geometry: mergeBoards(bars), edges: boardEdges(bars) };
+  }, [w, h, d, left, right, top, bottom, ox, oy]);
+  useEffect(
+    () => () => {
+      built.geometry?.dispose();
+      built.edges?.dispose();
+    },
+    [built],
+  );
+  if (!built.geometry || !built.edges) return null;
   return (
     <>
-      {bars.map((bar) => (
-        <mesh key={bar.key} geometry={UNIT_BOX} position={[bar.at[0] * S, bar.at[1] * S, 0]} scale={[bar.size[0] * S, bar.size[1] * S, d * S]} material={material} castShadow receiveShadow>
-          <Edges threshold={20} color={frontEdge.color} transparent opacity={frontEdge.opacity * 0.7} raycast={noRaycast} />
-        </mesh>
-      ))}
+      <mesh geometry={built.geometry} material={material} castShadow receiveShadow />
+      <Outline geometry={built.edges} material={lineMaterial(frontEdge.color, +(frontEdge.opacity * 0.7).toFixed(3))} />
     </>
   );
-}
+});
 
 /** Open angle of hinged doors (side hinges) and lift-up doors (top hinge), radians. */
 // a right angle: an open door never cuts into the drawer or the door next to it
@@ -760,11 +1044,25 @@ interface FrontProps {
   hovered: boolean;
 }
 
+/** A front's board with the scoop of its handle, and its outline. */
+function useFrontBoard(plan: FrontPlan, handle: EffectiveHandle, plain: boolean) {
+  const { x, y, z, w, h, d } = plan.piece;
+  const { mode, edge, cls, hardware } = plan;
+  // (a mirror or a pane on the door: nothing is routed into it)
+  const notch = useMemo(
+    () => (hardware && plain ? gripNotch(handle, mode, edge, cls, w, h, d, y) : null),
+    [hardware, plain, handle, mode, edge, cls, w, h, d, y],
+  );
+  const geometry = usePanel(Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S, x * S, y * S, z * S, "y", notch);
+  const edges = useOwned(useMemo(() => (notch ? panelEdges(w * S, h * S, d * S, notch) : null), [w, h, d, notch]));
+  return { notch, geometry, edges };
+}
+
 /**
  * A hinged front (piece.hinge set by the CRM): a pivot group sits on the hinge edge and the
  * door hangs off it, so rotating the group swings the door outwards (towards +z).
  */
-function HingedFront({ plan, scene, material, face, handle, mats, amount, hovered }: FrontProps & { face: Face | null }) {
+const HingedFront = memo(function HingedFront({ plan, scene, material, face, handle, mats, amount, hovered }: FrontProps & { face: Face | null }) {
   const ref = useRef<THREE.Group>(null);
   const { x, y, z, w, h, d } = plan.piece;
   const hinge = plan.mode;
@@ -777,7 +1075,7 @@ function HingedFront({ plan, scene, material, face, handle, mats, amount, hovere
   const offset: [number, number, number] =
     hinge === "T" ? [0, (-h / 2) * S, (-d / 2) * S] : [((hinge === "R" ? -w : w) / 2) * S, 0, (-d / 2) * S];
   const openRad = hinge === "T" ? -LIFT_OPEN_RAD : hinge === "R" ? SWING_OPEN_RAD : -SWING_OPEN_RAD;
-  const geometry = useGrainBox(Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S, x * S, y * S, z * S, "y");
+  const { notch, geometry, edges } = useFrontBoard(plan, handle, !face);
   const frontEdge = useContext(FrontEdge);
   const margins = faceMargins(plan, handle, face?.pane ? FRAME_MM : FACE_MARGIN_MM);
 
@@ -793,55 +1091,59 @@ function HingedFront({ plan, scene, material, face, handle, mats, amount, hovere
     <group ref={ref} position={pivot} userData={{ openKey: plan.key }}>
       <group position={offset}>
         {face?.pane ? (
-          <DoorFrame w={w} h={h} d={d} margins={margins} material={material} />
+          <DoorFrame w={w} h={h} d={d} left={margins.LEFT} right={margins.RIGHT} top={margins.TOP} bottom={margins.BOTTOM} ox={x} oy={y} material={material} />
         ) : (
-          <mesh material={material} geometry={geometry} castShadow receiveShadow>
-            <Edges threshold={20} color={frontEdge.color} transparent opacity={frontEdge.opacity} raycast={noRaycast} />
-          </mesh>
+          <>
+            <mesh material={material} geometry={geometry} castShadow receiveShadow />
+            <Outline geometry={edges ?? UNIT_BOX_EDGES} material={lineMaterial(frontEdge.color, frontEdge.opacity)} scale={edges ? undefined : [w * S, h * S, d * S]} />
+          </>
         )}
         {face && <FaceSheet w={w} h={h} d={d} margins={margins} face={face} />}
-        {plan.hardware && <FrontHardware kind={handle} mode={hinge} edge={plan.edge} w={w} h={h} d={d} yMm={y} cls={plan.cls} mats={mats} />}
+        {plan.hardware && <FrontHardware kind={handle} mode={hinge} w={w} h={h} d={d} yMm={y} cls={plan.cls} notch={notch} mats={mats} />}
         {hovered && <HoverGlow w={w} h={h} d={d} />}
       </group>
     </group>
   );
-}
-
-/** One board of a drawer box (grain and tiling like every other panel). */
-function BoxPart({ size, at, origin, material }: { size: [number, number, number]; at: [number, number, number]; origin: [number, number, number]; material: THREE.Material }) {
-  const geometry = useGrainBox(size[0] * S, size[1] * S, size[2] * S, origin[0] * S, origin[1] * S, origin[2] * S, "auto");
-  return <mesh geometry={geometry} material={material} position={[at[0] * S, at[1] * S, at[2] * S]} castShadow receiveShadow />;
-}
+});
 
 const BOX_WALL_MM = 14;
 
-/** The box behind a drawer front: two sides, a back and a bottom, in the carcass colour. */
-function DrawerBox({ plan, material }: { plan: FrontPlan; material: THREE.Material }) {
+/** The box behind a drawer front: two sides, a back and a bottom, in the carcass colour (one mesh). */
+const DrawerBox = memo(function DrawerBox({ plan, material }: { plan: FrontPlan; material: THREE.Material }) {
   const { x, y, w, h, d } = plan.piece;
-  const t = BOX_WALL_MM;
-  const bw = Math.max(w * 0.7, w - 52);
-  const bh = Math.max(40, h - 70);
   const bd = plan.boxDepthMm;
-  const bottom = -h / 2 + Math.min(18, h * 0.1);
-  const cy = bottom + bh / 2;
-  const cz = -d / 2 - bd / 2;
-  return (
-    <>
-      <BoxPart size={[t, bh, bd]} at={[-(bw / 2 - t / 2), cy, cz]} origin={[x, y, 0]} material={material} />
-      <BoxPart size={[t, bh, bd]} at={[bw / 2 - t / 2, cy, cz]} origin={[x + w, y, 0]} material={material} />
-      <BoxPart size={[bw - 2 * t, bh, t]} at={[0, cy, -d / 2 - bd + t / 2]} origin={[x, y, 0]} material={material} />
-      <BoxPart size={[bw - 2 * t, 10, bd - t]} at={[0, bottom + 13, -d / 2 - (bd - t) / 2]} origin={[x, y, 0]} material={material} />
-    </>
+  const geometry = useOwned(
+    useMemo(() => {
+      const t = BOX_WALL_MM;
+      const bw = Math.max(w * 0.7, w - 52);
+      const bh = Math.max(40, h - 70);
+      const bottom = -h / 2 + Math.min(18, h * 0.1);
+      const cy = bottom + bh / 2;
+      const cz = -d / 2 - bd / 2;
+      const part = (size: [number, number, number], at: [number, number, number], ox: number): BoardSpec => ({
+        size: [size[0] * S, size[1] * S, size[2] * S],
+        at: [at[0] * S, at[1] * S, at[2] * S],
+        origin: [ox * S, y * S, 0],
+        grain: "auto",
+      });
+      return mergeBoards([
+        part([t, bh, bd], [-(bw / 2 - t / 2), cy, cz], x),
+        part([t, bh, bd], [bw / 2 - t / 2, cy, cz], x + w),
+        part([bw - 2 * t, bh, t], [0, cy, -d / 2 - bd + t / 2], x),
+        part([bw - 2 * t, 10, bd - t], [0, bottom + 13, -d / 2 - (bd - t) / 2], x),
+      ]);
+    }, [x, y, w, h, d, bd]),
   );
-}
+  return geometry ? <mesh geometry={geometry} material={material} castShadow receiveShadow /> : null;
+});
 
 /** A drawer front: it slides straight out, with its box behind it. */
-function DrawerFront({ plan, scene, material, carcassMaterial, handle, mats, amount, hovered }: FrontProps & { carcassMaterial: THREE.Material }) {
+const DrawerFront = memo(function DrawerFront({ plan, scene, material, carcassMaterial, handle, mats, amount, hovered }: FrontProps & { carcassMaterial: THREE.Material }) {
   const ref = useRef<THREE.Group>(null);
   const { x, y, z, w, h, d } = plan.piece;
   const baseZ = (z + d / 2 - scene.depthMm / 2) * S;
   const travel = plan.travelMm * S;
-  const geometry = useGrainBox(Math.max(w, 1) * S, Math.max(h, 1) * S, Math.max(d, 1) * S, x * S, y * S, z * S, "y");
+  const { notch, geometry, edges } = useFrontBoard(plan, handle, true);
   const frontEdge = useContext(FrontEdge);
   // the box is built the first time the drawer opens (most drawers are never opened)
   const [boxed, setBoxed] = useState(false);
@@ -853,15 +1155,14 @@ function DrawerFront({ plan, scene, material, carcassMaterial, handle, mats, amo
 
   return (
     <group ref={ref} position={[(x + w / 2 - scene.widthMm / 2) * S, (y + h / 2) * S, baseZ]} userData={{ openKey: plan.key }}>
-      <mesh material={material} geometry={geometry} castShadow receiveShadow>
-        <Edges threshold={20} color={frontEdge.color} transparent opacity={frontEdge.opacity} raycast={noRaycast} />
-      </mesh>
-      {plan.hardware && <FrontHardware kind={handle} mode="DRAWER" edge={plan.edge} w={w} h={h} d={d} yMm={y} cls={plan.cls} mats={mats} />}
+      <mesh material={material} geometry={geometry} castShadow receiveShadow />
+      <Outline geometry={edges ?? UNIT_BOX_EDGES} material={lineMaterial(frontEdge.color, frontEdge.opacity)} scale={edges ? undefined : [w * S, h * S, d * S]} />
+      {plan.hardware && <FrontHardware kind={handle} mode="DRAWER" w={w} h={h} d={d} yMm={y} cls={plan.cls} notch={notch} mats={mats} />}
       {boxed && <DrawerBox plan={plan} material={carcassMaterial} />}
       {hovered && <HoverGlow w={w} h={h} d={d} />}
     </group>
   );
-}
+});
 
 interface Rail {
   x0: number;
@@ -941,17 +1242,20 @@ export function railsFor(scene: AtelierScene, columns: ColumnContent[], railPosi
   return rails;
 }
 
+const UNIT_RAIL = new THREE.CylinderGeometry(1, 1, 1, 20);
+
 function RailMesh({ rail, scene, material }: { rail: Rail; scene: AtelierScene; material: THREE.Material }) {
   const len = rail.x1 - rail.x0;
   return (
     <mesh
       position={[((rail.x0 + rail.x1) / 2 - scene.widthMm / 2) * S, rail.y * S, (rail.z - scene.depthMm / 2) * S]}
       rotation={[0, 0, Math.PI / 2]}
+      scale={[RAIL_RADIUS_MM * S, len * S, RAIL_RADIUS_MM * S]}
+      geometry={UNIT_RAIL}
       material={material}
       castShadow
-    >
-      <cylinderGeometry args={[RAIL_RADIUS_MM * S, RAIL_RADIUS_MM * S, len * S, 20]} />
-    </mesh>
+      raycast={noRaycast}
+    />
   );
 }
 /* ── Sliding doors ── */
@@ -960,7 +1264,7 @@ const SLIDING_FACE_MARGIN: Margins = { LEFT: 16, RIGHT: 16, TOP: 16, BOTTOM: 16 
 const SLIDING_FRAME: Margins = { LEFT: 38, RIGHT: 38, TOP: 38, BOTTOM: 52 };
 const meshRaycast = THREE.Mesh.prototype.raycast;
 
-function Door({
+const Door = memo(function Door({
   door,
   openKey,
   targetXmm,
@@ -984,7 +1288,7 @@ function Door({
   hovered: boolean;
 }) {
   const ref = useRef<THREE.Group>(null);
-  const geometry = useGrainBox(door.w * S, door.h * S, DOOR_THICKNESS_MM * S, door.x * S, 0, 0, "y");
+  const geometry = usePanel(door.w * S, door.h * S, DOOR_THICKNESS_MM * S, door.x * S, 0, 0, "y");
   const bottom = Math.max(0, scene.heightMm - door.h);
   const frontEdge = useContext(FrontEdge);
   const targetX = (targetXmm + door.w / 2 - scene.widthMm / 2) * S;
@@ -998,18 +1302,34 @@ function Door({
     <group position={[0, (bottom + door.h / 2) * S, (zMm + DOOR_THICKNESS_MM / 2 - scene.depthMm / 2) * S]}>
       <group ref={ref} userData={{ openKey }}>
         {solid && face?.pane ? (
-          <DoorFrame w={door.w} h={door.h} d={DOOR_THICKNESS_MM} margins={SLIDING_FRAME} material={material} />
+          <DoorFrame
+            w={door.w}
+            h={door.h}
+            d={DOOR_THICKNESS_MM}
+            left={SLIDING_FRAME.LEFT}
+            right={SLIDING_FRAME.RIGHT}
+            top={SLIDING_FRAME.TOP}
+            bottom={SLIDING_FRAME.BOTTOM}
+            ox={door.x}
+            oy={bottom}
+            material={material}
+          />
         ) : (
-          <mesh material={material} geometry={geometry} renderOrder={2} castShadow={solid} receiveShadow={solid} raycast={solid ? meshRaycast : noRaycast}>
-            <Edges threshold={20} color={frontEdge.color} transparent opacity={solid ? frontEdge.opacity : 0.22} raycast={noRaycast} />
-          </mesh>
+          <>
+            <mesh material={material} geometry={geometry} renderOrder={2} castShadow={solid} receiveShadow={solid} raycast={solid ? meshRaycast : noRaycast} />
+            <Outline
+              geometry={UNIT_BOX_EDGES}
+              material={lineMaterial(frontEdge.color, solid ? frontEdge.opacity : 0.22)}
+              scale={[door.w * S, door.h * S, DOOR_THICKNESS_MM * S]}
+            />
+          </>
         )}
         {solid && face && <FaceSheet w={door.w} h={door.h} d={DOOR_THICKNESS_MM} margins={face.pane ? SLIDING_FRAME : SLIDING_FACE_MARGIN} face={face} />}
         {solid && hovered && <HoverGlow w={door.w} h={door.h} d={DOOR_THICKNESS_MM} />}
       </group>
     </group>
   );
-}
+});
 
 /* ── Mirror and glass ── */
 
@@ -1100,7 +1420,7 @@ function makeFace(key: string, frontColor: string, env: THREE.Texture, mirrorRoo
 /** One material per kind of mirror / glass in the scene (shared by all the doors that carry it). */
 function useFaceMaterials(scene: AtelierScene, frontColor: string) {
   const env = useRoomEnvironment();
-  const mirrorRoom = useMirrorRoom();
+  const gl = useThree((state) => state.gl);
   const signature = useMemo(() => {
     const keys = new Set<string>();
     for (const p of scene.pieces) if (p.fill === "OGLINDA" || p.fill === "STICLA") keys.add(faceKey(p.fill, p));
@@ -1109,9 +1429,9 @@ function useFaceMaterials(scene: AtelierScene, frontColor: string) {
   }, [scene]);
   const materials = useMemo(() => {
     const map = new Map<string, Face>();
-    for (const key of signature.split(";")) if (key) map.set(key, makeFace(key, frontColor, env, mirrorRoom));
+    for (const key of signature.split(";")) if (key) map.set(key, makeFace(key, frontColor, env, mirrorRoomOf(gl)));
     return map;
-  }, [signature, frontColor, env, mirrorRoom]);
+  }, [signature, frontColor, env, gl]);
   useEffect(() => () => materials.forEach((f) => f.material.dispose()), [materials]);
   return materials;
 }
@@ -1122,7 +1442,7 @@ const OVERLAY = { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUni
 
 /* ── The whole piece ── */
 
-function Wardrobe({
+const Wardrobe = memo(function Wardrobe({
   scene,
   plan,
   open,
@@ -1133,7 +1453,8 @@ function Wardrobe({
   handle,
   handleFinish,
   onToggle,
-}: Pick<Viewer3DProps, "columns" | "railPositions" | "carcass" | "front"> & {
+  worktop,
+}: Pick<Viewer3DProps, "columns" | "railPositions" | "carcass" | "front" | "worktop"> & {
   scene: AtelierScene;
   plan: ScenePlan;
   open: OpenState;
@@ -1144,6 +1465,40 @@ function Wardrobe({
   const carcassMat = useLookMaterial(carcass, 0.75);
   const backMat = useLookMaterial(carcass, 0.9);
   const frontMat = useLookMaterial(front, 0.55);
+  const worktopMat = useLookMaterial(worktop ?? carcass, 0.45);
+  const env0 = useRoomEnvironment();
+  const applianceMats = useMemo<ApplianceMaterials>(
+    () => ({
+      inox: new THREE.MeshStandardMaterial({ color: "#c9ccd0", metalness: 1, roughness: 0.3, envMap: env0, envMapIntensity: 1 }),
+      glass: new THREE.MeshStandardMaterial({ color: "#131313", metalness: 0.3, roughness: 0.12, envMap: env0, envMapIntensity: 0.8 }),
+      basin: new THREE.MeshStandardMaterial({ color: "#8c9096", metalness: 1, roughness: 0.45, envMap: env0, envMapIntensity: 0.6 }),
+      white: new THREE.MeshStandardMaterial({ color: "#eef0f2", roughness: 0.5 }),
+      ring: new THREE.MeshBasicMaterial({ color: "#5d5d5d", toneMapped: false }),
+      ceramic: new THREE.MeshStandardMaterial({ color: "#f6f5f2", roughness: 0.18, envMap: env0, envMapIntensity: 0.5 }),
+    }),
+    [env0],
+  );
+  useEffect(() => () => Object.values(applianceMats).forEach((m) => m.dispose()), [applianceMats]);
+  const legB = useMemo(() => legBTransform(scene), [scene]);
+  const legBMatrix = useMemo(
+    () => (legB ? new THREE.Matrix4().compose(new THREE.Vector3(...legB.position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...legB.rotation)), new THREE.Vector3(1, 1, 1)) : null),
+    [legB],
+  );
+  // which pieces are drawn on their own because they open; everything else is merged (see StaticPieces)
+  const moving = useMemo(() => plan.fronts.map((f) => (f ? "1" : "0")).join(""), [plan]);
+  // every frame that follows a change of the piece redraws the shadow map; orbiting does not
+  const gl = useThree((s) => s.gl);
+  useLayoutEffect(() => {
+    refreshShadows(gl);
+  });
+  const onLeg = (piece: ScenePiece | undefined, key: string, el: React.ReactNode) =>
+    piece?.leg === "B" && legB ? (
+      <group key={key} position={legB.position} rotation={legB.rotation}>
+        {el}
+      </group>
+    ) : (
+      el
+    );
   const slidingTexture = useOptionalTexture(front);
   const faces = useFaceMaterials(scene, front.color);
   const env = useRoomEnvironment();
@@ -1180,20 +1535,18 @@ function Wardrobe({
       [finish, env],
     ),
   );
-  const hollowMat = useDisposable(useMemo(() => new THREE.MeshStandardMaterial({ color: "#16120f", roughness: 1, metalness: 0, envMapIntensity: 0, ...OVERLAY }), []));
-  const lipMat = useDisposable(useMemo(() => new THREE.MeshStandardMaterial({ color: "#3a332d", roughness: 0.9, metalness: 0, envMapIntensity: 0, ...OVERLAY }), []));
+  const shellMat = useDisposable(
+    useMemo(
+      // satin, so the scoop shows its shading instead of mirroring the room
+      () => new THREE.MeshStandardMaterial({ color: finish.color, metalness: 0.45, roughness: 0.55, envMap: env, envMapIntensity: finish.env * 0.5, vertexColors: true }),
+      [finish, env],
+    ),
+  );
   const shadeMat = useDisposable(
     useMemo(() => new THREE.MeshBasicMaterial({ color: "#0d0a08", transparent: true, opacity: 0.34, depthWrite: false, toneMapped: false, ...OVERLAY }), []),
   );
-  const grooveMat = useDisposable(
-    useMemo(
-      () => new THREE.MeshStandardMaterial({ color: new THREE.Color(front.color).lerp(new THREE.Color("#17120e"), 0.78), roughness: 1, metalness: 0, envMapIntensity: 0, ...OVERLAY }),
-      [front.color],
-    ),
-  );
-  const mats = useMemo<HardwareMaterials>(
-    () => ({ metal: metalMat, channel: channelMat, hollow: hollowMat, groove: grooveMat, lip: lipMat, shade: shadeMat }),
-    [metalMat, channelMat, hollowMat, grooveMat, lipMat, shadeMat],
+  const veilMat = useDisposable(
+    useMemo(() => new THREE.MeshBasicMaterial({ color: "#ffffff", vertexColors: true, transparent: true, depthWrite: false, toneMapped: false, ...OVERLAY }), []),
   );
   const rails = useMemo(() => railsFor(scene, columns, railPositions), [scene, columns, railPositions]);
 
@@ -1210,6 +1563,40 @@ function Wardrobe({
     new THREE.Color(front.color).getHSL(hsl);
     return hsl.l < 0.3 ? FRONT_EDGE_ON_DARK : FRONT_EDGE_ON_LIGHT;
   }, [front.color]);
+  const mats = useMemo<HardwareMaterials>(
+    () => ({ metal: metalMat, shell: shellMat, channel: channelMat, shade: shadeMat, veil: veilMat, cut: lineMaterial(frontEdge.color, frontEdge.opacity) }),
+    [metalMat, shellMat, channelMat, shadeMat, veilMat, frontEdge],
+  );
+  // Gola: the aluminium channel fixed to the carcass in the gap each shortened front leaves, with the
+  // half under its upper lip (or towards the hinge side) in shade — all of them as two meshes
+  const gola = useMemo(() => {
+    const channels: BoardSpec[] = [];
+    const shades: BoardSpec[] = [];
+    plan.fronts.forEach((f, i) => {
+      const rect = f?.channel;
+      if (!f || !rect) return;
+      const matrix = scene.pieces[i]?.leg === "B" ? legBMatrix : null;
+      const horizontal = rect.w >= rect.h;
+      const cx = (rect.x + rect.w / 2 - scene.widthMm / 2) * S;
+      const cy = (rect.y + rect.h / 2) * S;
+      const cz = (f.piece.z + f.piece.d - GOLA_RECESS_MM - GOLA_THICK_MM / 2 - scene.depthMm / 2) * S;
+      const zShade = cz + (GOLA_THICK_MM / 2 + 1.2) * S;
+      channels.push({ size: [rect.w * S, rect.h * S, GOLA_THICK_MM * S], at: [cx, cy, cz], origin: [0, 0, 0], grain: "auto", matrix });
+      shades.push(
+        horizontal
+          ? { size: [rect.w * S, (rect.h / 2) * S, 0.6 * S], at: [cx, cy + (rect.h / 4) * S, zShade], origin: [0, 0, 0], grain: "auto", matrix }
+          : { size: [rect.w * 0.5 * S, rect.h * S, 0.6 * S], at: [cx, cy, zShade], origin: [0, 0, 0], grain: "auto", matrix },
+      );
+    });
+    return { channels: mergeBoards(channels), shades: mergeBoards(shades) };
+  }, [plan, scene, legBMatrix]);
+  useEffect(
+    () => () => {
+      gola.channels?.dispose();
+      gola.shades?.dispose();
+    },
+    [gola],
+  );
 
   /* Taps and hover: one set of handlers on the whole piece. The nearest thing under the pointer
      answers (a carcass side hides the drawer behind it), and it opens only if it is a front. */
@@ -1238,7 +1625,10 @@ function Wardrobe({
           // a drag that rotated the model is not a tap
           if (e.delta > TAP_SLOP_PX) return;
           const key = keyOf(e);
-          if (key) onToggle(key);
+          if (!key) return;
+          onToggle(key);
+          // the front moves away from under the pointer: its highlight must not stay behind
+          setHover(null);
         }}
         onPointerMove={(e) => {
           e.stopPropagation();
@@ -1251,32 +1641,21 @@ function Wardrobe({
           setHover((current) => (current === key ? null : current));
         }}
       >
+        <StaticPieces scene={scene} moving={moving} legB={legBMatrix} carcass={carcassMat} back={backMat} worktop={worktopMat} front={frontMat} />
+        <Appliances scene={scene} legB={legBMatrix} mats={applianceMats} />
         {scene.pieces.map((piece, i) => {
           const f = plan.fronts[i];
-          if (!f)
-            return (
-              <Piece
-                key={i}
-                piece={piece}
-                scene={scene}
-                material={piece.role === "FRONT" ? frontMat : piece.role === "SPATE" ? backMat : carcassMat}
-              />
-            );
+          if (!f) return null;
           const fill = piece.fill === "OGLINDA" || piece.fill === "STICLA" ? piece.fill : null;
           const face = fill ? (faces.get(faceKey(fill, piece)) ?? null) : null;
           const common = { plan: f, scene, handle, mats, amount: open.amount[i] ?? 0, hovered: hover === f.key };
-          return f.kind === "door" ? (
-            // a mirror / lacquered glass is glued on a board of the carcass material; a glass pane sits in a frame of the fronts' board
-            <HingedFront key={`${i}-${f.mode}`} {...common} material={face && !face.pane ? carcassMat : frontMat} face={face} />
-          ) : (
-            <DrawerFront key={`${i}-drawer`} {...common} material={frontMat} carcassMaterial={carcassMat} />
-          );
+          return f.kind === "door"
+            ? // a mirror / lacquered glass is glued on a board of the carcass material; a glass pane sits in a frame of the fronts' board
+              onLeg(piece, `${i}-${f.mode}`, <HingedFront key={`${i}-${f.mode}`} {...common} material={face && !face.pane ? carcassMat : frontMat} face={face} />)
+            : onLeg(piece, `${i}-drawer`, <DrawerFront key={`${i}-drawer`} {...common} material={frontMat} carcassMaterial={carcassMat} />);
         })}
-        {plan.fronts.map((f, i) =>
-          f?.channel ? (
-            <GolaChannel key={`gola-${i}`} rect={f.channel} zFront={f.piece.z + f.piece.d} sceneW={scene.widthMm} sceneD={scene.depthMm} mats={mats} />
-          ) : null,
-        )}
+        {gola.channels && <mesh geometry={gola.channels} material={channelMat} receiveShadow />}
+        {gola.shades && <mesh geometry={gola.shades} material={shadeMat} raycast={noRaycast} />}
         {rails.map((rail, i) => (
           <RailMesh key={i} rail={rail} scene={scene} material={railMat} />
         ))}
@@ -1300,7 +1679,7 @@ function Wardrobe({
       </group>
     </FrontEdge.Provider>
   );
-}
+});
 
 /** A finger (or the mouse) may wander this far between down and up and still count as a tap. */
 const TAP_SLOP_PX = 8;
@@ -1333,6 +1712,7 @@ function useBlobTexture(inner: string, outer: string, hardness: number) {
 function KeyLight({ W, H, D }: { W: number; H: number; D: number }) {
   const ref = useRef<THREE.DirectionalLight>(null);
   const invalidate = useThree((s) => s.invalidate);
+  const gl = useThree((s) => s.gl);
   useEffect(() => {
     const light = ref.current;
     if (!light) return;
@@ -1348,9 +1728,9 @@ function KeyLight({ W, H, D }: { W: number; H: number; D: number }) {
     cam.near = dist - r * 1.5;
     cam.far = dist + r * 1.5;
     cam.updateProjectionMatrix();
-    light.shadow.needsUpdate = true;
+    refreshShadows(gl);
     invalidate();
-  }, [W, H, D, invalidate]);
+  }, [W, H, D, gl, invalidate]);
   return (
     <directionalLight
       ref={ref}
@@ -1370,7 +1750,14 @@ function KeyLight({ W, H, D }: { W: number; H: number; D: number }) {
  * can stay transparent over the CSS backdrop: a pool of light and a soft contact shadow.
  * (No plane catches the real cast shadow: it read as a hard grey block beside the model.)
  */
-function Stage({ W, H, D, wallHung }: { W: number; H: number; D: number; wallHung: boolean }) {
+interface Footprint {
+  x: number;
+  z: number;
+  w: number;
+  d: number;
+}
+
+function Stage({ W, H, D, wallHung, footprints }: { W: number; H: number; D: number; wallHung: boolean; footprints: readonly Footprint[] | null }) {
   const glow = useBlobTexture("rgba(255,253,249,0.75)", "rgba(255,253,249,0)", 0.05);
   const shade = useBlobTexture("rgba(52,40,30,0.5)", "rgba(52,40,30,0)", 0.42);
   if (wallHung) {
@@ -1395,10 +1782,11 @@ function Stage({ W, H, D, wallHung }: { W: number; H: number; D: number; wallHun
         <planeGeometry args={[W * 1.6 + 3.2, D * 2 + 3.6]} />
         <meshBasicMaterial map={glow} transparent depthWrite={false} toneMapped={false} />
       </mesh>
-      <mesh position={[0, -0.04, -0.002]} renderOrder={-2}>
-        <planeGeometry args={[W + 0.5, D + 0.6]} />
-        <meshBasicMaterial map={shade} transparent depthWrite={false} toneMapped={false} />
-      </mesh>
+      {(footprints ?? [{ x: 0, z: 0, w: W, d: D }]).map((f, i) => (
+        <mesh key={i} position={[f.x, -(f.z + 0.04), -0.002]} scale={[f.w + 0.5, f.d + 0.6, 1]} geometry={UNIT_PLANE} renderOrder={-2}>
+          <meshBasicMaterial map={shade} transparent depthWrite={false} toneMapped={false} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -1407,7 +1795,11 @@ function Stage({ W, H, D, wallHung }: { W: number; H: number; D: number; wallHun
 function ColumnHighlight({ scene, range, wallHung }: { scene: AtelierScene; range: { x0: number; x1: number }; wallHung: boolean }) {
   const width = Math.max(0.05, (range.x1 - range.x0) * S - 0.03);
   const x = ((range.x0 + range.x1) / 2 - scene.widthMm / 2) * S;
-  const front = (scene.depthMm / 2) * S;
+  // a kitchen's scene is as deep as its second wall: the strip goes in front of the main wall's base units
+  const frontMm = scene.kitchen
+    ? Math.max(0, ...scene.pieces.filter((p) => !p.leg && p.y < 900).map((p) => p.z + p.d))
+    : scene.depthMm;
+  const front = (frontMm - scene.depthMm / 2) * S;
   const material = <meshBasicMaterial color="#d96f0a" transparent opacity={0.85} depthWrite={false} toneMapped={false} />;
   if (wallHung)
     return (
@@ -1465,12 +1857,57 @@ function usePhoneBox() {
   return { ref, phone };
 }
 
+/**
+ * The same object for as long as its content (`key`) stays the same. The shell hands over a new scene
+ * with every price response and new colour objects with every change: held like this, an answer that
+ * changes nothing re-renders nothing in the canvas.
+ */
+function useHeld<T>(value: T, key: string): T {
+  const [held, setHeld] = useState({ key, value });
+  if (held.key !== key) setHeld({ key, value });
+  return held.key === key ? held.value : value;
+}
+const lookKey = (look: MaterialLook | null | undefined) =>
+  look ? `${look.color}|${look.imageUrl ?? ""}|${look.grainHorizontal ? 1 : 0}|${look.crop ? look.crop.join(",") : ""}` : "";
+
+/** Is the viewer on screen (and the tab in front)? Off screen nothing is drawn at all. */
+function useOnScreen(ref: React.RefObject<HTMLDivElement | null>) {
+  const [inView, setInView] = useState(true);
+  const [tabVisible, setTabVisible] = useState(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver((entries) => setInView(entries[entries.length - 1]?.isIntersecting ?? true));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref]);
+  useEffect(() => {
+    const onChange = () => setTabVisible(document.visibilityState !== "hidden");
+    onChange();
+    document.addEventListener("visibilitychange", onChange);
+    return () => document.removeEventListener("visibilitychange", onChange);
+  }, []);
+  return inView && tabVisible;
+}
+
+/** Back on screen: draw one frame (things may have changed meanwhile). */
+function Wake({ awake }: { awake: boolean }) {
+  const invalidate = useThree((s) => s.invalidate);
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    if (!awake) return;
+    refreshShadows(gl);
+    invalidate();
+  }, [awake, gl, invalidate]);
+  return null;
+}
+
 export default function Viewer3D({
-  scene,
-  columns,
-  railPositions,
-  carcass,
-  front,
+  scene: sceneProp,
+  columns: columnsProp,
+  railPositions: railPositionsProp,
+  carcass: carcassProp,
+  front: frontProp,
   updating,
   doorsOpen: doorsOpenProp,
   onDoorsOpenChange,
@@ -1481,7 +1918,14 @@ export default function Viewer3D({
   focus = null,
   onInteract,
   stale = false,
+  worktop: worktopProp = null,
 }: Viewer3DProps) {
+  const scene = useHeld(sceneProp, useMemo(() => (sceneProp ? JSON.stringify(sceneProp) : ""), [sceneProp]));
+  const columns = useHeld(columnsProp, columnsProp.join("|"));
+  const railPositions = useHeld(railPositionsProp, railPositionsProp ? railPositionsProp.join("|") : "-");
+  const carcass = useHeld(carcassProp, lookKey(carcassProp));
+  const front = useHeld(frontProp, lookKey(frontProp));
+  const worktop = useHeld(worktopProp, lookKey(worktopProp));
   const [doorsOpenLocal, setDoorsOpenLocal] = useState(false);
   const doorsOpen = doorsOpenProp ?? doorsOpenLocal;
   const setDoorsOpen = (open: boolean) => {
@@ -1500,6 +1944,7 @@ export default function Viewer3D({
     return () => clearTimeout(timer);
   }, [hasScene, tapHint]);
   const { ref: boxRef, phone } = usePhoneBox();
+  const onScreen = useOnScreen(boxRef);
 
   // what the fronts carry: the shell's choice, else the scene's, else the legacy flag (older CRM)
   const handleKind: EffectiveHandle = handle ?? scene?.handle ?? (handles ? "APLICAT" : "FARA");
@@ -1550,42 +1995,77 @@ export default function Viewer3D({
     dismissHint();
     onInteract?.(key.startsWith("sliding") ? "sliding" : key.startsWith("drawer") ? "drawer" : "door", result.open);
   };
+  // one handler for the life of the canvas (a new one per render would re-render the whole model)
+  const toggleRef = useRef(toggleOne);
+  useEffect(() => {
+    toggleRef.current = toggleOne;
+  });
+  const onToggle = useCallback((key: string) => toggleRef.current(key), []);
 
   const W = (scene?.widthMm ?? 2400) * S;
   const H = (scene?.heightMm ?? 2600) * S;
   const D = (scene?.depthMm ?? 600) * S;
   // wall cabinets are the only furniture without legs / plinth: they hang on a wall, not on the floor
   const wallHung = plan?.wallHung ?? false;
-  // opened doors and drawers stick out: the camera must leave room for them
+  // opened doors and drawers stick out: the view must hold their free corners too. (Exact corners, not
+  // a margin all around: one door of a wide piece moves the camera only as far as that door needs.)
   const pad = useMemo<OpenPad>(() => {
-    // one door or drawer opening must not push the camera back (the piece would shrink on a phone):
-    // only „open all" makes room
-    if (!scene || !plan || !open || !allOpen) return NO_PAD;
-    let x = 0;
-    let front = 0;
-    let top = 0;
+    if (!scene || !plan || !open) return NO_PAD;
+    const legB = legBTransform(scene);
+    const turn = legB ? new THREE.Matrix4().compose(new THREE.Vector3(...legB.position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...legB.rotation)), new THREE.Vector3(1, 1, 1)) : null;
+    const points: [number, number, number][] = [];
+    const v = new THREE.Vector3();
     plan.fronts.forEach((f, i) => {
       const amount = open.amount[i] ?? 0;
       if (!f || amount <= 0) return;
       const p = f.piece;
+      const face = p.z + p.d;
+      const add = (x: number, y: number, z: number) => {
+        v.set((x - scene.widthMm / 2) * S, y * S, (z - scene.depthMm / 2) * S);
+        if (p.leg === "B" && turn) v.applyMatrix4(turn);
+        points.push([v.x, v.y, v.z]);
+      };
       if (f.mode === "DRAWER") {
-        front = Math.max(front, f.travelMm * amount - (scene.depthMm - (p.z + p.d)));
-        return;
+        const z = face + f.travelMm * amount;
+        for (const x of [p.x, p.x + p.w]) for (const y of [p.y, p.y + p.h]) add(x, y, z);
+      } else if (f.mode === "T") {
+        const y = p.y + p.h - p.h * Math.cos(LIFT_OPEN_RAD);
+        const z = face + p.h * Math.sin(LIFT_OPEN_RAD);
+        add(p.x, y, z);
+        add(p.x + p.w, y, z);
+      } else {
+        const sign = f.mode === "L" ? -1 : 1;
+        const x = (f.mode === "L" ? p.x : p.x + p.w) + sign * -p.w * Math.cos(SWING_OPEN_RAD);
+        const z = face + p.w * Math.sin(SWING_OPEN_RAD);
+        add(x, p.y, z);
+        add(x, p.y + p.h, z);
       }
-      if (f.mode === "T") {
-        front = Math.max(front, p.h * Math.sin(LIFT_OPEN_RAD));
-        top = Math.max(top, p.y + p.h - p.h * Math.cos(LIFT_OPEN_RAD) - scene.heightMm + 20);
-        return;
-      }
-      const swing = p.w * Math.sin(SWING_OPEN_RAD);
-      const past = -p.w * Math.cos(SWING_OPEN_RAD) + 20;
-      front = Math.max(front, swing);
-      // only the doors hinged at the outer edges reach beyond the body
-      const edge = f.mode === "L" ? p.x : scene.widthMm - (p.x + p.w);
-      x = Math.max(x, past - edge);
     });
-    return x <= 0 && front <= 0 && top <= 0 ? NO_PAD : { x: Math.max(0, x) * S, front: Math.max(0, front) * S, top: Math.max(0, top) * S };
-  }, [scene, plan, open, allOpen]);
+    return points.length === 0 ? NO_PAD : { ...NO_PAD, points };
+  }, [scene, plan, open]);
+  // an L kitchen is seen from its open side, so both walls show their fronts
+  const azimuth = scene?.kitchen?.layout === "L_DREAPTA" ? -VIEW_AZIMUTH : VIEW_AZIMUTH;
+  // what stands on the floor, for the soft shadow under it: an L kitchen is two strips, not the whole rectangle
+  const footprints = useMemo<Footprint[] | null>(() => {
+    if (!scene?.kitchen) return null;
+    const legB = legBTransform(scene);
+    const turn = legB ? new THREE.Matrix4().compose(new THREE.Vector3(...legB.position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...legB.rotation)), new THREE.Vector3(1, 1, 1)) : null;
+    const v = new THREE.Vector3();
+    const boxes: Record<"A" | "B", THREE.Box3> = { A: new THREE.Box3(), B: new THREE.Box3() };
+    for (const p of scene.pieces) {
+      if (p.y > 400 || p.role === "SPATE") continue;
+      for (const x of [p.x, p.x + p.w])
+        for (const z of [p.z, p.z + p.d]) {
+          v.set((x - scene.widthMm / 2) * S, 0, (z - scene.depthMm / 2) * S);
+          if (p.leg === "B" && turn) v.applyMatrix4(turn);
+          boxes[p.leg === "B" ? "B" : "A"].expandByPoint(v);
+        }
+    }
+    const out = Object.values(boxes)
+      .filter((b) => !b.isEmpty())
+      .map((b) => ({ x: (b.min.x + b.max.x) / 2, z: (b.min.z + b.max.z) / 2, w: b.max.x - b.min.x, d: b.max.z - b.min.z }));
+    return out.length > 0 ? out : null;
+  }, [scene]);
 
   // the hint names only what the client can see and tap right now
   const seenDoors = plan ? plan.doors + plan.sliding : 0;
@@ -1607,9 +2087,12 @@ export default function Viewer3D({
     // the front nearest the middle of the piece that shows its handle (not the drawers behind doors)
     let best: FrontPlan | null = null;
     let bestOff = Infinity;
+    const routed = handleKind === "INGROPAT" || handleKind === "PROFIL_J";
     for (const f of plan.fronts) {
-      if (!f || !f.hardware || f.coveredBy.length > 0 || f.behindSliding) continue;
+      if (!f || !f.hardware || f.coveredBy.length > 0 || f.behindSliding || f.piece.leg === "B") continue;
       if (handleKind === "GOLA" && !f.channel) continue;
+      // a grip is never routed into a door that carries a mirror or glass: looking there would show nothing
+      if (routed && (f.piece.fill || !gripNotch(handleKind, f.mode, f.edge, f.cls, f.piece.w, f.piece.h, f.piece.d, f.piece.y))) continue;
       const off = Math.abs(f.piece.x + f.piece.w / 2 - scene.widthMm / 2) - (f.kind === "door" ? 1 : 0);
       if (off < bestOff) {
         best = f;
@@ -1639,9 +2122,18 @@ export default function Viewer3D({
         <Canvas
           // an out-of-date model (old shape in new colours) must not pass for the result
           style={{ opacity: stale && !updating ? 0.5 : 1, transition: "opacity 0.3s ease" }}
-          frameloop="demand"
-          dpr={[1, 2]}
+          // a frame is drawn only when something changed (a tween, an orbit, new props); off screen, never
+          frameloop={onScreen ? "demand" : "never"}
+          // above 1.5 the picture costs about twice the GPU work for no visible gain
+          dpr={[1, 1.5]}
           shadows="percentage"
+          // the shadow map is redrawn when the piece changes (see Wardrobe, useTween), not on every orbit frame
+          onCreated={({ gl }) => {
+            // the check stalls the first frame while shaders compile; keep it for development only
+            gl.debug.checkShaderErrors = process.env.NODE_ENV !== "production";
+            gl.shadowMap.autoUpdate = false;
+            refreshShadows(gl);
+          }}
           // The room alone lights everything evenly, which is what made the model look flat:
           // keep it low and let the key light model the shapes.
           scene={{ environmentIntensity: ENVIRONMENT_INTENSITY }}
@@ -1653,11 +2145,12 @@ export default function Viewer3D({
             </p>
           }
         >
+          <Wake awake={onScreen} />
           <StudioEnvironment />
           <hemisphereLight args={["#ffffff", "#b3a89c", 0.9]} />
           <KeyLight W={W} H={H} D={D} />
           <directionalLight position={[-4, 2.5, 3]} intensity={0.5} color="#eef2ff" />
-          <Stage W={W} H={H} D={D} wallHung={wallHung} />
+          <Stage W={W} H={H} D={D} wallHung={wallHung} footprints={footprints} />
           <Wardrobe
             scene={scene}
             plan={plan}
@@ -1668,8 +2161,10 @@ export default function Viewer3D({
             front={front}
             handle={handleKind}
             handleFinish={handleFinish}
-            onToggle={toggleOne}
+            onToggle={onToggle}
+            worktop={worktop}
           />
+          {scene.kitchen && <KitchenWalls scene={scene} />}
           {highlight && <ColumnHighlight scene={scene} range={highlight} wallHung={wallHung} />}
           <OrbitControls
             makeDefault
@@ -1678,9 +2173,11 @@ export default function Viewer3D({
             maxPolarAngle={Math.PI / 2 - 0.04}
             minAzimuthAngle={-Math.PI / 2.4}
             maxAzimuthAngle={Math.PI / 2.4}
+            // (the default 0.05 keeps drawing frames for seconds after the hand lets go)
+            dampingFactor={0.12}
             onStart={() => setInteracted(true)}
           />
-          <CameraRig W={W} H={H} D={D} pad={pad} resetSignal={resetSignal} insets={insets} focus={focusSpec} />
+          <CameraRig W={W} H={H} D={D} pad={pad} resetSignal={resetSignal} insets={insets} focus={focusSpec} azimuth={azimuth} />
         </Canvas>
       ) : (
         <div className="flex h-full items-center justify-center text-sm text-[var(--home-ivory)]/60">
@@ -1696,7 +2193,7 @@ export default function Viewer3D({
           title={allLabel}
           onClick={toggleAll}
           className={`atelier-doors absolute left-2 top-2 flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold shadow-sm backdrop-blur transition-colors sm:left-3 sm:top-3 sm:px-3.5 ${
-            everythingOpen ? "bg-[var(--home-orange)] text-white" : "bg-white/90 text-[var(--home-ivory)]/85 hover:text-[var(--home-ivory)]"
+            everythingOpen ? "bg-[#b85c00] text-white" : "bg-white/90 text-[var(--home-ivory)]/85 hover:text-[var(--home-ivory)]"
           }`}
         >
           {everythingOpen ? <DoorOpen size={18} aria-hidden="true" /> : <DoorClosed size={18} aria-hidden="true" />}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { ConsentNote } from "@/components/legal/consent-note";
 import { WizardFooterBar } from "./wizard-footer-bar";
 import {
   contactPreferenceOptions,
@@ -109,6 +110,8 @@ export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: Su
       </dl>
 
       {error ? <p className="mt-5 text-sm text-terracotta-deep">{error}</p> : null}
+
+      <ConsentNote className="mt-6 text-espresso" />
 
       {/* Spacer so the recap clears the fixed bar. */}
       <div className="h-24" aria-hidden />

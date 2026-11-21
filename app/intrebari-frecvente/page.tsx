@@ -4,18 +4,19 @@ import { ArrowRight, Plus } from "lucide-react";
 import { faqItems } from "@/lib/faq-data";
 import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/lib/business-data";
+import { baseOpenGraph } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Întrebări frecvente — Epic Mob",
+  title: "Întrebări frecvente",
   description:
     "Răspunsuri la întrebările frecvente despre mobilierul la comandă Epic Mob: preț, termene, garanție, montaj, materiale, plată și cum ceri o ofertă.",
   alternates: { canonical: "/intrebari-frecvente" },
   openGraph: {
-    title: "Întrebări frecvente — Epic Mob",
+    ...baseOpenGraph,
+    title: "Întrebări frecvente | Epic Mob",
     description:
       "Preț, termene, garanție, montaj, materiale și plată — pe scurt, la mobilierul la comandă Epic Mob.",
     url: "/intrebari-frecvente",
-    type: "website",
   },
 };
 

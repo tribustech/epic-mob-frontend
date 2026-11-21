@@ -30,8 +30,13 @@
     "nuc-crem",
     "salvie-stejar"
   ],
+  "separator-sertare-160": [
+    "stejar-alb",
+    "gri-casmir"
+  ],
   "suspendat-tv-180": [
-    "alb-total"
+    "alb-total",
+    "stejar-natur"
   ],
   "dressing-deschis-280": [
     "stejar-natur",
@@ -73,42 +78,7 @@
     "antracit-stejar",
     "nuc-crem"
   ],
-  "dressing-sertare-200": [
-    "antracit-stejar",
-    "alb-total",
-    "stejar-natur",
-    "gri-casmir",
-    "alb-stejar-natur",
-    "nuc-crem"
-  ],
-  "dressing-copii-150": [
-    "denim-alb",
-    "alb-total",
-    "stejar-natur",
-    "gri-casmir",
-    "alb-stejar-natur",
-    "antracit-stejar"
-  ],
-  "dressing-tavan-270": [
-    "supermat-crem",
-    "alb-total",
-    "stejar-natur",
-    "gri-casmir",
-    "alb-stejar-natur",
-    "antracit-stejar"
-  ],
-  "dressing-hol-oglinda-160": [
-    "alb-casmir"
-  ],
   "dressing-oglinda-una-180": [
-    "alb-casmir",
-    "alb-total",
-    "alb-stejar-natur",
-    "alb-antracit",
-    "alb-gri-matase",
-    "alb-stejar-deschis"
-  ],
-  "dressing-oglinda-mijloc-240": [
     "alb-casmir",
     "alb-total",
     "alb-stejar-natur",
@@ -170,6 +140,7 @@
     "alb-stejar-natur"
   ],
   "comoda-mixta-180": [
+    "nuc-crem",
     "salvie-stejar"
   ],
   "comoda-inalta-80": [
@@ -180,15 +151,57 @@
     "salvie-stejar"
   ],
   "separator-biblioteca-120": [
+    "stejar-natur",
+    "alb-total"
+  ],
+  "separator-usi-180": [
+    "alb-stejar-natur"
+  ],
+  "separator-inalt-240": [
+    "bardolino-gri"
+  ],
+  "separator-scund-200": [
+    "antracit-stejar"
+  ],
+  "separator-ingust-90": [
+    "salvie-stejar"
+  ],
+  "suspendat-clasic-120": [
+    "alb-total",
     "stejar-natur"
   ],
+  "suspendat-tv-240": [
+    "alb-total",
+    "nuc-crem"
+  ],
+  "suspendat-baie-60": [
+    "alb-casmir",
+    "alb-stejar-natur"
+  ],
+  "suspendat-aventos-180": [
+    "supermat-alb"
+  ],
+  "suspendat-etajera-150": [
+    "stejar-natur",
+    "alb-total"
+  ],
+  "suspendat-mixt-200": [
+    "casmir-alb"
+  ],
   "suspendat-hol-90": [
-    "gri-casmir"
+    "gri-casmir",
+    "alb-stejar-natur"
   ],
   "comoda-baie-80": [
+    "alb-casmir",
     "gri-casmir"
   ],
+  "comoda-birou-90": [
+    "alb-stejar-natur",
+    "alb-total"
+  ],
   "comoda-cafea-120": [
+    "alb-stejar-natur",
     "alb-total"
   ],
   "comoda-pantofar-80": [
@@ -196,7 +209,8 @@
     "alb-stejar-natur"
   ],
   "dressing-3-usi-150": [
-    "alb-total"
+    "alb-total",
+    "alb-stejar-natur"
   ],
   "dressing-baie-60": [
     "alb-total",
@@ -213,5 +227,21 @@
   "dressing-serviciu-80": [
     "alb-total",
     "gri-casmir"
+  ],
+  "separator-copii-120": [
+    "alb-total",
+    "stejar-alb"
+  ],
+  "separator-cuburi-150": [
+    "alb-total",
+    "stejar-natur"
+  ],
+  "suspendat-baie-nisa-90": [
+    "alb-total",
+    "stejar-alb"
+  ],
+  "suspendat-bucatarie-180": [
+    "alb-total",
+    "alb-stejar-natur"
   ]
 }

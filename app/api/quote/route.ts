@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       try {
         await sendPostmarkEmail({
           to: answers.contact.email,
-          subject: "Am primit cererea ta — EpicMob",
+          subject: "Am primit cererea ta — Epic Mob",
           html: buildQuoteEmailHtml(
             answers,
             "Mulțumim pentru cerere!",

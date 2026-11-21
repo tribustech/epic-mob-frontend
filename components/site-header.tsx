@@ -36,6 +36,7 @@ export function SiteHeader() {
     pathname.startsWith("/magazin") ||
     pathname === "/contact" ||
     pathname === "/politica-confidentialitate" ||
+    pathname === "/termeni-si-conditii" ||
     pathname === "/intrebari-frecvente";
   const reduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -81,14 +82,14 @@ export function SiteHeader() {
   return (
     <>
       <header className={`site-header ${isWarm ? "site-header--warm" : ""}`}>
-        <Link href="/" className="site-header__logo" aria-label="EpicMob acasă">
+        <Link href="/" className="site-header__logo" aria-label="Epic Mob, pagina principală">
           {isWarm ? (
             <BrandWordmark />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src="/portfolio/epicmob-logo-transparent.png"
-              alt="EpicMob"
+              alt="Epic Mob"
               className="site-header__logo-image"
             />
           )}
@@ -127,7 +128,7 @@ export function SiteHeader() {
             aria-controls="site-menu"
             aria-label={menuOpen ? "Închide meniul" : "Deschide meniul"}
           >
-            <span>{menuOpen ? "CLOSE" : "MENU"}</span>
+            <span>{menuOpen ? "ÎNCHIDE" : "MENIU"}</span>
             <span className="site-header__menu-lines" aria-hidden="true">
               <span />
               <span />
@@ -153,7 +154,7 @@ export function SiteHeader() {
               <Link
                 href="/"
                 className="site-menu__logo"
-                aria-label="EpicMob acasă"
+                aria-label="Epic Mob, pagina principală"
                 onClick={closeMenu}
               >
                 {isWarm ? (
@@ -162,7 +163,7 @@ export function SiteHeader() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src="/portfolio/epicmob-logo-transparent.png"
-                    alt="EpicMob"
+                    alt="Epic Mob"
                     className="site-menu__logo-image"
                   />
                 )}
@@ -175,7 +176,7 @@ export function SiteHeader() {
                 onClick={closeMenu}
                 aria-label="Închide meniul"
               >
-                CLOSE
+                ÎNCHIDE
               </button>
             </div>
 
@@ -274,7 +275,7 @@ export function SiteHeader() {
                 </div>
 
                 <div className="site-menu__panel site-menu__panel--note">
-                  <p className="site-menu__eyebrow">EpicMob Atelier</p>
+                  <p className="site-menu__eyebrow">Epic Mob Atelier</p>
                   <p>
                     Mobilier premium la comandă, consultanță și execuție
                     cap-coadă pentru proiecte rezidențiale.

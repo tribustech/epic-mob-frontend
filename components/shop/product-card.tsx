@@ -9,6 +9,7 @@ import { presetById } from "@/lib/atelier/presets";
 import { pictureOf } from "@/lib/shop/products";
 import type { ShopItem, ShopVariant } from "@/lib/shop/server";
 import { formatPrice } from "./price";
+import { AdminCardBadge } from "@/components/admin/admin-card-badge";
 
 const MOOD_OF = new Map(PALETTES.map((p) => [p.id, p.mood]));
 
@@ -89,6 +90,7 @@ export function ProductCard({ item, priority = false, mood = null }: { item: Sho
           <PriceLine variant={variant} offer={item.offer} />
         </div>
       </Link>
+      <AdminCardBadge share={variant.share} offerPercent={item.offer?.percent ?? null} />
       {item.variants.length > 1 && (
         <div className="shop-card__swatches">
           {item.variants.slice(0, 6).map((v) => (

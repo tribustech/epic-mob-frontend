@@ -1,8 +1,10 @@
 import { doorFills, doorOpening, isDoorFill, normalizeDoors } from "./door-types";
+import { hasFrontDrawers } from "./drawers";
 import { cleanHandle, hasHandledFronts } from "./handles";
 import { BARA_SERTARE_RANGE, BOTTOM_HEIGHT_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
   AtelierCatalog,
+  DrawerExtension,
   AtelierCategory,
   AtelierColumn,
   AtelierConfig,
@@ -11,8 +13,25 @@ import type {
   AtelierHandle,
   ColumnContent,
   DoorFill,
+  KitchenLayout,
   RailPosition,
+  UpperContent,
 } from "./types.ts";
+import {
+  LEG_B_RANGE,
+  drawerRangeOf,
+  isKitchen,
+  profileOf,
+  cornerIndex,
+  fitKitchen,
+  isTall,
+  kitchenColumn,
+  kitchenLayout,
+  legBModulesMm,
+  widthRange,
+  withLayout,
+  withModule,
+} from "./kitchen";
 import type { PresetShape } from "./presets.ts";
 
 /** Column limits are the same for every category (CATEGORY_RULES[*].column). */
@@ -24,19 +43,21 @@ export type AtelierAction =
   | { type: "applyPreset"; shape: PresetShape }
   | { type: "applyPalette"; carcassMaterialId: string; fronts: AtelierFronts }
   | { type: "setSize"; widthMm?: number; heightMm?: number; depthMm?: number }
-  | { type: "setColumnWidth"; index: number; widthMm: number }
-  | { type: "setColumnContent"; index: number; content: ColumnContent }
-  | { type: "setColumnDrawers"; index: number; drawers: number | undefined }
+  | { type: "setColumnWidth"; index: number; widthMm: number; leg?: "B" }
+  | { type: "setColumnContent"; index: number; content: ColumnContent; leg?: "B" }
+  | { type: "setColumnDrawers"; index: number; drawers: number | undefined; leg?: "B" }
   | { type: "setColumnRail"; index: number; railPosition: RailPosition }
-  | { type: "setColumnShelves"; index: number; shelves: number | undefined }
-  | { type: "addColumn" }
-  | { type: "removeColumn"; index: number }
+  | { type: "setColumnShelves"; index: number; shelves: number | undefined; leg?: "B" }
+  | { type: "addColumn"; leg?: "B"; content?: ColumnContent }
+  | { type: "removeColumn"; index: number; leg?: "B" }
   | { type: "equalizeColumns" }
   | { type: "setCarcass"; materialId: string }
   | { type: "setFronts"; fronts: AtelierFronts }
   | { type: "setLegs"; legsMm: AtelierConfig["legsMm"] }
   | { type: "setDoors"; doors: AtelierConfig["doors"]; handle?: AtelierHandle }
   | { type: "setHandle"; handle: AtelierHandle }
+  /** the drawer runners: full (default) or partial extension */
+  | { type: "setDrawerExtension"; extension: DrawerExtension }
   /** the face of one door (sliding: the door; hinged: the column) */
   | { type: "setDoorFill"; index: number; fill: DoorFill }
   /** the face of every door at once, left to right (missing entries = panel) */
@@ -45,7 +66,13 @@ export type AtelierAction =
   | { type: "setDoorGlass"; mirrorId?: string; glassId?: string }
   | { type: "setColumnDoorRows"; index: number; doorRows: number }
   | { type: "setColumnDoorsAcross"; index: number; doorsAcross: number }
-  | { type: "setBottom"; bottom: AtelierBottom };
+  | { type: "setBottom"; bottom: AtelierBottom }
+  /* ── kitchens (the column actions above take `leg: "B"` for the second wall of an L) ── */
+  | { type: "setKitchenLayout"; layout: KitchenLayout }
+  | { type: "setLegB"; widthMm: number }
+  | { type: "setColumnUpper"; index: number; upper: UpperContent; leg?: "B" }
+  | { type: "setWorktop"; worktopId: string }
+  | { type: "setLed"; led: boolean };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const sumOf = (a: number[]) => a.reduce((x, y) => x + y, 0);
@@ -67,6 +94,20 @@ export function defaultColumns(widthMm: number): AtelierColumn[] {
 
 function categoryDefaults(category: AtelierCategory) {
   const { defaults } = categoryRules(category);
+  if (isKitchen({ category })) {
+    const p = profileOf({ category });
+    const columns = defaults.columns!.map((c) => kitchenColumn(c, p.bath ? undefined : 600, p));
+    return {
+      category,
+      widthMm: defaults.widthMm,
+      heightMm: defaults.heightMm,
+      depthMm: defaults.depthMm,
+      columns: fitKitchen(columns, defaults.widthMm, null, -1, p) ?? columns,
+      legsMm: defaults.legsMm,
+      doors: { ...defaults.doors },
+      kitchen: { layout: "LINIAR" as const },
+    };
+  }
   const columns = defaults.columns
     ? splitEven(defaults.widthMm, defaults.columns.length).map((widthMm, i) => ({
         widthMm,
@@ -184,16 +225,27 @@ function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
   return { ...state, widthMm, columns: withWidths(cols, fitted) };
 }
 
-/** Every change leaves the doors in their canonical form (see normalizeDoors). */
+/**
+ * Every change leaves the doors in their canonical form (see normalizeDoors), and the drawer runner choice
+ * only on furniture with front drawers (the choice is hidden elsewhere, so a stale one could not be undone).
+ */
 export function atelierReducer(state: AtelierConfig, action: AtelierAction): AtelierConfig {
-  const next = reduce(state, action);
+  let next = reduce(state, action);
   if (next === state) return state;
+  if (next.drawerExtension && !hasFrontDrawers(next)) {
+    next = { ...next };
+    delete next.drawerExtension;
+  }
   const doors = normalizeDoors(next);
   return doors === next.doors ? next : { ...next, doors };
 }
 
 function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
   const rules = categoryRules(state.category);
+  if (isKitchen(state)) {
+    const k = reduceKitchen(state, action);
+    if (k !== undefined) return k;
+  }
   switch (action.type) {
     case "setCategory": {
       if (action.category === state.category || !CATEGORY_RULES[action.category]) return state;
@@ -201,6 +253,10 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
       const next: AtelierConfig = { ...state, ...categoryDefaults(action.category) };
       delete next.handle;
       delete next.bottom;
+      delete next.drawerExtension;
+      // the worktop and LED stay when coming back to a kitchen in the same visit
+      if (!isKitchen(action)) delete next.kitchen;
+      else if (state.kitchen?.worktopId) next.kitchen = { ...next.kitchen!, worktopId: state.kitchen.worktopId };
       return next;
     }
     case "applyPreset": {
@@ -215,6 +271,14 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
         fronts: state.fronts,
       };
       if (shape.bottom) next.bottom = { ...shape.bottom };
+      delete next.kitchen;
+      if (shape.kitchen) {
+        next.kitchen = { ...shape.kitchen, ...(shape.kitchen.legB ? { legB: { ...shape.kitchen.legB, columns: shape.kitchen.legB.columns.map((c) => ({ ...c })) } } : {}) };
+        // the client's worktop stays (the preset's is only a suggestion when none was chosen yet)
+        const worktopId = state.kitchen?.worktopId ?? shape.kitchen.worktopId;
+        if (worktopId) next.kitchen.worktopId = worktopId;
+        else delete next.kitchen.worktopId;
+      }
       const handle = cleanHandle(shape.handle);
       if (handle && hasHandledFronts(next)) next.handle = handle;
       return next;
@@ -332,6 +396,12 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
       else delete next.handle;
       return next;
     }
+    case "setDrawerExtension": {
+      const next: AtelierConfig = { ...state };
+      if (action.extension === "PARTIALA") next.drawerExtension = "PARTIALA";
+      else delete next.drawerExtension;
+      return next;
+    }
     case "setHandle": {
       // every front can take a handle (doors and drawers); open separators and open / sliding wardrobes have none
       const handle = cleanHandle(action.handle);
@@ -393,5 +463,132 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
       else next.doorRows = rows as AtelierColumn["doorRows"];
       return { ...state, columns: state.columns.map((c, i) => (i === index ? next : c)) };
     }
+    case "setKitchenLayout":
+    case "setLegB":
+    case "setColumnUpper":
+    case "setWorktop":
+    case "setLed":
+      return state;
+  }
+}
+
+/* ── kitchens ── */
+
+/** One wall of a kitchen as a column list: its modules, their total and the corner unit's index. */
+function wallOf(state: AtelierConfig, leg: "B" | undefined) {
+  if (leg === "B") {
+    const b = state.kitchen?.legB;
+    return b ? { columns: b.columns, total: legBModulesMm(state), corner: -1 } : null;
+  }
+  return { columns: state.columns, total: state.widthMm, corner: cornerIndex(kitchenLayout(state), state.columns.length) };
+}
+
+function withWall(state: AtelierConfig, leg: "B" | undefined, columns: AtelierColumn[]): AtelierConfig {
+  if (leg !== "B") return { ...state, columns };
+  return { ...state, kitchen: { ...state.kitchen!, legB: { ...state.kitchen!.legB!, columns } } };
+}
+
+/**
+ * The kitchen's own handling of the column / size actions (module widths follow the module type, the corner
+ * unit stays put, the second wall of an L). undefined = the action is handled like for any other furniture.
+ */
+function reduceKitchen(state: AtelierConfig, action: AtelierAction): AtelierConfig | undefined {
+  const leg = "leg" in action ? action.leg : undefined;
+  const wall = wallOf(state, leg);
+  const p = profileOf(state);
+  const rules = categoryRules(state.category);
+  switch (action.type) {
+    case "setKitchenLayout":
+      if (p.bath) return state;
+      return withLayout(state, action.layout) ?? state;
+    case "setLegB": {
+      const b = state.kitchen?.legB;
+      if (!b || !Number.isFinite(action.widthMm)) return state;
+      const w = clamp(Math.round(action.widthMm), ...LEG_B_RANGE);
+      const fitted = fitKitchen(b.columns, w - state.depthMm);
+      return fitted ? { ...state, kitchen: { ...state.kitchen!, legB: { widthMm: w, columns: fitted } } } : state;
+    }
+    case "setWorktop":
+      return action.worktopId ? { ...state, kitchen: { layout: "LINIAR", ...state.kitchen, worktopId: action.worktopId } } : state;
+    case "setLed":
+      return { ...state, kitchen: { layout: "LINIAR", ...state.kitchen, led: action.led } };
+    case "setSize": {
+      let next = state;
+      if (action.heightMm !== undefined && Number.isFinite(action.heightMm)) next = { ...next, heightMm: clamp(Math.round(action.heightMm), ...rules.height) };
+      if (action.depthMm !== undefined && Number.isFinite(action.depthMm)) {
+        const depthMm = clamp(Math.round(action.depthMm), ...rules.depth);
+        // the second wall keeps its length; its modules give or take the corner's change
+        const b = next.kitchen?.legB;
+        const legCols = b ? fitKitchen(b.columns, b.widthMm - depthMm) : null;
+        if (b && !legCols) return next;
+        next = { ...next, depthMm, ...(b && legCols ? { kitchen: { ...next.kitchen!, legB: { ...b, columns: legCols } } } : {}) };
+      }
+      if (action.widthMm !== undefined && Number.isFinite(action.widthMm)) {
+        const w = clamp(Math.round(action.widthMm), ...rules.width);
+        const corner = cornerIndex(kitchenLayout(next), next.columns.length);
+        const fitted = w === next.widthMm ? next.columns : fitKitchen(next.columns, w, corner >= 0 ? corner : null, corner, p);
+        if (fitted) next = { ...next, widthMm: w, columns: fitted };
+      }
+      return next;
+    }
+    case "setColumnWidth": {
+      const col = wall?.columns[action.index];
+      if (!wall || !col || !Number.isFinite(action.widthMm)) return state;
+      const w = clamp(Math.round(action.widthMm), ...widthRange(col.content, p));
+      const cols = wall.columns.map((c, i) => (i === action.index ? { ...c, widthMm: w } : c));
+      const fitted = fitKitchen(cols, wall.total, action.index, wall.corner, p);
+      return fitted ? withWall(state, leg, fitted) : state;
+    }
+    case "setColumnContent": {
+      if (!wall || !p.modules.includes(action.content)) return state;
+      if (wall.columns[action.index]?.content === action.content) return state;
+      const cols = withModule(wall.columns, wall.total, action.index, action.content, wall.corner, p);
+      return cols ? withWall(state, leg, cols) : state;
+    }
+    case "setColumnDrawers": {
+      const col = wall?.columns[action.index];
+      const range = col ? drawerRangeOf(col.content) : null;
+      if (!wall || !col || !range) return state;
+      const next: AtelierColumn = { ...col };
+      delete next.drawers;
+      if (action.drawers !== undefined && Number.isFinite(action.drawers))
+        next.drawers = clamp(Math.round(action.drawers), ...range) as AtelierColumn["drawers"];
+      return withWall(state, leg, wall.columns.map((c, i) => (i === action.index ? next : c)));
+    }
+    case "setColumnShelves":
+      return state;
+    case "setColumnUpper": {
+      const col = wall?.columns[action.index];
+      if (!wall || !col || isTall(col.content) || !p.uppers.includes(action.upper)) return state;
+      return withWall(state, leg, wall.columns.map((c, i) => (i === action.index ? { ...c, upper: action.upper } : c)));
+    }
+    case "addColumn": {
+      if (!wall) return state;
+      const content = action.content && p.modules.includes(action.content) ? action.content : "SERTARE";
+      const at = wall.corner === wall.columns.length - 1 ? wall.columns.length - 1 : wall.columns.length;
+      const cols = [...wall.columns];
+      cols.splice(at, 0, kitchenColumn(content, undefined, p));
+      const fitted = fitKitchen(cols, wall.total, at, wall.corner === at ? at + 1 : wall.corner, p);
+      return fitted && fitted.length === cols.length ? withWall(state, leg, fitted) : state;
+    }
+    case "removeColumn": {
+      if (!wall || wall.columns.length <= 1 || action.index === wall.corner || !wall.columns[action.index]) return state;
+      const cols = wall.columns.filter((_, i) => i !== action.index);
+      const corner = wall.corner > action.index ? wall.corner - 1 : wall.corner;
+      const fitted = fitKitchen(cols, wall.total, null, corner, p);
+      return fitted && fitted.length === cols.length ? withWall(state, leg, fitted) : state;
+    }
+    case "equalizeColumns":
+    case "setColumnRail":
+    case "setColumnDoorRows":
+    case "setColumnDoorsAcross":
+    case "setDoors":
+    case "setDoorFill":
+    case "setDoorFills":
+    case "setDoorGlass":
+    case "setBottom":
+      return state;
+    default:
+      return undefined;
   }
 }

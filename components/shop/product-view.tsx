@@ -13,6 +13,7 @@ import { trackPixel } from "@/lib/meta-pixel";
 import { PriceLine, ProductPicture, Swatch } from "./product-card";
 import { formatPrice } from "./price";
 import { offerEndText } from "@/lib/shop/offers";
+import { AdminPricePanel } from "@/components/admin/admin-price-panel";
 
 const Viewer3D = dynamic(() => import("@/components/atelier/viewer-3d"), {
   ssr: false,
@@ -26,12 +27,17 @@ export function ProductView({
   item,
   scenes,
   configs,
+  initialPaletteId,
 }: {
   item: ShopItem;
   scenes: Record<string, AtelierScene | null>;
   configs: Record<string, AtelierConfig>;
+  /** ?culoare= read on the server, so the first paint already shows that colour and its price */
+  initialPaletteId?: string;
 }) {
-  const [paletteId, setPaletteId] = useState(item.variants[0].paletteId);
+  const [paletteId, setPaletteId] = useState(
+    initialPaletteId && item.variants.some((v) => v.paletteId === initialPaletteId) ? initialPaletteId : item.variants[0].paletteId,
+  );
   const [view, setView] = useState<"poza" | "3d">("poza");
   const [doorsOpen, setDoorsOpen] = useState(false);
   const [added, setAdded] = useState<"idle" | "added" | "full">("idle");
@@ -39,7 +45,8 @@ export function ProductView({
   const buyRef = useRef<HTMLDivElement>(null);
   const cart = useCart();
 
-  // ?culoare=<palette> opens that colour (links from the shop grid, the home page, shared links)
+  // ?culoare=<palette> opens that colour (links from the shop grid, the home page, shared links). The server
+  // already passes it as initialPaletteId; this covers client-side navigation that keeps the component.
   useEffect(() => {
     const fromUrl = () => {
       const wanted = new URLSearchParams(window.location.search).get("culoare");
@@ -81,7 +88,17 @@ export function ProductView({
   };
 
   const add = () => {
-    const ok = addToCart({ slug: item.slug, paletteId: variant.paletteId, name: item.name, colour: variant.name, price: variant.finalPrice });
+    const onOffer = !!item.offer && variant.price != null && variant.finalPrice != null && variant.finalPrice < variant.price;
+    const ok = addToCart({
+      slug: item.slug,
+      paletteId: variant.paletteId,
+      name: item.name,
+      colour: variant.name,
+      price: variant.finalPrice,
+      regularPrice: onOffer ? variant.price : null,
+      offerPercent: onOffer ? item.offer!.percent : 0,
+      offerLabel: onOffer ? item.offer!.label : null,
+    });
     setAdded(ok ? "added" : "full");
     if (ok) trackPixel("AddToCart", { content_name: item.name, value: variant.finalPrice ?? 0, currency: "RON" });
   };
@@ -199,6 +216,11 @@ export function ProductView({
           <span className="shop-customize__text">
             <strong>Personalizează în Atelierul 3D</strong>
             <span>Altă lățime, alt interior, alte uși sau mânere. Pornești exact de la acest produs.</span>
+            {item.offer && (
+              <span className="shop-customize__offer">
+                {item.offer.label} (−{item.offer.percent}%) se aplică doar modelului standard din magazin. În Atelierul 3D vezi prețul obișnuit.
+              </span>
+            )}
           </span>
           <ChevronRight size={20} aria-hidden="true" className="shop-customize__go" />
         </Link>
@@ -228,6 +250,7 @@ export function ProductView({
           {done ? "Adăugat" : "Adaugă în coș"}
         </button>
       </div>
+      <AdminPricePanel config={config} offerPercent={item.offer?.percent ?? null} />
     </div>
   );
 }

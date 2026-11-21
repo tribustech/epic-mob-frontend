@@ -8,19 +8,20 @@ import { ShopBrowser, ShopFilterLink } from "@/components/shop/shop-browser";
 import { offerEndText } from "@/lib/shop/offers";
 import { DELIVERY_TEXT } from "@/lib/shop/products";
 import { getShopItems } from "@/lib/shop/server";
+import { baseOpenGraph } from "@/lib/seo";
 
 // prices come from the CRM (cached 10 minutes); offers start and end on their own
 export const revalidate = 600;
 
-const TITLE = "Magazin — dulapuri, comode și biblioteci | EpicMob";
+const TITLE = "Magazin — dulapuri, bucătării, comode și mobilier de baie | Epic Mob";
 const DESCRIPTION =
-  "Dulapuri, dressinguri, comode, biblioteci și corpuri suspendate gata gândite, în zeci de combinații de culori. Preț pe loc, montaj inclus, garanție 5 ani.";
+  "Dulapuri, dressinguri, bucătării, mobilier de baie, comode, biblioteci și corpuri suspendate gata gândite, în zeci de combinații de culori. Preț pe loc, montaj inclus, garanție 5 ani.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: "/magazin" },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: "/magazin", type: "website" },
+  openGraph: { ...baseOpenGraph, title: TITLE, description: DESCRIPTION, url: "/magazin" },
 };
 
 export default async function ShopPage() {
@@ -35,7 +36,7 @@ export default async function ShopPage() {
       <section className="shop-hero">
         <div className="section-shell shop-hero__inner">
           <div className="shop-hero__text">
-            <p className="eyebrow-warm">Magazin EpicMob</p>
+            <p className="eyebrow-warm">Magazin Epic Mob</p>
             <h1 className="display-font shop-hero__title">Mobilier gata gândit, în culorile tale</h1>
             <p className="shop-hero__lede">
               {items.length > 0 ? `${items.length} modele` : "Dulapuri, comode și biblioteci"} în peste {count > 10 ? Math.floor(count / 10) * 10 : 100} de combinații de

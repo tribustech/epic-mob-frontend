@@ -97,11 +97,9 @@
   ],
   "dressing-copii-150": [
     "denim-alb",
-    "alb-total",
-    "stejar-natur",
-    "gri-casmir",
-    "alb-stejar-natur",
-    "antracit-stejar"
+    "roz-pudra-alb",
+    "eucalipt-alb",
+    "alb-total"
   ],
   "dressing-tavan-270": [
     "supermat-crem",
@@ -363,8 +361,9 @@
   "separator-copii-120": [
     "alb-total",
     "stejar-alb",
-    "denim-alb",
-    "salvie-stejar"
+    "roz-pudra-alb",
+    "eucalipt-alb",
+    "denim-alb"
   ],
   "separator-cuburi-150": [
     "alb-total",
@@ -383,5 +382,137 @@
     "alb-stejar-natur",
     "gri-casmir",
     "salvie-stejar"
+  ],
+  "bucatarie-240": [
+    "alb-stejar-natur",
+    "alb-total",
+    "gri-casmir",
+    "salvie-stejar"
+  ],
+  "bucatarie-compacta-180": [
+    "alb-total",
+    "alb-stejar-natur",
+    "gri-casmir",
+    "stejar-alb"
+  ],
+  "bucatarie-frigider-300": [
+    "gri-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "stejar-casmir"
+  ],
+  "bucatarie-coloane-380": [
+    "stejar-alb",
+    "alb-total",
+    "gri-casmir",
+    "antracit-stejar"
+  ],
+  "bucatarie-l-270": [
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "salvie-stejar"
+  ],
+  "bucatarie-l-frigider-300": [
+    "bardolino-gri",
+    "alb-total",
+    "gri-casmir",
+    "stejar-alb"
+  ],
+  "bucatarie-rafturi-240": [
+    "salvie-stejar",
+    "alb-total",
+    "stejar-alb",
+    "alb-stejar-natur"
+  ],
+  "bucatarie-ridicabile-300": [
+    "grafit-total",
+    "alb-total",
+    "gri-casmir",
+    "antracit-stejar"
+  ],
+  "baie-lavoar-coloana-120": [
+    "alb-stejar-natur",
+    "alb-total",
+    "alb-casmir",
+    "alb-stejar-deschis"
+  ],
+  "baie-lavoar-60": [
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-casmir",
+    "alb-gri-matase"
+  ],
+  "baie-lavoar-80": [
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-antracit"
+  ],
+  "baie-dubla-140": [
+    "alb-stejar-deschis",
+    "alb-total",
+    "alb-casmir",
+    "alb-stejar-natur"
+  ],
+  "baie-masina-140": [
+    "alb-antracit",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-casmir"
+  ],
+  "baie-picioare-100": [
+    "alb-gri-matase",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-casmir"
+  ],
+  "dressing-oglinda-glisanta-200": [
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-gri-matase"
+  ],
+  "dressing-3-usi-oglinda-150": [
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-stejar-deschis"
+  ],
+  "dressing-cuier-100": [
+    "stejar-natur",
+    "alb-total",
+    "gri-casmir",
+    "salvie-stejar"
+  ],
+  "comoda-tv-160": [
+    "alb-stejar-natur",
+    "alb-total",
+    "stejar-alb",
+    "gri-casmir"
+  ],
+  "noptiera-deschisa-45": [
+    "stejar-natur",
+    "alb-total",
+    "gri-casmir",
+    "salvie-stejar"
+  ],
+  "suspendat-pat-240": [
+    "alb-total",
+    "alb-stejar-natur",
+    "stejar-alb",
+    "gri-casmir"
+  ],
+  "bucatarie-260": [
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "gri-casmir"
+  ],
+  "baie-lavoar-50": [
+    "alb-stejar-natur",
+    "alb-total",
+    "alb-casmir",
+    "alb-stejar-deschis"
   ]
 }

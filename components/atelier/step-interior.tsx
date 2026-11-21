@@ -16,7 +16,8 @@ import {
   categoryRules,
 } from "@/lib/atelier/categories";
 import { MAX_COL_MM, MIN_COL_MM, areEven } from "@/lib/atelier/state";
-import type { AtelierConfig, BottomType, ColumnContent } from "@/lib/atelier/types";
+import type { AtelierCatalog, AtelierConfig, BottomType, ColumnContent } from "@/lib/atelier/types";
+import { DrawerRunners } from "./drawer-runners";
 import { ContentGlyph } from "./content-glyph";
 import type { Act, StepId } from "./session";
 import { Choice, Field, LengthControl, Section, Stepper, cm, plural } from "./ui";
@@ -351,12 +352,14 @@ function Bottom({ config, act, onStep }: { config: AtelierConfig; act: Act; onSt
 }
 
 export function StepInterior({
+  catalog,
   config,
   act,
   column,
   onColumn,
   onStep,
 }: {
+  catalog: AtelierCatalog;
   config: AtelierConfig;
   act: Act;
   column: number;
@@ -368,6 +371,7 @@ export function StepInterior({
     <div className="atelier-stack">
       <Columns config={config} act={act} index={column} onPick={onColumn} />
       {config.category === "SEPARATOR" && <Bottom config={config} act={act} onStep={onStep} />}
+      <DrawerRunners catalog={catalog} config={config} act={act} />
     </div>
   );
 }

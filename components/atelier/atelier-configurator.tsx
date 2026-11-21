@@ -11,7 +11,8 @@ import { activePaletteId, resolvePalettes } from "@/lib/atelier/palettes";
 import type { AtelierAction } from "@/lib/atelier/state";
 import { useLivePrice } from "@/lib/atelier/use-live-price";
 import type { AtelierCatalog, AtelierConfig, AtelierIssue, AtelierScene } from "@/lib/atelier/types";
-import { carcassLook, frontLook } from "./material-look";
+import { carcassLook, frontLook, worktopLook } from "./material-look";
+import { KitchenSize, StepKitchen, type KitchenPick } from "./step-kitchen";
 import { REQUEST_FORM_ID, leadSentFor, type LeadStatus } from "./request-form";
 import {
   EMPTY_CONTACT,
@@ -29,13 +30,14 @@ import {
   type StepId,
 } from "./session";
 import { StepBar } from "./step-bar";
-import { StepColors } from "./step-colors";
+import { StepColors, type ColorPart } from "./step-colors";
 import { StepDoors } from "./step-doors";
 import { StepInterior } from "./step-interior";
 import { StepModel } from "./step-model";
 import { StepOffer } from "./step-offer";
 import { StepSize } from "./step-size";
 import { formatLei, issueMessage, plural } from "./ui";
+import { AdminPricePanel } from "@/components/admin/admin-price-panel";
 
 // three.js needs the browser (WebGL); keep it out of SSR and out of the initial bundle.
 const Viewer3D = dynamic(() => import("./viewer-3d"), {
@@ -46,7 +48,7 @@ const Viewer3D = dynamic(() => import("./viewer-3d"), {
 /** The desktop layout (viewer beside a panel with its own scroll); everything else scrolls the page. */
 const TWO_PANE = "(min-width: 1024px) and (min-height: 560px)";
 
-const SIZE_ACTIONS = new Set<AtelierAction["type"]>(["setSize", "setLegs"]);
+const SIZE_ACTIONS = new Set<AtelierAction["type"]>(["setSize", "setLegs", "setKitchenLayout", "setLegB"]);
 const INTERIOR_ACTIONS = new Set<AtelierAction["type"]>([
   "setColumnWidth",
   "setColumnContent",
@@ -64,6 +66,8 @@ const INTERIOR_ACTIONS = new Set<AtelierAction["type"]>([
   "setColumnDoorRows",
   "setColumnDoorsAcross",
   "setBottom",
+  "setColumnUpper",
+  "setLed",
 ]);
 
 /** Changes whose result is on the outside of the doors: the 3D view closes them so the change is seen. */
@@ -142,6 +146,8 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   const palettes = useMemo(() => resolvePalettes(catalog), [catalog]);
   const carcass = useMemo(() => carcassLook(catalog, config), [catalog, config]);
   const front = useMemo(() => frontLook(catalog, config), [catalog, config]);
+  const worktop = useMemo(() => worktopLook(catalog, config), [catalog, config]);
+  const isKitchen = (config.category === "BUCATARIE" || config.category === "BAIE");
   const activePalette = activePaletteId(palettes, config);
   // the handle on the fronts (null when no front takes one) and the colour it is drawn in
   const shownHandle = useMemo(() => effectiveHandle(config), [config]);
@@ -155,7 +161,13 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   // a new body decor is hidden behind closed doors: open them for a moment so the change is seen
   const [peek, setPeek] = useState(false);
   const peekTimer = useRef<number | null>(null);
-  const doorsOpen = manualDoors ?? (step === "interior" || peek);
+  // „Culori": the part being coloured is the part shown — doors open for the body, closed for the fronts
+  const [colorPart, setColorPart] = useState<ColorPart | null>(null);
+  const onColorPart = useCallback((part: ColorPart | null) => {
+    setColorPart(part);
+    if (part) setManualDoors(null);
+  }, []);
+  const doorsOpen = manualDoors ?? (step === "interior" || peek || (step === "culori" && colorPart === "corp"));
   // „Uși și mânere": the 3D view looks at what is being chosen — the whole front for doors and
   // mirrors, a close view of a front edge for handles
   const [usiPart, setUsiPart] = useState<"doors" | "handles">("doors");
@@ -189,15 +201,28 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   }, [step]);
   const [pickedColumn, setPickedColumn] = useState(0);
   const column = Math.min(pickedColumn, config.columns.length - 1);
+  const [kitchenPick, setKitchenPick] = useState<KitchenPick>({ leg: "A", index: 0 });
   const highlight = useMemo(() => {
+    if (isKitchen) {
+      // only the main wall is highlighted (the second wall of an L is drawn rotated)
+      if (kitchenPick.leg !== "A" || !config.columns[kitchenPick.index]) return null;
+      const x0 = config.columns.slice(0, kitchenPick.index).reduce((sum, c) => sum + c.widthMm, 0);
+      return { x0, x1: x0 + config.columns[kitchenPick.index].widthMm };
+    }
     const x0 = config.columns.slice(0, column).reduce((sum, c) => sum + c.widthMm, 0);
     return { x0, x1: x0 + (config.columns[column]?.widthMm ?? 0) };
-  }, [config.columns, column]);
+  }, [config.columns, column, isKitchen, kitchenPick]);
   // the strip under the chosen column shows while the interior is visible, or right after a pick
   const [justPicked, setJustPicked] = useState(false);
   const pickTimer = useRef<number | null>(null);
   const pickColumn = useCallback((index: number) => {
     setPickedColumn(index);
+    setJustPicked(true);
+    if (pickTimer.current !== null) window.clearTimeout(pickTimer.current);
+    pickTimer.current = window.setTimeout(() => setJustPicked(false), 2500);
+  }, []);
+  const onKitchenPick = useCallback((pick: KitchenPick) => {
+    setKitchenPick(pick);
     setJustPicked(true);
     if (pickTimer.current !== null) window.clearTimeout(pickTimer.current);
     pickTimer.current = window.setTimeout(() => setJustPicked(false), 2500);
@@ -325,6 +350,8 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
       else if (INTERIOR_ACTIONS.has(a.type)) trackFunnelOnce("interior_changed");
     }
   }, [catalog]);
+
+  const undo = useCallback(() => dispatch({ type: "undo" }), []);
 
   const onDoorsToggle = useCallback((open: boolean) => {
     autoClosed.current = false;
@@ -471,6 +498,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
             railPositions={railPositions}
             carcass={carcass}
             front={front}
+            worktop={worktop}
             updating={loading}
             doorsOpen={doorsOpen}
             onDoorsOpenChange={onDoorsToggle}
@@ -545,18 +573,29 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                     act={act}
                     noTwoFaces={noTwoFaces !== null && noTwoFaces === vopsitModel}
                     focus={focus?.anchor ?? null}
+                    onPart={onColorPart}
                   />
                 )}
-                {step === "dimensiuni" && (
+                {step === "dimensiuni" && isKitchen && (
+                  <KitchenSize
+                    config={config}
+                    act={act}
+                    heightIssue={heightIssue ? issueMessage(heightIssue.message, false) : null}
+                  />
+                )}
+                {step === "dimensiuni" && !isKitchen && (
                   <StepSize
                     config={config}
                     act={act}
                     heightIssue={heightIssue ? issueMessage(heightIssue.message, config.category === "DRESSING") : null}
                   />
                 )}
-                {step === "usi" && <StepDoors catalog={catalog} config={config} act={act} front={front} />}
-                {step === "interior" && (
-                  <StepInterior config={config} act={act} column={column} onColumn={pickColumn} onStep={goTo} />
+                {step === "usi" && <StepDoors catalog={catalog} config={config} act={act} front={front} onUndo={undo} />}
+                {step === "interior" && isKitchen && (
+                  <StepKitchen catalog={catalog} config={config} act={act} pick={kitchenPick} onPick={onKitchenPick} />
+                )}
+                {step === "interior" && !isKitchen && (
+                  <StepInterior catalog={catalog} config={config} act={act} column={column} onColumn={pickColumn} onStep={goTo} />
                 )}
                 {step === "oferta" && (
                   <StepOffer
@@ -701,6 +740,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
           </footer>
         </div>
       </div>
+      <AdminPricePanel config={config} />
     </MotionConfig>
   );
 }

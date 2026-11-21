@@ -5,14 +5,17 @@ import { resolvePalettes } from "@/lib/atelier/palettes";
 import type { AtelierConfig, AtelierContact } from "@/lib/atelier/types";
 import { isPostmarkConfigured, sendPostmarkEmail } from "@/lib/postmark";
 import { MAX_LINES, MAX_QTY } from "@/lib/shop/cart-limits";
-import { offerFor, offerPrice } from "@/lib/shop/offers";
-import { productBySlug } from "@/lib/shop/products";
-import { getShopCatalog, priceOf, variantConfig } from "@/lib/shop/server";
+import { checkContact } from "@/lib/shop/contact-check";
+import { getShopCatalog, priceShopLine } from "@/lib/shop/server";
 
 /**
  * „Trimite comanda" from the basket. Every line is rebuilt here from its product + colour (nothing
  * about the furniture is taken from the browser), priced again, and sent to the CRM as one Atelier
- * request (same client by phone, one project per line), with the shop details in the notes.
+ * request (same client by phone, one project per line), with the shop details in the notes and as
+ * structured `shop` data (quantity, the price shown, the offer).
+ *
+ * The browser sends the price it showed for each line. If today's price differs (an offer ended, the CRM
+ * price moved), nothing is sent: 409 with the new prices, so the client sees them and confirms.
  */
 
 type LeadResult = { clientId: string; projectId: string; quoteId: string; sellPrice: number | null; summary: string; crmUrl: string };
@@ -37,6 +40,8 @@ const esc = (v: unknown) =>
   String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
 interface Line {
+  slug: string;
+  paletteId: string;
   name: string;
   colour: string;
   qty: number;
@@ -45,6 +50,8 @@ interface Line {
   final: number | null;
   offerLabel: string | null;
   percent: number;
+  /** what the basket showed; used when the CRM cannot price the line right now */
+  shown: number | null;
 }
 
 export async function POST(request: Request) {
@@ -63,9 +70,9 @@ export async function POST(request: Request) {
   const c = body.contact ?? {};
   const contact: AtelierContact = { name: text(c.name), phone: text(c.phone), city: text(c.city) };
   const notes = text(c.notes).slice(0, 400);
-  if (!contact.name || !contact.city || contact.phone.replace(/\D/g, "").length < 6) {
-    return NextResponse.json({ error: "Completează numele, telefonul și localitatea." }, { status: 400 });
-  }
+  const problems = checkContact(contact);
+  const firstProblem = Object.values(problems)[0];
+  if (firstProblem) return NextResponse.json({ error: firstProblem, fields: problems }, { status: 400 });
   if (contact.name.length > CONTACT_LIMITS.name || contact.phone.length > CONTACT_LIMITS.phone || contact.city.length > CONTACT_LIMITS.city) {
     return NextResponse.json({ error: "Unul dintre câmpuri este prea lung." }, { status: 400 });
   }
@@ -78,34 +85,38 @@ export async function POST(request: Request) {
   const palettes = resolvePalettes(catalog);
 
   const lines: Line[] = [];
+  const changed: { slug: string; paletteId: string; available: boolean; name: string; colour: string; price: number | null; finalPrice: number | null; offerPercent: number; offerLabel: string | null }[] = [];
   for (const item of raw as Record<string, unknown>[]) {
-    const product = productBySlug(text(item?.slug));
-    const paletteId = text(item?.paletteId);
-    const palette = palettes.find((p) => p.id === paletteId);
-    if (!product || !palette || !product.paletteIds.includes(paletteId)) {
+    const priced = await priceShopLine(text(item?.slug), text(item?.paletteId), catalog, palettes);
+    if (!priced) {
       return NextResponse.json({ error: "Un produs din coș nu mai este disponibil. Scoate-l și încearcă din nou." }, { status: 400 });
     }
     const qty = Math.min(MAX_QTY, Math.max(1, Math.round(Number(item.qty) || 1)));
-    const config = variantConfig(product, palette, catalog);
-    const { price } = await priceOf(config);
-    const offer = offerFor(product.slug, product.category);
-    lines.push({
-      name: product.preset.name,
-      colour: palette.name,
-      qty,
-      config,
-      price,
-      final: price == null ? null : offerPrice(price, offer),
-      offerLabel: offer?.label ?? null,
-      percent: offer?.percent ?? 0,
-    });
+    // `price` absent = an older basket page: no check (the lead still carries today's price)
+    const hasShown = "price" in item;
+    const shown = typeof item.price === "number" && Number.isFinite(item.price) ? Math.round(item.price) : null;
+    const { config, price, finalPrice, offerPercent, offerLabel } = priced;
+    if (hasShown && finalPrice != null && shown !== finalPrice) {
+      // the slug the basket sent, so it can match the line (a renamed product keeps its old slug there)
+      changed.push({ slug: text(item?.slug), paletteId: text(item?.paletteId), available: true, name: priced.name, colour: priced.colour, price, finalPrice, offerPercent, offerLabel });
+    }
+    lines.push({ slug: priced.slug, paletteId: priced.paletteId, name: priced.name, colour: priced.colour, qty, config, price, final: finalPrice, offerLabel, percent: offerPercent, shown });
+  }
+  if (changed.length > 0) {
+    return NextResponse.json(
+      { error: "Prețul unor produse s-a schimbat între timp. Verifică noul total și trimite din nou comanda.", priceChanged: true, lines: changed },
+      { status: 409 },
+    );
   }
 
-  const total = lines.every((l) => l.final != null) ? lines.reduce((s, l) => s + (l.final as number) * l.qty, 0) : null;
+  /** the price of one piece as the client saw it: today's price, or (CRM down) what the basket showed */
+  const unit = (l: Line) => l.final ?? l.shown;
+  const total = lines.every((l) => unit(l) != null) ? lines.reduce((s, l) => s + (unit(l) as number) * l.qty, 0) : null;
   const lineText = (l: Line, i: number) =>
     [
       `Comandă din Magazin (${i + 1}/${lines.length}): ${l.name}, culoarea „${l.colour}", ${l.qty} buc.`,
-      l.final != null ? `Preț afișat: ${lei(l.final)}/buc` : null,
+      l.final != null ? `Preț afișat: ${lei(l.final)}/buc` : l.shown != null ? `Preț afișat în coș: ${lei(l.shown)}/buc (nu l-am putut recalcula acum)` : null,
+      l.qty > 1 && unit(l) != null ? `Total linie: ${lei((unit(l) as number) * l.qty)}.` : null,
       l.percent > 0 && l.price != null ? `(${l.offerLabel} −${l.percent}%, preț obișnuit ${lei(l.price)})` : null,
       total != null && lines.length > 1 ? `Total coș: ${lei(total)}.` : null,
       notes ? `Observații: ${notes}` : null,
@@ -113,6 +124,23 @@ export async function POST(request: Request) {
       .filter(Boolean)
       .join(" ")
       .slice(0, CONTACT_LIMITS.notes);
+
+  /** structured shop data for the CRM (budget and draft quote = what the client was shown); none without a price */
+  const shopData = (l: Line) => {
+    const unitPrice = unit(l);
+    if (unitPrice == null) return null;
+    const onOffer = l.final != null && l.percent > 0 && l.price != null;
+    return {
+      slug: l.slug,
+      paletteId: l.paletteId,
+      qty: l.qty,
+      unitPrice,
+      regularPrice: onOffer ? (l.price as number) : unitPrice,
+      // the CRM accepts a percent only above 0: leave it out when there is no offer
+      ...(onOffer ? { offerPercent: l.percent } : {}),
+      ...(onOffer && l.offerLabel ? { offerLabel: l.offerLabel } : {}),
+    };
+  };
 
   const results: (LeadResult | null)[] = [];
   let crmDown = false;
@@ -125,7 +153,7 @@ export async function POST(request: Request) {
       results.push(
         await crmFetch<LeadResult>("/api/atelier/lead", {
           method: "POST",
-          body: { config: l.config, contact: { ...contact, notes: lineText(l, i) } },
+          body: { config: l.config, contact: { ...contact, notes: lineText(l, i) }, ...(shopData(l) ? { shop: shopData(l) } : {}) },
           timeoutMs: 20_000,
         }),
       );
@@ -142,7 +170,7 @@ export async function POST(request: Request) {
   const rows = lines
     .map(
       (l, i) =>
-        `<tr><td>${esc(l.name)}<br><small>${esc(l.colour)}</small></td><td>${l.qty}</td><td>${l.final != null ? esc(lei(l.final)) : "—"}${
+        `<tr><td>${esc(l.name)}<br><small>${esc(l.colour)}</small></td><td>${l.qty}</td><td>${unit(l) != null ? esc(lei(unit(l) as number)) : "—"}${
           l.percent ? `<br><small>−${l.percent}% din ${esc(lei(l.price ?? 0))}</small>` : ""
         }</td><td>${results[i] ? `<a href="${esc(results[i]!.crmUrl)}">CRM</a>` : `<span style="color:#b42318">nu e în CRM</span>`}</td></tr>`,
     )
@@ -169,5 +197,8 @@ ${missing.length ? `<pre style="background:#f5f5f5;padding:12px;white-space:pre-
   }
 
   if (results.every((r) => !r) && !emailed) return NextResponse.json({ unavailable: true }, { status: 503 });
-  return NextResponse.json({ ok: true, total });
+  // some lines did not reach the CRM and no email carries them: the client must tell us by phone
+  const partial = emailed ? [] : missing.map((l) => `${l.name} (${l.colour}), ${l.qty} buc.`);
+  if (partial.length) console.error("Shop order: lines not saved anywhere", JSON.stringify({ contact, partial }));
+  return NextResponse.json({ ok: true, total, ...(partial.length ? { partial } : {}) });
 }
