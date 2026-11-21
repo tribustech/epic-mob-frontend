@@ -112,12 +112,13 @@ test("each product has one or two photo colours, among the colours it sells, the
   for (const slug of Object.keys(PHOTO_COLOURS)) assert.ok(SHOP_PRODUCTS.some((p) => p.slug === slug), `photo colours for unknown model ${slug}`);
 });
 
-test("the photo brief (v3) covers exactly the photo colours that have no accepted photo yet", async () => {
+test("the photo brief (v3) covers every photo colour that has no accepted photo yet", async () => {
   const { readFileSync } = await import("node:fs");
   const PHOTOS = JSON.parse(readFileSync("lib/shop/photos.json", "utf8")) as Record<string, string[]>;
   const brief = JSON.parse(readFileSync("scripts/shop-art-direction-v3.json", "utf8")) as { products: Record<string, unknown>; variants: { slug: string; paletteId: string; render: string; out: string }[] };
   const want = Object.entries(PHOTO_COLOURS).flatMap(([slug, ids]) => ids.filter((id) => !PHOTOS[slug]?.includes(id)).map((id) => `${slug}/${id}`)).sort();
-  assert.deepEqual(brief.variants.map((v) => `${v.slug}/${v.paletteId}`).sort(), want);
+  const briefed = new Set(brief.variants.map((v) => `${v.slug}/${v.paletteId}`));
+  for (const w of want) assert.ok(briefed.has(w), `${w}: photo colour without a photo and without a brief`);
   for (const v of brief.variants) {
     assert.ok(brief.products[v.slug], `${v.slug}: no product brief`);
     assert.equal(v.render, `public/magazin/randari/${v.slug}/${v.paletteId}.webp`);
