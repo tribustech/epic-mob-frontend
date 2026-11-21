@@ -34,7 +34,7 @@ export const HANDLE_INFO: Record<HandleKind, HandleInfo> = {
   APLICAT: { name: "Mâner bară", benefit: "Bară de metal, o prinzi cu toată mâna", image: "/handles/aplicat.webp" },
   BUTON: { name: "Buton", benefit: "Mic și rotund, îl prinzi cu două degete", image: "/handles/buton.webp" },
   INGROPAT: { name: "Mâner îngropat", benefit: "Scobitură în ușă, prinzi cu degetele", image: "/handles/ingropat.webp" },
-  PROFIL_J: { name: "Muchie frezată", benefit: "Marginea ușii e tăiată oblic, tragi de ea", image: "/handles/profil-j.webp" },
+  PROFIL_J: { name: "Muchie oblică", benefit: "Marginea ușii e tăiată oblic, tragi de ea", image: "/handles/profil-j.webp" },
   GOLA: { name: "Profil ascuns", benefit: "Canal de aluminiu lângă ușă, bagi degetele și tragi", image: "/handles/gola.webp" },
   PUSH: { name: "Fără mâner", benefit: "Apeși pe ușă și se deschide singură", image: "/handles/push.webp" },
 };
