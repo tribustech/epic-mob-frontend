@@ -19,7 +19,7 @@ export type FunnelEvent =
   | "preset_selected"    // props: { presetId, category }
   | "combo_selected"     // props: { comboId }
   | "palette_selected"   // props: { paletteId }
-  | "material_changed"   // props: { part: "corp" | "fronturi" }
+  | "material_changed"   // props: { part: "corp" | "fronturi" | "blat" }
   | "step_viewed"        // props: { step }
   | "size_changed"       // first change per session only
   | "interior_changed"   // first change per session only (columns / doors / handles); also, once each,

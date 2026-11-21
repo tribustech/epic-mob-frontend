@@ -20,6 +20,26 @@ export function whiteBodyId(catalog: AtelierCatalog): string | null {
   return null;
 }
 
+/** Worktops shown first and the one a new kitchen starts with (decor codes, in order of preference). */
+export const FEATURED_WORKTOP_CODES: readonly string[] = [
+  "H1145 ST10", "W1000 ST76", "F186 ST9", "F800 ST9", "H3303 ST10", "F275 ST9", "H1318 ST10", "U999 ST78", "F206 ST9", "H2033 ST10",
+];
+
+/** Worktops: 38 mm thick, as deep as the kitchen (standard 60 cm). */
+export function usableWorktops(catalog: AtelierCatalog, depthMm: number) {
+  return (catalog.worktops ?? []).filter((w) => w.maxDepthMm >= depthMm);
+}
+
+export function defaultWorktopId(catalog: AtelierCatalog, depthMm: number): string | null {
+  const list = usableWorktops(catalog, depthMm);
+  const thick = list.filter((w) => w.thicknessMm >= 38);
+  for (const code of FEATURED_WORKTOP_CODES) {
+    const found = thick.find((w) => w.decorCode === code) ?? list.find((w) => w.decorCode === code);
+    if (found) return found.id;
+  }
+  return (thick[0] ?? list[0])?.id ?? null;
+}
+
 /**
  * What the configurator adds on its own after a change by the client (same undo step):
  *  - a mirror / glass door without a type takes the first type in the catalog, so the swatch shown as
@@ -45,6 +65,12 @@ export function followUps(
       actions.push({ type: "setCarcass", materialId: white });
       whitened = true;
     }
+  }
+  // a kitchen always has a worktop the catalog knows and that is deep enough
+  if (next.category === "BUCATARIE" || next.category === "BAIE") {
+    const ok = usableWorktops(catalog, next.depthMm).some((w) => w.id === next.kitchen?.worktopId);
+    const id = ok ? null : defaultWorktopId(catalog, next.depthMm);
+    if (id) actions.push({ type: "setWorktop", worktopId: id });
   }
   let handleReset = false;
   const fallback = categoryDefaultHandle(next.category);

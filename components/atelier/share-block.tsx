@@ -12,6 +12,8 @@ const WHAT: Record<AtelierCategory, string> = {
   COMODA: "comodă",
   SEPARATOR: "separator de cameră",
   SUSPENDAT: "corp suspendat",
+  BUCATARIE: "bucătărie",
+  BAIE: "mobilier de baie",
 };
 
 /** The short Romanian message that opens the WhatsApp chat with the workshop. */

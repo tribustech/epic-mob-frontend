@@ -33,6 +33,14 @@ export function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
       types: (catalog.handles?.types ?? []).filter((t) => t && isHandleKind(t.type)).map((t) => ({ type: t.type, label: String(t.label ?? "") })),
     },
     // absent on an older CRM: the configurator then keeps the one-face-for-all-doors choice
+    // kitchen worktops: how they look and how deep they can be cut, never a price
+    ...(Array.isArray(catalog.worktops)
+      ? {
+          worktops: catalog.worktops
+            .filter((w) => w && typeof w.id === "string" && w.id)
+            .map((w) => ({ ...material(w), thicknessMm: Number(w.thicknessMm) || 38, maxDepthMm: Number(w.maxDepthMm) || 600 })),
+        }
+      : {}),
     ...(catalog.glass ? { glass: { mirrors: glassOf(catalog.glass.mirrors), glasses: glassOf(catalog.glass.glasses) } } : {}),
   };
 }

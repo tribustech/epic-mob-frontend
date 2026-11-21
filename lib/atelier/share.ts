@@ -12,7 +12,10 @@ import type {
   DoorFill,
   DoorType,
   FrontKind,
+  KitchenLayout,
+  UpperContent,
 } from "./types.ts";
+import { LEG_B_RANGE, isBath, isKitchen } from "./kitchen";
 
 /**
  * „Trimite configurația": the whole configuration in a short, URL-safe code (`/configurator?c=…`).
@@ -27,7 +30,10 @@ const VERSION = 1;
 
 const CONTENTS: readonly ColumnContent[] = [
   "POLITE", "BARA", "BARA_DUBLA", "POLITE_BARA", "BARA_SERTARE", "SERTARE", "USI", "DESCHIS", "USA_RIDICABILA",
+  "CHIUVETA", "CUPTOR", "MASINA_VASE", "FRIGIDER", "COLOANA_CUPTOR", "COLOANA", "COLT", "PLITA", "LAVOAR", "MASINA_SPALAT",
 ];
+const UPPERS: readonly UpperContent[] = ["USI", "RIDICABILA", "DESCHIS", "HOTA", "NONE", "OGLINDA"];
+const LAYOUTS: readonly KitchenLayout[] = ["LINIAR", "L_STANGA", "L_DREAPTA"];
 const DOOR_TYPES: readonly DoorType[] = [
   "NONE", "GLISANTE", "GLISANTE_OGLINDA", "GLISANTE_STICLA", "BATANTE", "BATANTE_OGLINDA", "BATANTE_STICLA",
 ];
@@ -57,21 +63,26 @@ export function parseConfig(raw: unknown, catalog: AtelierCatalog): AtelierConfi
   if (!intIn(c.widthMm, ...rules.width) || !intIn(c.heightMm, ...rules.height) || !intIn(c.depthMm, ...rules.depth)) return null;
   if (!isInt(c.legsMm) || !(rules.legs as readonly number[]).includes(c.legsMm)) return null;
 
-  if (!Array.isArray(c.columns) || c.columns.length === 0 || c.columns.length > 30) return null;
-  const columns: AtelierColumn[] = [];
-  for (const item of c.columns as unknown[]) {
-    if (!item || typeof item !== "object") return null;
-    const col = item as Record<string, unknown>;
-    if (!intIn(col.widthMm, 1, 10_000) || !rules.contents.includes(col.content as ColumnContent)) return null;
-    const next: AtelierColumn = { widthMm: col.widthMm, content: col.content as ColumnContent };
-    if (intIn(col.shelves, 0, 15)) next.shelves = col.shelves;
-    if (intIn(col.drawers, 1, 6)) next.drawers = col.drawers as AtelierColumn["drawers"];
-    if (col.railPosition === "SUS" || col.railPosition === "JOS") next.railPosition = col.railPosition;
-    if (col.doorRows === 2 || col.doorRows === 3) next.doorRows = col.doorRows;
-    if (col.doorsAcross === 2) next.doorsAcross = 2;
-    columns.push(next);
-  }
-  if (columns.reduce((sum, col) => sum + col.widthMm, 0) !== c.widthMm) return null;
+  const parseColumns = (list: unknown, total: number): AtelierColumn[] | null => {
+    if (!Array.isArray(list) || list.length === 0 || list.length > 30) return null;
+    const out: AtelierColumn[] = [];
+    for (const item of list as unknown[]) {
+      if (!item || typeof item !== "object") return null;
+      const col = item as Record<string, unknown>;
+      if (!intIn(col.widthMm, 1, 10_000) || !rules.contents.includes(col.content as ColumnContent)) return null;
+      const next: AtelierColumn = { widthMm: col.widthMm, content: col.content as ColumnContent };
+      if (intIn(col.shelves, 0, 15)) next.shelves = col.shelves;
+      if (intIn(col.drawers, 1, 6)) next.drawers = col.drawers as AtelierColumn["drawers"];
+      if (col.railPosition === "SUS" || col.railPosition === "JOS") next.railPosition = col.railPosition;
+      if (col.doorRows === 2 || col.doorRows === 3) next.doorRows = col.doorRows;
+      if (col.doorsAcross === 2) next.doorsAcross = 2;
+      if (isKitchen({ category }) && UPPERS.includes(col.upper as UpperContent)) next.upper = col.upper as UpperContent;
+      out.push(next);
+    }
+    return out.reduce((sum, col) => sum + col.widthMm, 0) === total ? out : null;
+  };
+  const columns = parseColumns(c.columns, c.widthMm);
+  if (!columns) return null;
 
   if (!c.doors || typeof c.doors !== "object") return null;
   const d = c.doors as Record<string, unknown>;
@@ -128,6 +139,21 @@ export function parseConfig(raw: unknown, catalog: AtelierCatalog): AtelierConfi
 
   const handle = cleanHandle(c.handle as { type?: unknown; finish?: unknown } | undefined);
   if (handle && (catalog.handles?.types ?? []).some((t) => t.type === handle.type)) config.handle = handle;
+
+  if (isKitchen({ category })) {
+    const k = (c.kitchen && typeof c.kitchen === "object" ? c.kitchen : {}) as Record<string, unknown>;
+    const layout = !isBath({ category }) && LAYOUTS.includes(k.layout as KitchenLayout) ? (k.layout as KitchenLayout) : "LINIAR";
+    config.kitchen = { layout };
+    if (layout !== "LINIAR") {
+      const b = (k.legB && typeof k.legB === "object" ? k.legB : {}) as Record<string, unknown>;
+      if (!intIn(b.widthMm, ...LEG_B_RANGE)) return null;
+      const legCols = parseColumns(b.columns, b.widthMm - c.depthMm);
+      if (!legCols) return null;
+      config.kitchen.legB = { widthMm: b.widthMm, columns: legCols };
+    }
+    if (isId(k.worktopId) && (catalog.worktops ?? []).some((w) => w.id === k.worktopId)) config.kitchen.worktopId = k.worktopId;
+    if (k.led === true) config.kitchen.led = true;
+  }
   return config;
 }
 
@@ -154,19 +180,24 @@ function fromBase64Url(code: string): string {
 
 /** The configuration as a short URL-safe code (letters, digits, - and _ only). */
 export function encodeShare(config: AtelierConfig): string {
-  const { doors, fronts, handle, bottom } = config;
+  const { doors, fronts, handle, bottom, kitchen } = config;
+  const packCols = (cols: AtelierColumn[]) =>
+    cols.map((c) =>
+      trimmed([c.widthMm, CONTENTS.indexOf(c.content), c.shelves, c.drawers, c.railPosition === "JOS" ? 1 : c.railPosition === "SUS" ? 0 : null, c.doorRows, c.doorsAcross, c.upper ? UPPERS.indexOf(c.upper) : null]),
+    );
   const packed = trimmed([
     VERSION,
     CATEGORY_ORDER.indexOf(config.category),
     [config.widthMm, config.heightMm, config.depthMm, config.legsMm],
-    config.columns.map((c) =>
-      trimmed([c.widthMm, CONTENTS.indexOf(c.content), c.shelves, c.drawers, c.railPosition === "JOS" ? 1 : c.railPosition === "SUS" ? 0 : null, c.doorRows, c.doorsAcross]),
-    ),
+    packCols(config.columns),
     trimmed([DOOR_TYPES.indexOf(doors.type), doors.count, doors.fills ? doors.fills.map((f) => FILL_CODE[f]).join("") : null, doors.mirrorId, doors.glassId]),
     config.carcassMaterialId,
     trimmed([FRONT_KINDS.indexOf(fronts.kind), fronts.kind === "MDF_VOPSIT" ? fronts.modelId : fronts.materialId, fronts.ralCode, fronts.faces]),
     handle ? trimmed([HANDLE_KINDS.indexOf(handle.type), handle.finish ? HANDLE_FINISHES.indexOf(handle.finish) : null]) : null,
     bottom && bottom.type !== "NONE" ? trimmed([BOTTOM_TYPES.indexOf(bottom.type), bottom.heightMm, bottom.drawers, bottom.shelves]) : null,
+    kitchen
+      ? trimmed([LAYOUTS.indexOf(kitchen.layout), kitchen.worktopId, kitchen.led ? 1 : null, kitchen.legB?.widthMm, kitchen.legB ? packCols(kitchen.legB.columns) : null])
+      : null,
   ]);
   return toBase64Url(JSON.stringify(packed));
 }
@@ -184,7 +215,18 @@ export function decodeShare(code: unknown, catalog: AtelierCatalog): AtelierConf
     return null;
   }
   if (!Array.isArray(p) || p[0] !== VERSION) return null;
-  const [, cat, size, cols, doors, carcass, fronts, handle, bottom] = p as unknown[];
+  const [, cat, size, cols, doors, carcass, fronts, handle, bottom, kitchen] = p as unknown[];
+  const unpackCols = (list: unknown[][]) =>
+    list.map((c) => ({
+      widthMm: c[0],
+      content: at(CONTENTS, c[1]),
+      shelves: opt(c[2]),
+      drawers: opt(c[3]),
+      railPosition: c[4] === 1 ? "JOS" : c[4] === 0 ? "SUS" : undefined,
+      doorRows: opt(c[5]),
+      doorsAcross: opt(c[6]),
+      upper: at(UPPERS, c[7]),
+    }));
   if (!Array.isArray(size) || !Array.isArray(cols) || !Array.isArray(doors) || !Array.isArray(fronts)) return null;
   if (cols.length > 30 || !cols.every(Array.isArray)) return null;
   const fills = doors[2];
@@ -196,15 +238,7 @@ export function decodeShare(code: unknown, catalog: AtelierCatalog): AtelierConf
     heightMm: size[1],
     depthMm: size[2],
     legsMm: size[3],
-    columns: (cols as unknown[][]).map((c) => ({
-      widthMm: c[0],
-      content: at(CONTENTS, c[1]),
-      shelves: opt(c[2]),
-      drawers: opt(c[3]),
-      railPosition: c[4] === 1 ? "JOS" : c[4] === 0 ? "SUS" : undefined,
-      doorRows: opt(c[5]),
-      doorsAcross: opt(c[6]),
-    })),
+    columns: unpackCols(cols as unknown[][]),
     doors: {
       type: at(DOOR_TYPES, doors[0]),
       count: opt(doors[1]),
@@ -220,6 +254,17 @@ export function decodeShare(code: unknown, catalog: AtelierCatalog): AtelierConf
     handle: Array.isArray(handle) ? { type: at(HANDLE_KINDS, handle[0]), finish: at(HANDLE_FINISHES, handle[1]) } : undefined,
     bottom: Array.isArray(bottom)
       ? { type: at(BOTTOM_TYPES, bottom[0]) ?? "?", heightMm: opt(bottom[1]), drawers: opt(bottom[2]), shelves: opt(bottom[3]) }
+      : undefined,
+    kitchen: Array.isArray(kitchen)
+      ? {
+          layout: at(LAYOUTS, kitchen[0]),
+          worktopId: opt(kitchen[1]),
+          led: kitchen[2] === 1,
+          legB:
+            Array.isArray(kitchen[4]) && kitchen[4].length <= 30 && kitchen[4].every(Array.isArray)
+              ? { widthMm: kitchen[3], columns: unpackCols(kitchen[4] as unknown[][]) }
+              : undefined,
+        }
       : undefined,
   };
   return parseConfig(raw, catalog);
