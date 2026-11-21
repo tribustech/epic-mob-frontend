@@ -94,7 +94,7 @@ export function carcassLook(catalog: AtelierCatalog, config: AtelierConfig): Mat
 /** Worktop look (kitchen BLAT pieces); null when the configuration has none. */
 export function worktopLook(catalog: AtelierCatalog, config: AtelierConfig): MaterialLook | null {
   const id = config.kitchen?.worktopId;
-  if (config.category !== "BUCATARIE" || !id) return null;
+  if ((config.category !== "BUCATARIE" && config.category !== "BAIE") || !id) return null;
   const material = (catalog.worktops ?? []).find((m) => m.id === id);
   return material ? worktopMaterialLook(catalog, material) : lookOf(undefined, KIND_TONE.PAL);
 }

@@ -21,6 +21,7 @@ export const CATEGORY_SHORT: Record<AtelierCategory, string> = {
   SEPARATOR: "Separator",
   SUSPENDAT: "Suspendat",
   BUCATARIE: "Bucătărie",
+  BAIE: "Baie",
 };
 
 /** „2,4 m" / „50 cm": the width a model starts from, shown as its own badge so it never truncates. */

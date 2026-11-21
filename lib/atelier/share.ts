@@ -15,7 +15,7 @@ import type {
   KitchenLayout,
   UpperContent,
 } from "./types.ts";
-import { LEG_B_RANGE } from "./kitchen";
+import { LEG_B_RANGE, isBath, isKitchen } from "./kitchen";
 
 /**
  * „Trimite configurația": the whole configuration in a short, URL-safe code (`/configurator?c=…`).
@@ -30,9 +30,9 @@ const VERSION = 1;
 
 const CONTENTS: readonly ColumnContent[] = [
   "POLITE", "BARA", "BARA_DUBLA", "POLITE_BARA", "BARA_SERTARE", "SERTARE", "USI", "DESCHIS", "USA_RIDICABILA",
-  "CHIUVETA", "CUPTOR", "MASINA_VASE", "FRIGIDER", "COLOANA_CUPTOR", "COLOANA", "COLT", "PLITA",
+  "CHIUVETA", "CUPTOR", "MASINA_VASE", "FRIGIDER", "COLOANA_CUPTOR", "COLOANA", "COLT", "PLITA", "LAVOAR", "MASINA_SPALAT",
 ];
-const UPPERS: readonly UpperContent[] = ["USI", "RIDICABILA", "DESCHIS", "HOTA", "NONE"];
+const UPPERS: readonly UpperContent[] = ["USI", "RIDICABILA", "DESCHIS", "HOTA", "NONE", "OGLINDA"];
 const LAYOUTS: readonly KitchenLayout[] = ["LINIAR", "L_STANGA", "L_DREAPTA"];
 const DOOR_TYPES: readonly DoorType[] = [
   "NONE", "GLISANTE", "GLISANTE_OGLINDA", "GLISANTE_STICLA", "BATANTE", "BATANTE_OGLINDA", "BATANTE_STICLA",
@@ -76,7 +76,7 @@ export function parseConfig(raw: unknown, catalog: AtelierCatalog): AtelierConfi
       if (col.railPosition === "SUS" || col.railPosition === "JOS") next.railPosition = col.railPosition;
       if (col.doorRows === 2 || col.doorRows === 3) next.doorRows = col.doorRows;
       if (col.doorsAcross === 2) next.doorsAcross = 2;
-      if (category === "BUCATARIE" && UPPERS.includes(col.upper as UpperContent)) next.upper = col.upper as UpperContent;
+      if (isKitchen({ category }) && UPPERS.includes(col.upper as UpperContent)) next.upper = col.upper as UpperContent;
       out.push(next);
     }
     return out.reduce((sum, col) => sum + col.widthMm, 0) === total ? out : null;
@@ -140,9 +140,9 @@ export function parseConfig(raw: unknown, catalog: AtelierCatalog): AtelierConfi
   const handle = cleanHandle(c.handle as { type?: unknown; finish?: unknown } | undefined);
   if (handle && (catalog.handles?.types ?? []).some((t) => t.type === handle.type)) config.handle = handle;
 
-  if (category === "BUCATARIE") {
+  if (isKitchen({ category })) {
     const k = (c.kitchen && typeof c.kitchen === "object" ? c.kitchen : {}) as Record<string, unknown>;
-    const layout = LAYOUTS.includes(k.layout as KitchenLayout) ? (k.layout as KitchenLayout) : "LINIAR";
+    const layout = !isBath({ category }) && LAYOUTS.includes(k.layout as KitchenLayout) ? (k.layout as KitchenLayout) : "LINIAR";
     config.kitchen = { layout };
     if (layout !== "LINIAR") {
       const b = (k.legB && typeof k.legB === "object" ? k.legB : {}) as Record<string, unknown>;

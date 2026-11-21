@@ -16,10 +16,10 @@ import type {
   UpperContent,
 } from "./types.ts";
 import {
-  KITCHEN_DRAWERS,
-  KITCHEN_MODULES,
-  KITCHEN_UPPERS,
   LEG_B_RANGE,
+  drawerRangeOf,
+  isKitchen,
+  profileOf,
   cornerIndex,
   fitKitchen,
   isTall,
@@ -90,14 +90,15 @@ export function defaultColumns(widthMm: number): AtelierColumn[] {
 
 function categoryDefaults(category: AtelierCategory) {
   const { defaults } = categoryRules(category);
-  if (category === "BUCATARIE") {
-    const columns = defaults.columns!.map((c) => kitchenColumn(c, 600));
+  if (isKitchen({ category })) {
+    const p = profileOf({ category });
+    const columns = defaults.columns!.map((c) => kitchenColumn(c, p.bath ? undefined : 600, p));
     return {
       category,
       widthMm: defaults.widthMm,
       heightMm: defaults.heightMm,
       depthMm: defaults.depthMm,
-      columns: fitKitchen(columns, defaults.widthMm) ?? columns,
+      columns: fitKitchen(columns, defaults.widthMm, null, -1, p) ?? columns,
       legsMm: defaults.legsMm,
       doors: { ...defaults.doors },
       kitchen: { layout: "LINIAR" as const },
@@ -230,7 +231,7 @@ export function atelierReducer(state: AtelierConfig, action: AtelierAction): Ate
 
 function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
   const rules = categoryRules(state.category);
-  if (state.category === "BUCATARIE") {
+  if (isKitchen(state)) {
     const k = reduceKitchen(state, action);
     if (k !== undefined) return k;
   }
@@ -242,7 +243,7 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
       delete next.handle;
       delete next.bottom;
       // the worktop and LED stay when coming back to a kitchen in the same visit
-      if (action.category !== "BUCATARIE") delete next.kitchen;
+      if (!isKitchen(action)) delete next.kitchen;
       else if (state.kitchen?.worktopId) next.kitchen = { ...next.kitchen!, worktopId: state.kitchen.worktopId };
       return next;
     }
@@ -476,8 +477,11 @@ function withWall(state: AtelierConfig, leg: "B" | undefined, columns: AtelierCo
 function reduceKitchen(state: AtelierConfig, action: AtelierAction): AtelierConfig | undefined {
   const leg = "leg" in action ? action.leg : undefined;
   const wall = wallOf(state, leg);
+  const p = profileOf(state);
+  const rules = categoryRules(state.category);
   switch (action.type) {
     case "setKitchenLayout":
+      if (p.bath) return state;
       return withLayout(state, action.layout) ?? state;
     case "setLegB": {
       const b = state.kitchen?.legB;
@@ -491,7 +495,6 @@ function reduceKitchen(state: AtelierConfig, action: AtelierAction): AtelierConf
     case "setLed":
       return { ...state, kitchen: { layout: "LINIAR", ...state.kitchen, led: action.led } };
     case "setSize": {
-      const rules = CATEGORY_RULES.BUCATARIE;
       let next = state;
       if (action.heightMm !== undefined && Number.isFinite(action.heightMm)) next = { ...next, heightMm: clamp(Math.round(action.heightMm), ...rules.height) };
       if (action.depthMm !== undefined && Number.isFinite(action.depthMm)) {
@@ -505,7 +508,7 @@ function reduceKitchen(state: AtelierConfig, action: AtelierAction): AtelierConf
       if (action.widthMm !== undefined && Number.isFinite(action.widthMm)) {
         const w = clamp(Math.round(action.widthMm), ...rules.width);
         const corner = cornerIndex(kitchenLayout(next), next.columns.length);
-        const fitted = w === next.widthMm ? next.columns : fitKitchen(next.columns, w, corner >= 0 ? corner : null, corner);
+        const fitted = w === next.widthMm ? next.columns : fitKitchen(next.columns, w, corner >= 0 ? corner : null, corner, p);
         if (fitted) next = { ...next, widthMm: w, columns: fitted };
       }
       return next;
@@ -513,47 +516,48 @@ function reduceKitchen(state: AtelierConfig, action: AtelierAction): AtelierConf
     case "setColumnWidth": {
       const col = wall?.columns[action.index];
       if (!wall || !col || !Number.isFinite(action.widthMm)) return state;
-      const w = clamp(Math.round(action.widthMm), ...widthRange(col.content));
+      const w = clamp(Math.round(action.widthMm), ...widthRange(col.content, p));
       const cols = wall.columns.map((c, i) => (i === action.index ? { ...c, widthMm: w } : c));
-      const fitted = fitKitchen(cols, wall.total, action.index, wall.corner);
+      const fitted = fitKitchen(cols, wall.total, action.index, wall.corner, p);
       return fitted ? withWall(state, leg, fitted) : state;
     }
     case "setColumnContent": {
-      if (!wall || !KITCHEN_MODULES.includes(action.content)) return state;
+      if (!wall || !p.modules.includes(action.content)) return state;
       if (wall.columns[action.index]?.content === action.content) return state;
-      const cols = withModule(wall.columns, wall.total, action.index, action.content, wall.corner);
+      const cols = withModule(wall.columns, wall.total, action.index, action.content, wall.corner, p);
       return cols ? withWall(state, leg, cols) : state;
     }
     case "setColumnDrawers": {
       const col = wall?.columns[action.index];
-      if (!wall || !col || col.content !== "SERTARE") return state;
+      const range = col ? drawerRangeOf(col.content) : null;
+      if (!wall || !col || !range) return state;
       const next: AtelierColumn = { ...col };
       delete next.drawers;
       if (action.drawers !== undefined && Number.isFinite(action.drawers))
-        next.drawers = clamp(Math.round(action.drawers), ...KITCHEN_DRAWERS) as AtelierColumn["drawers"];
+        next.drawers = clamp(Math.round(action.drawers), ...range) as AtelierColumn["drawers"];
       return withWall(state, leg, wall.columns.map((c, i) => (i === action.index ? next : c)));
     }
     case "setColumnShelves":
       return state;
     case "setColumnUpper": {
       const col = wall?.columns[action.index];
-      if (!wall || !col || isTall(col.content) || !KITCHEN_UPPERS.includes(action.upper)) return state;
+      if (!wall || !col || isTall(col.content) || !p.uppers.includes(action.upper)) return state;
       return withWall(state, leg, wall.columns.map((c, i) => (i === action.index ? { ...c, upper: action.upper } : c)));
     }
     case "addColumn": {
       if (!wall) return state;
-      const content = action.content && KITCHEN_MODULES.includes(action.content) ? action.content : "SERTARE";
+      const content = action.content && p.modules.includes(action.content) ? action.content : "SERTARE";
       const at = wall.corner === wall.columns.length - 1 ? wall.columns.length - 1 : wall.columns.length;
       const cols = [...wall.columns];
-      cols.splice(at, 0, kitchenColumn(content));
-      const fitted = fitKitchen(cols, wall.total, at, wall.corner === at ? at + 1 : wall.corner);
+      cols.splice(at, 0, kitchenColumn(content, undefined, p));
+      const fitted = fitKitchen(cols, wall.total, at, wall.corner === at ? at + 1 : wall.corner, p);
       return fitted && fitted.length === cols.length ? withWall(state, leg, fitted) : state;
     }
     case "removeColumn": {
       if (!wall || wall.columns.length <= 1 || action.index === wall.corner || !wall.columns[action.index]) return state;
       const cols = wall.columns.filter((_, i) => i !== action.index);
       const corner = wall.corner > action.index ? wall.corner - 1 : wall.corner;
-      const fitted = fitKitchen(cols, wall.total, null, corner);
+      const fitted = fitKitchen(cols, wall.total, null, corner, p);
       return fitted && fitted.length === cols.length ? withWall(state, leg, fitted) : state;
     }
     case "equalizeColumns":

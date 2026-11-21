@@ -52,7 +52,7 @@ function luminance(color: string): number {
 }
 
 export function MiniPreview(props: Parameters<typeof FurniturePreview>[0] & { worktop?: MaterialLook | null }) {
-  if (props.shape.category === "BUCATARIE") return <KitchenMini {...props} />;
+  if (props.shape.category === "BUCATARIE" || props.shape.category === "BAIE") return <KitchenMini {...props} />;
   return <FurniturePreview {...props} />;
 }
 

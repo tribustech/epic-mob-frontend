@@ -35,6 +35,8 @@ PAL = {  # id: (name, body, fronts)
     "stejar-alb": ("Stejar & alb", "H1180", "W1000"),
     "bardolino-gri": ("Stejar bardolino & gri", "H1145", "U732"),
     "grafit-total": ("Grafit total", "U961", "U961"),
+    "alb-stejar-deschis": ("Scandinav deschis", "W1000", "H1145"),
+    "alb-antracit": ("Alb & antracit", "W1000", "U961"),
 }
 HANDLE_TXT = {
     ("APLICAT", "NEGRU"): "slim straight bar handles in matt black, one per front: vertical near the opening edge on doors, horizontal and centred near the top edge on drawers, positioned exactly as in the render. Same finish on every handle, real metal with soft reflections.",
@@ -477,6 +479,90 @@ RULES = {
  },
 }
 
+# ── bathroom furniture (vanity + mirror cabinet) ──
+CAM_VANITY = "Camera at 1.4 m height, 28–35 mm full-frame equivalent, from the bathroom doorway 2–2.5 m back, about 15–20° off the vanity wall; verticals perfectly straight, no fisheye. 4:3 landscape. The whole piece is visible from the floor (or its plinth) to the top of the mirror cabinet, with the floor in front and a strip of wall above; it fills about 45–60% of the frame width."
+V_REFS = ["public/portfolio/petrol-bathroom-vanity-cover.webp", "public/portfolio/mustard-bathroom-vanity-cover.webp", "public/portfolio/cappuccino-bathroom-v2.webp"]
+V_CHECK = ["Modules exactly as in the render, in the same order and widths", "Worktop at 85 cm (90 cm with the washer) with a white countertop basin and a chrome tap only where the render shows them", "Mirror cabinet doors are real mirror with thin edges, 30 cm above the worktop; reflections show only this room", "Real Romanian bathroom: tiles, a shower or bath edge at the frame side, a towel"]
+V_BODY = "visible sides, the underside of the wall-hung vanity, the sides and underside of the mirror cabinet"
+V_FRONTS = "the drawer fronts and cabinet doors (not the mirror doors)"
+HUNG = "Wall-hung: the vanity body hangs on the wall with its underside about 31 cm above the floor; the floor and skirting tiles are visible under it."
+
+NEW.update({
+ "baie-lavoar-coloana-120": dict(
+  kind="vanity", bath=True, room="Bathroom of a Romanian apartment (baie).",
+  piece="Bathroom furniture on one wall, 120 cm wide, 190 cm high to the top. Left: an 80 cm wall-hung vanity with 2 drawers under a 38 mm worktop with a white countertop basin and a chrome single-lever tap; above it, 30 cm over the worktop, an 80 cm mirror cabinet with 2 mirror doors up to 1.90 m. Right: a 40 cm wall-hung tall column with 2 doors from 30 cm above the floor up to 1.90 m. Everything closed.",
+  body=V_BODY, fronts=V_FRONTS,
+  placement="On the long wall of a bathroom, the column tight to the side wall; a walk-in shower with a glass screen at the other end of the room. " + HUNG,
+  mount=31, camera=CAM_VANITY,
+  ratio="The piece is 1.2 m wide and 1.9 m high: clearly taller than wide. The worktop is at 85 cm; the mirror cabinet is 75 cm high.",
+  anchors="the 2.05 m bathroom door or its frame, the ceiling at 2.60 m and the tap / light switch at their normal heights",
+  checklist=V_CHECK, ourRefs=V_REFS, webRefs=BATH_WEB,
+  scenes={
+   "alb-stejar-natur": ("Bright bathroom: large-format matt light-grey wall tiles, warm grey floor tiles (clearly different from the oak fronts); a walk-in shower with clear glass at the right edge of the frame.", "Even neutral light from a frosted window on the left, about 4000 K.", "a folded white towel on the worktop"),
+   "alb-total": ("Calm bathroom: walls with pale sage vertical tiles up to 1.20 m and warm white paint above (so the white furniture separates from the wall); light oak-look floor tiles; the edge of a bathtub at the left of the frame.", "Soft daylight from a small window on the right, neutral white balance.", "a soap dispenser without label beside the basin"),
+  }),
+ "baie-lavoar-60": dict(
+  kind="vanity", bath=True, room="Small bathroom of a Romanian apartment (baie).",
+  piece="Wall-hung vanity 60 cm wide with 2 drawers under a 38 mm worktop with a white countertop basin and a chrome tap; above it, 30 cm over the worktop, a 60 cm mirror cabinet with one mirror door up to 1.90 m. Everything closed.",
+  body=V_BODY, fronts=V_FRONTS,
+  placement="On the short wall of a small bathroom, between the toilet (at the left frame edge) and the side wall. " + HUNG,
+  mount=31, camera=CAM_VANITY,
+  ratio="The piece is 60 cm wide and 1.9 m high: three times as tall as wide; the worktop at 85 cm, the mirror cabinet 75 cm high.",
+  anchors="the 2.05 m bathroom door frame, the ceiling at 2.60 m and the toilet beside it (40 cm seat height)",
+  checklist=V_CHECK, ourRefs=V_REFS, webRefs=BATH_WEB,
+  scenes={
+   "alb-total": ("Small bathroom of a renovated block flat: warm beige stone-look wall tiles (so the white piece separates from the wall); darker taupe floor tiles; a white toilet at the left frame edge.", "Even neutral ceiling light (the lamp out of frame), about 4000 K.", "a small hand towel on a ring beside the vanity"),
+  }),
+ "baie-lavoar-80": dict(
+  kind="vanity", bath=True, room="Bathroom of a Romanian apartment (baie).",
+  piece="Wall-hung vanity 80 cm wide with 2 drawers under a 38 mm worktop with a white countertop basin and a chrome tap; above it, 30 cm over the worktop, an 80 cm mirror cabinet with 2 mirror doors up to 1.90 m. Everything closed.",
+  body=V_BODY, fronts=V_FRONTS,
+  placement="Centred on the wall of a bathroom between the bathtub (left frame edge) and a towel radiator on the right wall. " + HUNG,
+  mount=31, camera=CAM_VANITY,
+  ratio="The piece is 80 cm wide and 1.9 m high: more than twice as tall as wide; the worktop at 85 cm, the mirror cabinet 75 cm high.",
+  anchors="the 2.05 m door frame, the ceiling at 2.60 m and the bathtub rim at 55 cm",
+  checklist=V_CHECK, ourRefs=V_REFS, webRefs=BATH_WEB,
+  scenes={
+   "alb-casmir": ("Warm bathroom: white matt wall tiles in a vertical stack bond with light grey grout (so the cashmere fronts stand out); concrete-look grey floor tiles; a white bathtub at the left edge.", "Soft daylight from a window on the right, neutral white balance.", "a folded grey towel on the bathtub rim"),
+  }),
+ "baie-dubla-140": dict(
+  kind="vanity", bath=True, room="Family bathroom of a Romanian house or large apartment (baie).",
+  piece="Double wall-hung vanity 140 cm wide: two 70 cm units, each with 2 drawers and its own white countertop basin and chrome tap, under one continuous 38 mm worktop; above each a 70 cm mirror cabinet with one mirror door, 30 cm over the worktop, up to 1.90 m. Everything closed.",
+  body=V_BODY, fronts=V_FRONTS,
+  placement="On the long wall of a family bathroom; a walk-in shower at the right edge of the frame. " + HUNG,
+  mount=31, camera=CAM_VANITY,
+  ratio="The piece is 1.4 m wide and 1.9 m high: a little taller than wide; the worktop at 85 cm, the two mirror cabinets 75 cm high.",
+  anchors="the 2.05 m door frame, the ceiling at 2.60 m and the shower glass at 2.00 m",
+  checklist=V_CHECK, ourRefs=V_REFS, webRefs=BATH_WEB,
+  scenes={
+   "alb-stejar-deschis": ("Light Scandinavian bathroom: white wall tiles with soft grey grout up to the ceiling; mid-grey terrazzo-look floor tiles (clearly different from the pale oak fronts); a walk-in shower at the right edge.", "Even daylight from a frosted window on the left, slightly cool.", "two toothbrush cups without labels, one on each side"),
+  }),
+ "baie-masina-140": dict(
+  kind="vanity", bath=True, room="Bathroom of a Romanian apartment with the washing machine (baie).",
+  piece="Bathroom furniture 140 cm wide, 195 cm high. Left: a 65 cm niche holding a white front-loading washing machine, with the continuous 38 mm worktop over it at 90 cm and a 65 cm wall cabinet with one door above. Right: a 75 cm wall-hung vanity with 2 drawers, a white countertop basin and a chrome tap, and a 75 cm mirror cabinet with 2 mirror doors above. Everything closed.",
+  body=V_BODY, fronts=V_FRONTS,
+  placement="On the long wall of a bathroom, the washer niche tight to the left side wall; a bathtub on the opposite wall, out of frame. The vanity is wall-hung, the washer stands on the floor.",
+  mount=31, camera=CAM_VANITY,
+  ratio="The piece is 1.4 m wide and 1.95 m high: a little taller than wide; the worktop at 90 cm, the cabinets above 75 cm high.",
+  anchors="the 2.05 m door frame, the ceiling at 2.60 m and the 85 cm washing machine under the worktop",
+  checklist=V_CHECK, ourRefs=V_REFS, webRefs=BATH_WEB,
+  scenes={
+   "alb-antracit": ("Modern bathroom: warm white large-format wall tiles (so the white body and the anthracite fronts both read); light oak-look floor tiles; a laundry basket beside the washer on the floor.", "Soft neutral ceiling light (out of frame) and daylight from the doorway on the right.", "a folded towel on the worktop above the washer"),
+  }),
+ "baie-picioare-100": dict(
+  kind="vanity", bath=True, room="Bathroom of a Romanian apartment (baie).",
+  piece="Bathroom furniture 100 cm wide on a 10 cm plinth. Left: a 60 cm vanity with 2 drawers under a 38 mm worktop with a white countertop basin and a chrome tap, and a 60 cm mirror cabinet with one mirror door above. Right: a 40 cm unit with 3 drawers and an open shelf unit (2 shelves) above it at the mirror cabinet's height. Everything closed.",
+  body=V_BODY, fronts=V_FRONTS,
+  placement="On the wall of a bathroom between the bathtub and the side wall; it stands on the floor on its recessed plinth.",
+  mount=None, camera=CAM_VANITY,
+  ratio="The piece is 1.0 m wide and 1.9 m high: almost twice as tall as wide; the worktop at 85 cm, the mirror cabinet and the shelf 75 cm high.",
+  anchors="the 2.05 m door frame, the ceiling at 2.60 m and the bathtub rim at 55 cm",
+  checklist=V_CHECK, ourRefs=V_REFS, webRefs=BATH_WEB,
+  scenes={
+   "alb-gri-matase": ("Classic bathroom: white subway wall tiles up to 1.20 m and warm greige paint above; black-and-white hexagon floor tiles; a white bathtub at the left edge.", "Soft daylight from a window on the right, neutral white balance.", "two rolled towels on the open shelf"),
+  }),
+})
+
 def colours_line(pal_id, body_part, fronts_part, open_piece=False):
     name, b, f = PAL[pal_id]
     if open_piece:
@@ -503,6 +589,9 @@ def rule_lines(slug, kind, bath, handle, ratio, anchors, obj, idx, has_fronts=Tr
         L.append("Kitchen build: base units 90 cm high to the top of the 38 mm worktop, on a 15 cm plinth set back 5 cm in the body colour; 55 cm of backsplash between the worktop and the wall cabinets; every wall cabinet and tall column ends at the same top line, exactly as in the render. The worktop is one continuous slab in the named decor, 38 mm thick, flush with the front of the base units plus 2 cm overhang.")
         L.append("Appliances: built in exactly where the render shows them and nowhere else: a stainless-steel inset sink with a single-lever tap; a black glass induction hob flush in the worktop above the oven; a built-in oven with a dark glass door; the dishwasher and the fridge hidden behind fronts in the kitchen colour. No freestanding fridge, no range cooker, no visible brand names or displays with text.")
         L.append("Access: at least 1.10 m of clear floor in front of the kitchen; a dining table or chairs only beyond that; a window may be on the side wall but never behind the wall cabinets.")
+    if kind == "vanity":
+        L.append("Bathroom build: the vanity worktop is one continuous 38 mm slab in the body colour at 85 cm (90 cm over a washing machine); the basin is a white ceramic countertop basin sitting on it, with a chrome single-lever tap behind it; the mirror cabinet hangs 30 cm above the worktop, its doors are real silver mirror on a thin body edge; open shelves only where the render shows them.")
+        L.append("Access: at least 80 cm of clear floor in front of the vanity; the shower, bath or toilet only at the frame edge, never in front of the piece.")
     if kind == "tall":
         L.append("Access: a clear strip of floor at least 85 cm wide runs along the whole front; no furniture within 90 cm of the doors. The window and radiator are on another wall or at least 1 m from the cupboard's end. One side of the cupboard touches the side wall; nothing stands between the cupboard and that wall. The strip of wall between its top and the ceiling is clearly visible, exactly as stated.")
     elif kind == "chest":
@@ -529,6 +618,7 @@ def extra_checks(kind, handle, bath, mount):
     c = ["Proportion as stated in the prompt (ratio measured in the photo within 10% of the render)", "Scale anchors present and consistent: door 2.05 m, ceiling 2.60 m, socket 30 cm (bathroom: 85 cm fixture)"]
     if kind == "tv": c.append("TV 16:9 and the stated fraction of the unit's length; unit not stretched")
     if mount is not None: c.append(f"Mounting height: underside about {mount} cm above the floor and the stated gap to the item below")
+    if kind == "vanity": c.append("Worktop 85/90 cm, basin and tap only where the render shows them, mirror cabinet 30 cm above; wall-hung pieces show the floor under them")
     if kind == "kitchen": c.append("Worktop 90 cm, 55 cm backsplash, one top line; built-in sink/hob/oven exactly where the render shows them; fridge and dishwasher behind fronts")
     if kind in ("tall", "chest", "divider"): c.append("10 cm recessed plinth along the whole bottom; fronts cover the whole front (no frame or header)")
     if kind == "tall": c.append("Clear floor in front, tight to a side wall, stated strip of wall below the ceiling")

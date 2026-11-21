@@ -95,11 +95,25 @@ export const CATEGORY_RULES: Record<AtelierCategory, SiteCategory> = {
       columns: ["SERTARE", "CHIUVETA", "MASINA_VASE", "CUPTOR"],
     },
   },
+  BAIE: {
+    label: "Mobilier baie",
+    intro: "Mobilier de baie suspendat sau pe picioare: lavoar cu sertare, dulap cu oglindă, coloană și nișă pentru mașina de spălat.",
+    sizeHint: "Lungimea peretelui pe care stă mobilierul și înălțimea până sus la dulapul cu oglindă.",
+    legs: [0, 100],
+    width: [400, 3000], height: [1600, 2300], depth: [400, 600], column: COLUMN,
+    contents: ["LAVOAR", "SERTARE", "USI", "MASINA_SPALAT", "COLOANA"],
+    fill: "SERTARE",
+    slidingDoors: false,
+    defaults: {
+      widthMm: 1200, heightMm: 1900, depthMm: 480, legsMm: 0, doors: { type: "NONE" },
+      columns: ["LAVOAR", "COLOANA"],
+    },
+  },
 };
 
-export const CATEGORY_ORDER: readonly AtelierCategory[] = ["DRESSING", "COMODA", "SEPARATOR", "SUSPENDAT", "BUCATARIE"];
+export const CATEGORY_ORDER: readonly AtelierCategory[] = ["DRESSING", "COMODA", "SEPARATOR", "SUSPENDAT", "BUCATARIE", "BAIE"];
 /** The order of the category chips (the share codes use CATEGORY_ORDER, which only grows at the end). */
-export const CATEGORY_DISPLAY: readonly AtelierCategory[] = ["DRESSING", "BUCATARIE", "COMODA", "SEPARATOR", "SUSPENDAT"];
+export const CATEGORY_DISPLAY: readonly AtelierCategory[] = ["DRESSING", "BUCATARIE", "BAIE", "COMODA", "SEPARATOR", "SUSPENDAT"];
 
 export function categoryRules(category: AtelierCategory): SiteCategory {
   return CATEGORY_RULES[category] ?? CATEGORY_RULES.DRESSING;
@@ -123,6 +137,8 @@ export const CONTENT_LABELS: Record<ColumnContent, string> = {
   COLOANA_CUPTOR: "Cuptor la înălțime",
   COLOANA: "Cămară",
   COLT: "Colț",
+  LAVOAR: "Lavoar",
+  MASINA_SPALAT: "Mașină de spălat",
 };
 
 /** Contents that hang clothes (drawn as rails in the 3D view). */

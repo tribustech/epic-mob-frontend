@@ -1,11 +1,13 @@
-export type AtelierCategory = 'DRESSING' | 'COMODA' | 'SEPARATOR' | 'SUSPENDAT' | 'BUCATARIE';
+export type AtelierCategory = 'DRESSING' | 'COMODA' | 'SEPARATOR' | 'SUSPENDAT' | 'BUCATARIE' | 'BAIE';
 export type ColumnContent =
   | 'POLITE' | 'BARA' | 'BARA_DUBLA' | 'POLITE_BARA' | 'BARA_SERTARE'   // dressing
   | 'SERTARE' | 'USI' | 'DESCHIS' | 'USA_RIDICABILA'                    // comodă / separator / suspendat
   // bucătărie: module jos (sub blat) și coloane înalte; PLITA = plită pe sertare (cuptorul e în coloană); COLT = corpul de colț al bucătăriei în L (pus automat)
-  | 'CHIUVETA' | 'CUPTOR' | 'PLITA' | 'MASINA_VASE' | 'FRIGIDER' | 'COLOANA_CUPTOR' | 'COLOANA' | 'COLT';
+  | 'CHIUVETA' | 'CUPTOR' | 'PLITA' | 'MASINA_VASE' | 'FRIGIDER' | 'COLOANA_CUPTOR' | 'COLOANA' | 'COLT'
+  // baie: LAVOAR = corpul de sub lavoar (sertare), MASINA_SPALAT = nișă pentru mașina de spălat sub blat (fără corp)
+  | 'LAVOAR' | 'MASINA_SPALAT';
 /** Bucătărie: ce stă deasupra unui modul de jos (pe perete). HOTA = corp mai scurt cu hota sub el. */
-export type UpperContent = 'USI' | 'RIDICABILA' | 'DESCHIS' | 'HOTA' | 'NONE';
+export type UpperContent = 'USI' | 'RIDICABILA' | 'DESCHIS' | 'HOTA' | 'NONE' | 'OGLINDA';
 /** Bucătărie: forma. L_STANGA / L_DREAPTA = al doilea perete e la stânga / la dreapta peretelui principal. */
 export type KitchenLayout = 'LINIAR' | 'L_STANGA' | 'L_DREAPTA';
 export interface AtelierKitchen {
@@ -75,7 +77,7 @@ export interface AtelierConfig {
 }
 export interface AtelierIssue { code: string; message: string; column?: number }
 /** Electrocasnicele și chiuveta desenate în 3D (nu intră în preț). */
-export type ApplianceKind = 'CHIUVETA' | 'PLITA' | 'CUPTOR' | 'MICROUNDE' | 'FRIGIDER' | 'HOTA';
+export type ApplianceKind = 'CHIUVETA' | 'PLITA' | 'CUPTOR' | 'MICROUNDE' | 'FRIGIDER' | 'HOTA' | 'LAVOAR' | 'MASINA_SPALAT';
 export interface ScenePiece {
   x: number; y: number; z: number; w: number; h: number; d: number; role: 'CORP' | 'FRONT' | 'SPATE' | 'PLINTA' | 'BLAT' | 'APARAT';
   /** doar role APARAT */

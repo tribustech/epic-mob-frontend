@@ -14,6 +14,7 @@ const QUICK_WIDTHS: Record<AtelierCategory, number[]> = {
   SEPARATOR: [900, 1200, 1600, 2000],
   SUSPENDAT: [600, 900, 1200, 1800],
   BUCATARIE: [1800, 2400, 2700, 3000, 3600],
+  BAIE: [600, 800, 1000, 1200, 1600],
 };
 
 function SizeCard({

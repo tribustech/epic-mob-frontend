@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { PresetShape } from "@/lib/atelier/presets";
 import type { AtelierColumn } from "@/lib/atelier/types";
-import { COUNTER_MM, UPPER_GAP_MM, isTall, kitchenLayout, upperOf } from "@/lib/atelier/kitchen";
+import { BATH_HUNG_BODY_MM, BATH_HUNG_TALL_FROM_MM, BATH_UPPER_GAP_MM, UPPER_GAP_MM, counterMm, isBath, isTall, kitchenLayout, upperOf } from "@/lib/atelier/kitchen";
 import type { MaterialLook } from "./material-look";
 
 /**
@@ -20,6 +20,8 @@ const WORKTOP_MM = 38;
 const DEFAULT_WORKTOP = "#c9b495";
 const STEEL = "#9aa1a6";
 const GLASS = "#2f3438";
+const MIRROR = "#c9d3d8";
+const CERAMIC = "#f4f2ee";
 
 function hex(color: string): [number, number, number] {
   const m = /^#?([0-9a-f]{6})$/i.exec(color.trim());
@@ -52,7 +54,9 @@ export function KitchenMini({
   className?: string;
   bold?: boolean;
 }) {
-  const layout = kitchenLayout(shape);
+  const bath = isBath(shape);
+  const hung = bath && shape.legsMm === 0;
+  const layout = bath ? "LINIAR" : kitchenLayout(shape);
   const legB = layout !== "LINIAR" ? shape.kitchen?.legB : undefined;
   const H = Math.max(1, shape.heightMm);
   const legs = shape.legsMm;
@@ -69,9 +73,12 @@ export function KitchenMini({
 
   const dark = luminance(front.color) < 0.34;
   const frontLine = dark ? "rgba(255,255,255,0.6)" : "rgba(43,37,32,0.45)";
-  const counterTop = COUNTER_MM;
-  const counterBody = COUNTER_MM - WORKTOP_MM;
-  const upperBottom = COUNTER_MM + UPPER_GAP_MM;
+  const counterTop = counterMm(shape);
+  const counterBody = counterTop - WORKTOP_MM;
+  const upperBottom = counterTop + (bath ? BATH_UPPER_GAP_MM : UPPER_GAP_MM);
+  /** bottom of the base bodies and of the tall columns (a wall-hung bathroom leaves the floor free) */
+  const baseY = hung ? counterBody - Math.min(BATH_HUNG_BODY_MM, counterBody) : legs;
+  const tallY = hung ? BATH_HUNG_TALL_FROM_MM : legs;
   const top = worktop?.color ?? DEFAULT_WORKTOP;
   const interior = shade(carcass.color, luminance(carcass.color) < 0.34 ? 0.14 : -0.18);
 
@@ -115,7 +122,7 @@ export function KitchenMini({
       const w = c.widthMm;
       // the body behind the fronts
       if (isTall(c.content)) {
-        rect(x, Y(H), w, H - legs, carcass.color);
+        rect(x, Y(H), w, H - tallY, carcass.color);
         switch (c.content) {
           case "FRIGIDER":
             panel(x, w, legs, H - 420);
@@ -130,8 +137,8 @@ export function KitchenMini({
             break;
           }
           default: {
-            const mid = legs + (H - legs) * 0.45;
-            doors(x, w, legs, mid, w > 600 ? 2 : 1, "top");
+            const mid = tallY + (H - tallY) * 0.45;
+            doors(x, w, tallY, mid, w > 600 ? 2 : 1, "top");
             doors(x, w, mid, H, w > 600 ? 2 : 1, "bottom");
           }
         }
@@ -139,11 +146,24 @@ export function KitchenMini({
         continue;
       }
       // under the worktop
-      rect(x, Y(counterBody), w, counterBody - legs, carcass.color);
+      if (c.content === "MASINA_SPALAT") {
+        // a niche: the washer itself, the worktop runs over it
+        const ww = Math.min(w - 40, 600);
+        const wx = x + (w - ww) / 2;
+        const wh = Math.min(850, counterBody - 20);
+        rect(wx, Y(wh), ww, wh, "#eef0f1", "rgba(0,0,0,0.3)", 0.5, 8);
+        out.push(<circle key={key++} cx={wx + ww / 2} cy={Y(wh * 0.45)} r={Math.min(ww, wh) * 0.27} fill={GLASS} stroke={STEEL} strokeWidth={px(1.2)} />);
+        rect(wx + 30, Y(wh) + 30, ww * 0.4, 60, "#d9dcde");
+      } else rect(x, Y(counterBody), w, counterBody - baseY, carcass.color);
       switch (c.content) {
+        case "MASINA_SPALAT":
+          break;
+        case "LAVOAR":
+          drawers(x, w, baseY, counterBody, c.drawers ?? 2);
+          break;
         case "SERTARE":
         case "PLITA":
-          drawers(x, w, legs, counterBody, c.drawers ?? 3);
+          drawers(x, w, baseY, counterBody, c.drawers ?? (bath ? 2 : 3));
           break;
         case "CUPTOR":
           panel(x, w, legs, legs + 160);
@@ -161,7 +181,16 @@ export function KitchenMini({
           vbar(x + Math.min(w, 500) - 40, Y(counterBody) + 50, Y(counterBody) + 170);
           break;
         default:
-          doors(x, w, legs, counterBody, w > 600 ? 2 : 1, "top");
+          doors(x, w, baseY, counterBody, w > 600 ? 2 : 1, "top");
+      }
+      if (c.content === "LAVOAR") {
+        // the basin on the worktop and its tap
+        const bw = Math.min(w - 120, 600);
+        const cx = x + w / 2;
+        rect(cx - bw / 2, Y(counterTop) - 130, bw, 130, CERAMIC, "rgba(0,0,0,0.3)", 0.5, 30);
+        out.push(
+          <path key={key++} d={`M${cx} ${Y(counterTop) - 130} v${-120} q0 ${-40} ${40} ${-40} h30`} fill="none" stroke={STEEL} strokeWidth={px(1.6)} strokeLinecap="round" />,
+        );
       }
       // on the worktop: the tap, the hob
       if (c.content === "CHIUVETA") {
@@ -179,8 +208,18 @@ export function KitchenMini({
       }
       if (c.content === "CUPTOR" || c.content === "PLITA") rect(x + 60, Y(counterTop) - 14, w - 120, 14, GLASS);
       // above: wall cabinet, shelf, hood
-      const upper = upperOf(c);
-      if (upper === "USI") {
+      const upper = upperOf(c, bath);
+      if (upper === "OGLINDA") {
+        rect(x, Y(H), w, H - upperBottom, carcass.color);
+        const leaves = w > 600 ? 2 : 1;
+        const lw = w / leaves;
+        for (let i = 0; i < leaves; i++) {
+          rect(x + i * lw + GAP / 2, Y(H) + GAP / 2, lw - GAP, H - upperBottom - GAP, MIRROR, "rgba(43,37,32,0.35)", 0.5);
+          out.push(
+            <line key={key++} x1={x + i * lw + lw * 0.2} x2={x + i * lw + lw * 0.45} y1={Y(H) + 120} y2={Y(H) + 40} stroke="rgba(255,255,255,0.8)" strokeWidth={px(1.2)} />,
+          );
+        }
+      } else if (upper === "USI") {
         rect(x, Y(H), w, H - upperBottom, carcass.color);
         doors(x, w, upperBottom, H, w > 600 ? 2 : 1, "bottom");
       } else if (upper === "RIDICABILA") {
@@ -231,7 +270,7 @@ export function KitchenMini({
   wall(shape.columns, mainX);
   worktops(shape.columns, mainX);
   // plinth shadow
-  rect(0, H - legs, totalW, legs, "rgba(43,37,32,0.18)");
+  if (!hung) rect(0, H - legs, totalW, legs, "rgba(43,37,32,0.18)");
 
   return (
     <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className={className} role="img" aria-hidden="true" preserveAspectRatio="xMidYMid meet">

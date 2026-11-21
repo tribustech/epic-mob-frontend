@@ -146,7 +146,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   const carcass = useMemo(() => carcassLook(catalog, config), [catalog, config]);
   const front = useMemo(() => frontLook(catalog, config), [catalog, config]);
   const worktop = useMemo(() => worktopLook(catalog, config), [catalog, config]);
-  const isKitchen = config.category === "BUCATARIE";
+  const isKitchen = (config.category === "BUCATARIE" || config.category === "BAIE");
   const activePalette = activePaletteId(palettes, config);
   // the handle on the fronts (null when no front takes one) and the colour it is drawn in
   const shownHandle = useMemo(() => effectiveHandle(config), [config]);

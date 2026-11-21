@@ -67,7 +67,7 @@ export function followUps(
     }
   }
   // a kitchen always has a worktop the catalog knows and that is deep enough
-  if (next.category === "BUCATARIE") {
+  if (next.category === "BUCATARIE" || next.category === "BAIE") {
     const ok = usableWorktops(catalog, next.depthMm).some((w) => w.id === next.kitchen?.worktopId);
     const id = ok ? null : defaultWorktopId(catalog, next.depthMm);
     if (id) actions.push({ type: "setWorktop", worktopId: id });

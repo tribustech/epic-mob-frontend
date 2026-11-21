@@ -431,5 +431,41 @@
     "alb-total",
     "gri-casmir",
     "antracit-stejar"
+  ],
+  "baie-lavoar-coloana-120": [
+    "alb-stejar-natur",
+    "alb-total",
+    "alb-casmir",
+    "alb-stejar-deschis"
+  ],
+  "baie-lavoar-60": [
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-casmir",
+    "alb-gri-matase"
+  ],
+  "baie-lavoar-80": [
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-antracit"
+  ],
+  "baie-dubla-140": [
+    "alb-stejar-deschis",
+    "alb-total",
+    "alb-casmir",
+    "alb-stejar-natur"
+  ],
+  "baie-masina-140": [
+    "alb-antracit",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-casmir"
+  ],
+  "baie-picioare-100": [
+    "alb-gri-matase",
+    "alb-total",
+    "alb-stejar-natur",
+    "alb-casmir"
   ]
 }

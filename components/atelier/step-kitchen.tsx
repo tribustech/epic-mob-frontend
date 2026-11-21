@@ -4,19 +4,22 @@ import { ArrowLeftRight, ArrowUpDown, Lightbulb, MoveDiagonal, Plus, Trash2 } fr
 import type { ReactNode } from "react";
 import { categoryRules } from "@/lib/atelier/categories";
 import {
+  BATH_COUNTER_MM,
+  BATH_HUNG_BODY_MM,
+  BATH_UPPER_GAP_MM,
   KITCHEN_DEFAULT_DRAWERS,
-  KITCHEN_DRAWERS,
-  KITCHEN_MODULES,
-  KITCHEN_UPPERS,
   LAYOUT_LABELS,
   LEG_B_RANGE,
-  MODULE_HINTS,
-  MODULE_LABELS,
   UPPER_LABELS,
   cornerIndex,
+  drawerRangeOf,
+  isBath,
   isTall,
   kitchenLayout,
   legBModulesMm,
+  moduleHint,
+  moduleLabel,
+  profileOf,
   upperOf,
   widthRange,
 } from "@/lib/atelier/kitchen";
@@ -36,6 +39,7 @@ const sideName = (layout: KitchenLayout) => (layout === "L_STANGA" ? "din stâng
 /** The walls as the client reads them. */
 function wallTitle(config: AtelierConfig, leg: "A" | "B"): string {
   const layout = kitchenLayout(config);
+  if (config.category === "BAIE") return "Peretele";
   if (layout === "LINIAR") return "Bucătăria";
   return leg === "A" ? "Peretele principal" : `Peretele ${sideName(layout)}`;
 }
@@ -70,13 +74,14 @@ function SizeCard({ icon, label, range, children }: { icon: ReactNode; label: st
 }
 
 export function KitchenSize({ config, act, heightIssue = null }: { config: AtelierConfig; act: Act; heightIssue?: string | null }) {
-  const rules = categoryRules("BUCATARIE");
+  const bath = isBath(config);
+  const rules = categoryRules(config.category);
   const layout = kitchenLayout(config);
   const legB = config.kitchen?.legB;
-  const quick = [1800, 2400, 2700, 3000, 3600];
+  const quick = bath ? [600, 800, 1000, 1200, 1600] : [1800, 2400, 2700, 3000, 3600];
   return (
     <div className="atelier-stack">
-      <Section title="Forma bucătăriei" anchor="forma" hint="Pe un singur perete, sau pe doi pereți care fac colț (în L).">
+      {!bath && <Section title="Forma bucătăriei" anchor="forma" hint="Pe un singur perete, sau pe doi pereți care fac colț (în L).">
         <Choice
           label="Forma bucătăriei"
           columns={3}
@@ -84,15 +89,15 @@ export function KitchenSize({ config, act, heightIssue = null }: { config: Ateli
           options={(["LINIAR", "L_STANGA", "L_DREAPTA"] as const).map((l) => ({ value: l, label: LAYOUT_LABELS[l], icon: <LayoutGlyph layout={l} /> }))}
           onChange={(l) => act({ type: "setKitchenLayout", layout: l })}
         />
-      </Section>
+      </Section>}
 
       <Section
         title="Dimensiuni"
         anchor="dimensiuni"
-        hint="Lungimea pereților pe care stă bucătăria. Aproximativ e de ajuns — măsurăm noi exact înainte de execuție."
+        hint={`${bath ? "Lungimea peretelui pe care stă mobilierul de baie" : "Lungimea pereților pe care stă bucătăria"}. Aproximativ e de ajuns — măsurăm noi exact înainte de execuție.`}
       >
         <div className="space-y-3">
-          <SizeCard icon={<ArrowLeftRight size={16} />} label={layout === "LINIAR" ? "Lungimea peretelui" : "Peretele principal"} range={rules.width}>
+          <SizeCard icon={<ArrowLeftRight size={16} />} label={bath ? "Lățimea mobilierului" : layout === "LINIAR" ? "Lungimea peretelui" : "Peretele principal"} range={rules.width}>
             <LengthControl
               key="k-w"
               id="atelier-width"
@@ -117,7 +122,7 @@ export function KitchenSize({ config, act, heightIssue = null }: { config: Ateli
               ))}
             </div>
           </SizeCard>
-          {layout !== "LINIAR" && legB && (
+          {!bath && layout !== "LINIAR" && legB && (
             <SizeCard icon={<ArrowLeftRight size={16} />} label={`Peretele ${sideName(layout)}`} range={LEG_B_RANGE}>
               <LengthControl
                 key="k-b"
@@ -132,7 +137,7 @@ export function KitchenSize({ config, act, heightIssue = null }: { config: Ateli
               <p className="atelier-hint mt-2">Măsurat din colț, cu tot cu colțul.</p>
             </SizeCard>
           )}
-          <SizeCard icon={<ArrowUpDown size={16} />} label="Înălțime până sus la dulapuri" range={rules.height}>
+          <SizeCard icon={<ArrowUpDown size={16} />} label={bath ? "Înălțime până sus la dulapul cu oglindă" : "Înălțime până sus la dulapuri"} range={rules.height}>
             <LengthControl
               key="k-h"
               id="atelier-height"
@@ -148,9 +153,13 @@ export function KitchenSize({ config, act, heightIssue = null }: { config: Ateli
                 {heightIssue}
               </p>
             )}
-            <p className="atelier-hint mt-2">Blatul stă la 90 cm, dulapurile de sus încep la 55 cm deasupra lui.</p>
+            <p className="atelier-hint mt-2">
+              {bath
+                ? `Blatul lavoarului stă la ${cm(BATH_COUNTER_MM)} cm (90 cm cu mașină de spălat), dulapul cu oglindă începe la ${cm(BATH_UPPER_GAP_MM)} cm deasupra lui.`
+                : "Blatul stă la 90 cm, dulapurile de sus încep la 55 cm deasupra lui."}
+            </p>
           </SizeCard>
-          <SizeCard icon={<MoveDiagonal size={16} />} label="Adâncimea blatului" range={rules.depth}>
+          <SizeCard icon={<MoveDiagonal size={16} />} label={bath ? "Adâncimea blatului (lavoarului)" : "Adâncimea blatului"} range={rules.depth}>
             <LengthControl
               key="k-d"
               id="atelier-depth"
@@ -164,11 +173,14 @@ export function KitchenSize({ config, act, heightIssue = null }: { config: Ateli
         </div>
       </Section>
 
-      <Section title="Picioare" hint="Soclul de sub dulapurile de jos.">
+      <Section
+        title={bath ? "Montaj" : "Picioare"}
+        hint={bath ? `Suspendat pe perete (corpul de jos are ${cm(BATH_HUNG_BODY_MM)} cm, podeaua rămâne liberă) sau pe picioare de 10 cm.` : "Soclul de sub dulapurile de jos."}
+      >
         <Choice
-          label="Înălțime picioare"
+          label={bath ? "Montaj" : "Înălțime picioare"}
           value={config.legsMm}
-          options={rules.legs.map((legsMm) => ({ value: legsMm, label: `${cm(legsMm)} cm` }))}
+          options={rules.legs.map((legsMm) => ({ value: legsMm, label: legsMm === 0 ? "Suspendat" : bath ? `Pe picioare (${cm(legsMm)} cm)` : `${cm(legsMm)} cm` }))}
           onChange={(legsMm) => act({ type: "setLegs", legsMm })}
         />
       </Section>
@@ -188,15 +200,17 @@ function ModuleEditor({ config, pick, act }: { config: AtelierConfig; pick: Kitc
   const leg = pick.leg === "B" ? ("B" as const) : undefined;
   const corner = pick.leg === "A" ? cornerIndex(kitchenLayout(config), cols.length) : -1;
   const isCorner = pick.index === corner;
-  const [lo, hi] = widthRange(col.content);
-  const up = upperOf(col);
+  const p = profileOf(config);
+  const [lo, hi] = widthRange(col.content, p);
+  const up = upperOf(col, p.bath);
+  const drawerRange = drawerRangeOf(col.content);
   const n = cols.length;
 
   return (
     <div className="atelier-box">
       <div className="atelier-box__head">
         <h3 className="atelier-box__title">
-          {MODULE_LABELS[col.content]}
+          {moduleLabel(col.content, p.bath)}
           <span className="atelier-box__of">
             {" "}
             · modulul {pick.index + 1} din {n}
@@ -214,16 +228,16 @@ function ModuleEditor({ config, pick, act }: { config: AtelierConfig; pick: Kitc
           </button>
         )}
       </div>
-      <p className="atelier-hint -mt-2 mb-3">{MODULE_HINTS[col.content]}</p>
+      <p className="atelier-hint -mt-2 mb-3">{moduleHint(col.content, p.bath)}</p>
 
       {!isCorner && (
         <Choice
           label="Ce pui aici"
           columns={2}
           value={col.content}
-          options={KITCHEN_MODULES.map((c) => ({
+          options={p.modules.map((c) => ({
             value: c,
-            label: MODULE_LABELS[c] ?? c,
+            label: moduleLabel(c, p.bath),
             icon: <ContentGlyph content={c} className="atelier-glyph--chip" />,
           }))}
           onChange={(content) => act({ type: "setColumnContent", index: pick.index, content, leg })}
@@ -243,13 +257,13 @@ function ModuleEditor({ config, pick, act }: { config: AtelierConfig; pick: Kitc
             onCommit={(widthMm) => act({ type: "setColumnWidth", index: pick.index, widthMm, leg })}
           />
         </Field>
-        {col.content === "SERTARE" && (
+        {drawerRange && (
           <Field label="Număr de sertare">
             <Stepper
               label="Număr de sertare"
-              value={col.drawers ?? KITCHEN_DEFAULT_DRAWERS}
-              min={KITCHEN_DRAWERS[0]}
-              max={KITCHEN_DRAWERS[1]}
+              value={col.drawers ?? (col.content === "LAVOAR" || p.bath ? 2 : KITCHEN_DEFAULT_DRAWERS)}
+              min={drawerRange[0]}
+              max={drawerRange[1]}
               format={drawersText}
               onChange={(drawers) => act({ type: "setColumnDrawers", index: pick.index, drawers, leg })}
             />
@@ -262,10 +276,10 @@ function ModuleEditor({ config, pick, act }: { config: AtelierConfig; pick: Kitc
           <Choice
             label="Deasupra, pe perete"
             value={up}
-            options={KITCHEN_UPPERS.map((u) => ({ value: u, label: UPPER_LABELS[u] }))}
+            options={p.uppers.map((u) => ({ value: u, label: UPPER_LABELS[u] }))}
             onChange={(upper) => act({ type: "setColumnUpper", index: pick.index, upper, leg })}
           />
-          <p className="atelier-hint mt-1.5">Deasupra, pe perete: dulap, raft sau hotă.</p>
+          <p className="atelier-hint mt-1.5">{p.bath ? "Deasupra, pe perete: dulap cu oglindă, dulăpior sau raft." : "Deasupra, pe perete: dulap, raft sau hotă."}</p>
         </div>
       )}
     </div>
@@ -304,7 +318,7 @@ function Wall({
             key={i}
             type="button"
             aria-pressed={pick.leg === leg && pick.index === i}
-            aria-label={`Modulul ${i + 1}: ${MODULE_LABELS[col.content]}, ${cm(col.widthMm)} cm`}
+            aria-label={`Modulul ${i + 1}: ${moduleLabel(col.content, config.category === "BAIE")}, ${cm(col.widthMm)} cm`}
             className="atelier-col"
             style={{ flexGrow: col.widthMm }}
             onClick={() => onPick({ leg, index: i })}
@@ -338,8 +352,9 @@ function Wall({
 export function StepKitchen({ config, act, pick, onPick }: { config: AtelierConfig; act: Act; pick: KitchenPick; onPick: (pick: KitchenPick) => void }) {
   const hasB = kitchenLayout(config) !== "LINIAR" && !!config.kitchen?.legB;
   const safe: KitchenPick = pick.leg === "B" && !hasB ? { leg: "A", index: 0 } : pick;
+  const bath = isBath(config);
   const hasUppers = [...config.columns, ...(config.kitchen?.legB?.columns ?? [])].some((c) => {
-    const u = upperOf(c);
+    const u = upperOf(c, bath);
     return u !== null && u !== "NONE";
   });
   return (
@@ -347,7 +362,7 @@ export function StepKitchen({ config, act, pick, onPick }: { config: AtelierConf
       <Wall config={config} leg="A" act={act} pick={safe} onPick={onPick} />
       {hasB && <Wall config={config} leg="B" act={act} pick={safe} onPick={onPick} />}
       {hasUppers && (
-        <Section title="Lumină" hint="Bandă LED sub dulapurile de sus, cu sursă și montaj.">
+        <Section title="Lumină" hint={bath ? "Bandă LED sub dulapul de sus, cu sursă și montaj." : "Bandă LED sub dulapurile de sus, cu sursă și montaj."}>
           <Choice
             label="Lumină sub dulapuri"
             value={config.kitchen?.led ? 1 : 0}
@@ -360,7 +375,9 @@ export function StepKitchen({ config, act, pick, onPick }: { config: AtelierConf
         </Section>
       )}
       <p className="atelier-hint px-1">
-        Electrocasnicele, chiuveta și bateria nu sunt incluse în preț: le lăsăm locul exact, iar blatul îl decupăm pentru ele.
+        {bath
+          ? "Lavoarul, bateria și mașina de spălat nu sunt incluse în preț: le lăsăm locul exact, iar blatul îl decupăm pentru lavoar. Oglinda de pe ușile dulapului este inclusă."
+          : "Electrocasnicele, chiuveta și bateria nu sunt incluse în preț: le lăsăm locul exact, iar blatul îl decupăm pentru ele."}
         {isTall(safe.leg === "A" ? (config.columns[safe.index]?.content ?? "USI") : "USI") ? " Coloanele înalte nu au dulap deasupra." : ""}
       </p>
     </div>

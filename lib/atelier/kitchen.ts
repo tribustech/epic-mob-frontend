@@ -44,12 +44,43 @@ export const KITCHEN_DEFAULT_WIDTH: Partial<Record<ColumnContent, number>> = {
   COLOANA: 600,
   COLT: CORNER_WIDTH_MM,
 };
-export const widthRange = (c: ColumnContent): readonly [number, number] => KITCHEN_WIDTH[c] ?? [300, 1200];
 /** modules whose width follows the wall (the appliance ones keep theirs) */
 const FLEX: readonly ColumnContent[] = ["SERTARE", "USI", "CHIUVETA", "COLOANA"];
-const isFlex = (c: ColumnContent) => FLEX.includes(c);
 
 export const KITCHEN_DRAWERS: readonly [number, number] = [2, 4];
+
+/* ── bathroom furniture: the same model on one wall (vanity with basin, mirror cabinet, column, washer niche) ── */
+export const BATH_MODULES: readonly ColumnContent[] = ["LAVOAR", "SERTARE", "USI", "MASINA_SPALAT", "COLOANA"];
+export const BATH_UPPERS: readonly UpperContent[] = ["OGLINDA", "USI", "DESCHIS", "NONE"];
+export const BATH_WIDTH: Partial<Record<ColumnContent, readonly [number, number]>> = {
+  LAVOAR: [400, 1200], SERTARE: [300, 1000], USI: [300, 800], MASINA_SPALAT: [600, 700], COLOANA: [300, 600],
+};
+export const BATH_DEFAULT_WIDTH: Partial<Record<ColumnContent, number>> = { LAVOAR: 800, SERTARE: 400, USI: 400, MASINA_SPALAT: 650, COLOANA: 400 };
+export const BATH_COUNTER_MM = 850;
+export const BATH_WASHER_COUNTER_MM = 900;
+export const BATH_UPPER_GAP_MM = 300;
+export const BATH_HUNG_BODY_MM = 500;
+export const BATH_HUNG_TALL_FROM_MM = 300;
+
+/** What differs between a kitchen and bathroom furniture: the modules, their widths, what can go above. */
+export interface FittedProfile {
+  bath: boolean;
+  modules: readonly ColumnContent[];
+  uppers: readonly UpperContent[];
+  width: Partial<Record<ColumnContent, readonly [number, number]>>;
+  defaultWidth: Partial<Record<ColumnContent, number>>;
+  flex: readonly ColumnContent[];
+}
+export const KITCHEN_PROFILE: FittedProfile = {
+  bath: false, modules: KITCHEN_MODULES, uppers: KITCHEN_UPPERS, width: KITCHEN_WIDTH, defaultWidth: KITCHEN_DEFAULT_WIDTH, flex: FLEX,
+};
+export const BATH_PROFILE: FittedProfile = {
+  bath: true, modules: BATH_MODULES, uppers: BATH_UPPERS, width: BATH_WIDTH, defaultWidth: BATH_DEFAULT_WIDTH, flex: ["LAVOAR", "SERTARE", "USI"],
+};
+export const widthRange = (c: ColumnContent, p: FittedProfile = KITCHEN_PROFILE): readonly [number, number] => p.width[c] ?? [300, 1200];
+/** drawers a module can have (null: none to choose) */
+export const drawerRangeOf = (c: ColumnContent): readonly [number, number] | null =>
+  c === "SERTARE" ? KITCHEN_DRAWERS : c === "LAVOAR" ? [1, 2] : null;
 export const KITCHEN_DEFAULT_DRAWERS = 3;
 export const LEG_B_RANGE: readonly [number, number] = [1200, 4500];
 
@@ -64,6 +95,8 @@ export const MODULE_LABELS: Partial<Record<ColumnContent, string>> = {
   COLOANA_CUPTOR: "Cuptor la înălțime",
   COLOANA: "Cămară",
   COLT: "Colț",
+  LAVOAR: "Lavoar cu sertare",
+  MASINA_SPALAT: "Mașină de spălat",
 };
 /** one line under the module picker: what the client gets */
 export const MODULE_HINTS: Partial<Record<ColumnContent, string>> = {
@@ -77,6 +110,8 @@ export const MODULE_HINTS: Partial<Record<ColumnContent, string>> = {
   COLOANA_CUPTOR: "Cuptor și microunde la nivelul ochilor, sertare dedesubt.",
   COLOANA: "Coloană înaltă cu polițe, pentru cămară.",
   COLT: "Corp de colț, cu acces din față.",
+  LAVOAR: "Corp cu sertare sub lavoar; decupăm blatul pentru lavoarul și bateria ta.",
+  MASINA_SPALAT: "Loc pentru mașina de spălat, cu blatul continuu deasupra.",
 };
 export const UPPER_LABELS: Record<UpperContent, string> = {
   USI: "Dulap cu uși",
@@ -84,20 +119,40 @@ export const UPPER_LABELS: Record<UpperContent, string> = {
   DESCHIS: "Raft deschis",
   HOTA: "Hotă",
   NONE: "Nimic",
+  OGLINDA: "Dulap cu oglindă",
 };
+/** the bathroom names some modules differently */
+const BATH_LABELS: Partial<Record<ColumnContent, string>> = { COLOANA: "Coloană", USI: "Dulăpior cu uși", SERTARE: "Sertare" };
+const BATH_HINTS: Partial<Record<ColumnContent, string>> = {
+  COLOANA: "Coloană înaltă cu uși și polițe, pentru prosoape și produse.",
+  USI: "Dulăpior cu uși, sub blat.",
+  SERTARE: "Sertare cu închidere lină, sub blat.",
+};
+export const moduleLabel = (c: ColumnContent, bath = false): string => (bath ? BATH_LABELS[c] : undefined) ?? MODULE_LABELS[c] ?? c;
+export const moduleHint = (c: ColumnContent, bath = false): string => (bath ? BATH_HINTS[c] : undefined) ?? MODULE_HINTS[c] ?? "";
+
 export const LAYOUT_LABELS: Record<KitchenLayout, string> = {
   LINIAR: "Pe un perete",
   L_STANGA: "În L, colț în stânga",
   L_DREAPTA: "În L, colț în dreapta",
 };
 
-export const isKitchen = (c: Pick<AtelierConfig, "category">): boolean => c.category === "BUCATARIE";
+/** A kitchen or bathroom furniture: modules under a worktop, cabinets above, columns. */
+export const isKitchen = (c: Pick<AtelierConfig, "category">): boolean => c.category === "BUCATARIE" || c.category === "BAIE";
+export const isBath = (c: Pick<AtelierConfig, "category">): boolean => c.category === "BAIE";
+export const profileOf = (c: Pick<AtelierConfig, "category">): FittedProfile => (isBath(c) ? BATH_PROFILE : KITCHEN_PROFILE);
+/** worktop height from the floor (a bathroom with a washer niche rises to 90 cm) */
+export function counterMm(c: Pick<AtelierConfig, "category" | "columns">): number {
+  if (!isBath(c)) return COUNTER_MM;
+  return c.columns.some((x) => x.content === "MASINA_SPALAT") ? BATH_WASHER_COUNTER_MM : BATH_COUNTER_MM;
+}
 export const kitchenLayout = (c: Pick<AtelierConfig, "kitchen">): KitchenLayout => c.kitchen?.layout ?? "LINIAR";
 export const isL = (c: Pick<AtelierConfig, "kitchen">): boolean => kitchenLayout(c) !== "LINIAR" && !!c.kitchen?.legB;
 
 /** The wall cabinet of a module (null: a tall column has none). */
-export function upperOf(col: AtelierColumn): UpperContent | null {
+export function upperOf(col: AtelierColumn, bath = false): UpperContent | null {
   if (isTall(col.content)) return null;
+  if (bath) return col.upper ?? (col.content === "LAVOAR" ? "OGLINDA" : "NONE");
   return col.upper ?? (col.content === "CUPTOR" || col.content === "PLITA" ? "HOTA" : "USI");
 }
 
@@ -118,27 +173,35 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  * in whole centimetres where possible; appliance modules and `keep` stay as they are. When the flexible ones
  * cannot absorb it, a module is added (drawers) or the last flexible one is removed. null = impossible.
  */
-export function fitKitchen(cols: AtelierColumn[], total: number, keep: number | null = null, corner = -1): AtelierColumn[] | null {
+export function fitKitchen(
+  cols: AtelierColumn[],
+  total: number,
+  keep: number | null = null,
+  corner = -1,
+  p: FittedProfile = KITCHEN_PROFILE,
+): AtelierColumn[] | null {
   const out = cols.map((c) => ({ ...c }));
+  const isFlex = (c: ColumnContent) => p.flex.includes(c);
+  const range = (c: ColumnContent) => widthRange(c, p);
   for (let guard = 0; guard < 12; guard++) {
     const flex = out.map((c, i) => i).filter((i) => i !== keep && i !== corner && isFlex(out[i].content));
     const fixed = sum(out.filter((_, i) => !flex.includes(i)));
     const target = total - fixed;
-    const lo = flex.reduce((t, i) => t + widthRange(out[i].content)[0], 0);
-    const hi = flex.reduce((t, i) => t + widthRange(out[i].content)[1], 0);
+    const lo = flex.reduce((t, i) => t + range(out[i].content)[0], 0);
+    const hi = flex.reduce((t, i) => t + range(out[i].content)[1], 0);
     if (target >= lo && target <= hi && (flex.length > 0 || target === 0)) {
       if (flex.length === 0) return out;
       // proportional, rounded to cm, remainder on the widest flexible module
       const cur = flex.reduce((t, i) => t + out[i].widthMm, 0) || flex.length;
       for (const i of flex) {
-        const [a, b] = widthRange(out[i].content);
+        const [a, b] = range(out[i].content);
         out[i].widthMm = clamp(Math.round((out[i].widthMm * target) / cur / 10) * 10, a, b);
       }
       let diff = target - flex.reduce((t, i) => t + out[i].widthMm, 0);
       for (let pass = 0; pass < 4 && diff !== 0; pass++) {
         for (const i of [...flex].sort((x, y) => out[y].widthMm - out[x].widthMm)) {
           if (diff === 0) break;
-          const [a, b] = widthRange(out[i].content);
+          const [a, b] = range(out[i].content);
           const next = clamp(out[i].widthMm + diff, a, b);
           diff -= next - out[i].widthMm;
           out[i].widthMm = next;
@@ -146,7 +209,7 @@ export function fitKitchen(cols: AtelierColumn[], total: number, keep: number | 
       }
       return diff === 0 ? out : null;
     }
-    if (target > hi && (flex.length > 0 || target >= widthRange("SERTARE")[0])) {
+    if (target > hi && (flex.length > 0 || target >= range("SERTARE")[0])) {
       // too long: one more drawer module, next to the corner / at the end
       const at = corner === out.length - 1 ? out.length - 1 : corner === 0 ? 1 : out.length;
       out.splice(at, 0, { widthMm: 600, content: "SERTARE" });
@@ -165,15 +228,26 @@ export function fitKitchen(cols: AtelierColumn[], total: number, keep: number | 
   return null;
 }
 
-export const kitchenColumn = (content: ColumnContent, widthMm = KITCHEN_DEFAULT_WIDTH[content] ?? 600): AtelierColumn =>
-  content === "SERTARE" ? { widthMm, content, drawers: KITCHEN_DEFAULT_DRAWERS } : { widthMm, content };
+export const kitchenColumn = (content: ColumnContent, widthMm?: number, p: FittedProfile = KITCHEN_PROFILE): AtelierColumn => {
+  const w = widthMm ?? p.defaultWidth[content] ?? 600;
+  return content === "SERTARE" ? { widthMm: w, content, drawers: p.bath ? 2 : KITCHEN_DEFAULT_DRAWERS } : { widthMm: w, content };
+};
 
 /** A wall's modules with one module changed to `content` (width clamped to its range, the others refit). */
-export function withModule(cols: AtelierColumn[], total: number, index: number, content: ColumnContent, corner = -1): AtelierColumn[] | null {
+export function withModule(
+  cols: AtelierColumn[],
+  total: number,
+  index: number,
+  content: ColumnContent,
+  corner = -1,
+  p: FittedProfile = KITCHEN_PROFILE,
+): AtelierColumn[] | null {
   if (!cols[index] || index === corner || content === "COLT") return null;
-  const [a, b] = widthRange(content);
-  const next = cols.map((c, i) => (i === index ? { ...kitchenColumn(content, clamp(c.widthMm, a, b)), ...(c.upper && !isTall(content) ? { upper: c.upper } : {}) } : c));
-  return fitKitchen(next, total, index, corner);
+  const [a, b] = widthRange(content, p);
+  const next = cols.map((c, i) =>
+    i === index ? { ...kitchenColumn(content, clamp(c.widthMm, a, b), p), ...(c.upper && !isTall(content) ? { upper: c.upper } : {}) } : c,
+  );
+  return fitKitchen(next, total, index, corner, p);
 }
 
 /** The default second wall of an L (1,8 m: doors + drawers). */
@@ -218,7 +292,7 @@ export function withLayout(config: AtelierConfig, layout: KitchenLayout): Atelie
   // the corner unit takes up what is left when the other modules cannot (90–120 cm)
   const rest = config.widthMm - sum(cols);
   const [cMin, cMax] = widthRange("COLT");
-  const corner = kitchenColumn("COLT", rest >= cMin && rest <= cMax && !cols.some((c) => isFlex(c.content)) ? rest : CORNER_WIDTH_MM);
+  const corner = kitchenColumn("COLT", rest >= cMin && rest <= cMax && !cols.some((c) => FLEX.includes(c.content)) ? rest : CORNER_WIDTH_MM);
   cols = layout === "L_STANGA" ? [corner, ...cols] : [...cols, corner];
   const idx = layout === "L_STANGA" ? 0 : cols.length - 1;
   const fitted = fitKitchen(cols, config.widthMm, idx, idx);

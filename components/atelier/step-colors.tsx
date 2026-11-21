@@ -350,7 +350,7 @@ export function StepColors({
     return items.map((item, i) => ({ item, i })).sort((a, b) => rank(a.item.id) - rank(b.item.id) || a.i - b.i).map((x) => x.item);
   }, [catalog]);
 
-  const kitchen = config.category === "BUCATARIE";
+  const kitchen = (config.category === "BUCATARIE" || config.category === "BAIE");
   const worktopItems = useMemo(() => {
     if (!kitchen) return [];
     const rank = (code: string | null | undefined) => {

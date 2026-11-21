@@ -658,6 +658,7 @@ export interface ApplianceMaterials {
   basin: THREE.Material;
   white: THREE.Material;
   ring: THREE.Material;
+  ceramic: THREE.Material;
 }
 
 function Box({ size, at, material }: { size: [number, number, number]; at: [number, number, number]; material: THREE.Material }) {
@@ -722,6 +723,36 @@ function Appliance({ piece, scene, mats }: { piece: ScenePiece; scene: AtelierSc
     }
     case "FRIGIDER":
       return <Box size={[w, h, d]} at={[cx, cy, cz]} material={mats.white} />;
+    case "LAVOAR": {
+      // a countertop basin with a tap behind it
+      const bottom = cy - h / 2;
+      const tapZ = cz - d / 2 - 0.03;
+      return (
+        <group>
+          <Box size={[w, h * 0.85, d]} at={[cx, bottom + (h * 0.85) / 2, cz]} material={mats.ceramic} />
+          <Box size={[w - 0.04, 0.004, d - 0.04]} at={[cx, bottom + h * 0.85 + 0.001, cz]} material={mats.white} />
+          <Box size={[0.03, 0.28, 0.03]} at={[cx, bottom + 0.14, tapZ]} material={mats.inox} />
+          <Box size={[0.026, 0.026, 0.14]} at={[cx, bottom + 0.27, tapZ + 0.06]} material={mats.inox} />
+        </group>
+      );
+    }
+    case "MASINA_SPALAT": {
+      // a front-loading washer: white body, round dark door, a control strip
+      const front = cz + d / 2;
+      const r = Math.min(w, h) * 0.27;
+      return (
+        <group>
+          <Box size={[w, h, d]} at={[cx, cy, cz]} material={mats.white} />
+          <Box size={[w * 0.9, 0.09, 0.004]} at={[cx, cy + h / 2 - 0.07, front + 0.002]} material={mats.ring} />
+          <mesh position={[cx, cy - h * 0.06, front + 0.004]} material={mats.glass} raycast={noRaycast}>
+            <circleGeometry args={[r, 40]} />
+          </mesh>
+          <mesh position={[cx, cy - h * 0.06, front + 0.005]} material={mats.inox} raycast={noRaycast}>
+            <ringGeometry args={[r, r + 0.025, 40]} />
+          </mesh>
+        </group>
+      );
+    }
     case "HOTA":
       return <Box size={[w, h, d]} at={[cx, cy, cz]} material={mats.inox} />;
     default:
@@ -1287,6 +1318,7 @@ function Wardrobe({
       basin: new THREE.MeshStandardMaterial({ color: "#8c9096", metalness: 1, roughness: 0.45, envMap: env0, envMapIntensity: 0.6 }),
       white: new THREE.MeshStandardMaterial({ color: "#eef0f2", roughness: 0.5 }),
       ring: new THREE.MeshBasicMaterial({ color: "#5d5d5d", toneMapped: false }),
+      ceramic: new THREE.MeshStandardMaterial({ color: "#f6f5f2", roughness: 0.18, envMap: env0, envMapIntensity: 0.5 }),
     }),
     [env0],
   );

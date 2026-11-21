@@ -116,6 +116,23 @@ export function ContentGlyph({ content, className = "" }: { content: ColumnConte
         <line key="h" x1={58} y1={16} x2={58} y2={30} strokeWidth={2.4} />,
       ];
       break;
+    /* bathroom modules */
+    case "LAVOAR":
+      inner = [
+        <path key="b" d="M22 8 h56 v8 a10 10 0 0 1 -10 10 h-36 a10 10 0 0 1 -10 -10 z" fill="currentColor" fillOpacity={0.15} />,
+        <path key="t" d="M50 8 v-5 h8" strokeWidth={2.2} />,
+        drawer(34, 27),
+        drawer(65, 27),
+      ];
+      break;
+    case "MASINA_SPALAT":
+      inner = [
+        <line key="w" x1={6} y1={10} x2={94} y2={10} strokeWidth={3} />,
+        <rect key="m" x={14} y={20} width={72} height={74} rx={4} fill="currentColor" fillOpacity={0.08} />,
+        <circle key="c" cx={50} cy={60} r={18} fill="currentColor" fillOpacity={0.3} />,
+        <line key="p" x1={20} y1={28} x2={44} y2={28} strokeWidth={2.2} />,
+      ];
+      break;
   }
 
   return (

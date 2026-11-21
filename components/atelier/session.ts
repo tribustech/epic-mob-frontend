@@ -39,7 +39,7 @@ export function stepLabel(step: StepId, config: AtelierConfig): string {
     case "usi":
       return categoryRules(config.category).slidingDoors ? "Uși și mânere" : "Mânere";
     case "interior":
-      return config.category === "DRESSING" ? "Interior" : config.category === "BUCATARIE" ? "Module" : "Compartimente";
+      return config.category === "DRESSING" ? "Interior" : config.category === "BUCATARIE" || config.category === "BAIE" ? "Module" : "Compartimente";
     case "oferta":
       return "Ofertă";
   }

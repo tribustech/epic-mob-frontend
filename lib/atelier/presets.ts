@@ -653,12 +653,82 @@ const BUCATARIE: PresetInput[] = [
   },
 ];
 
+/*
+ * Bathroom furniture: one wall, wall-hung by default (legs 0). The basin sits on the vanity's worktop (the
+ * client brings it, we cut the worktop); the mirror cabinet hangs 30 cm above it. A washer niche raises the
+ * worktop to 90 cm. Mirror cabinets keep a white body (owner rule).
+ */
+const BAIE: PresetInput[] = [
+  {
+    id: "baie-lavoar-coloana-120",
+    name: "Lavoar cu coloană 1,2 m",
+    tagline: "Lavoar cu două sertare, dulap cu oglindă și o coloană pentru prosoape.",
+    badge: "Cea mai aleasă",
+    paletteId: "alb-stejar-natur",
+    size: [1200, 1900, 480],
+    legsMm: 0,
+    columns: [col(800, "LAVOAR", { drawers: 2, upper: "OGLINDA" }), col(400, "COLOANA")],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "baie-lavoar-60",
+    name: "Lavoar suspendat 60 cm",
+    tagline: "Pentru baia mică: un lavoar cu sertare și dulapul cu oglindă deasupra.",
+    paletteId: "alb-total",
+    size: [600, 1900, 460],
+    legsMm: 0,
+    columns: [col(600, "LAVOAR", { drawers: 2, upper: "OGLINDA" })],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "baie-lavoar-80",
+    name: "Lavoar suspendat 80 cm",
+    tagline: "Lavoar cu două sertare largi și dulap cu oglindă cu două uși.",
+    paletteId: "alb-casmir",
+    size: [800, 1900, 480],
+    legsMm: 0,
+    columns: [col(800, "LAVOAR", { drawers: 2, upper: "OGLINDA" })],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "baie-dubla-140",
+    name: "Lavoar dublu 1,4 m",
+    tagline: "Două lavoare, fiecare cu sertarele și dulapul lui cu oglindă.",
+    paletteId: "alb-stejar-deschis",
+    size: [1400, 1900, 480],
+    legsMm: 0,
+    columns: [col(700, "LAVOAR", { drawers: 2, upper: "OGLINDA" }), col(700, "LAVOAR", { drawers: 2, upper: "OGLINDA" })],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "baie-masina-140",
+    name: "Lavoar cu mașina de spălat 1,4 m",
+    tagline: "Mașina de spălat sub același blat cu lavoarul, dulap deasupra ei.",
+    paletteId: "alb-antracit",
+    size: [1400, 1950, 600],
+    legsMm: 0,
+    columns: [col(650, "MASINA_SPALAT", { upper: "USI" }), col(750, "LAVOAR", { drawers: 2, upper: "OGLINDA" })],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "baie-picioare-100",
+    name: "Lavoar pe picioare 1 m",
+    tagline: "Lavoar și un corp cu trei sertare, pe picioare, cu oglindă și raft deasupra.",
+    paletteId: "alb-gri-matase",
+    size: [1000, 1900, 480],
+    legsMm: 100,
+    columns: [col(600, "LAVOAR", { drawers: 2, upper: "OGLINDA" }), col(400, "SERTARE", { drawers: 3, upper: "DESCHIS" })],
+    kitchen: { layout: "LINIAR" },
+  },
+];
+
 export const LAYOUT_PRESETS: LayoutPreset[] = [
   ...DRESSING.map((p) => make("DRESSING", p)),
   ...COMODA.map((p) => make("COMODA", p)),
   ...SEPARATOR.map((p) => make("SEPARATOR", p)),
   ...SUSPENDAT.map((p) => make("SUSPENDAT", p)),
   ...BUCATARIE.map((p) => make("BUCATARIE", p)),
+  ...BAIE.map((p) => make("BAIE", p)),
 ];
 
 /** Featured model + colour pairs, in the order they are shown. */
@@ -685,6 +755,7 @@ export const COMBO_PRESETS: ComboPreset[] = [
   { id: "birou-supermat", name: "Birou alb supermat", tagline: "Corpuri Aventos cu fronturi AGT albe.", presetId: "suspendat-aventos-180", paletteId: "supermat-alb" },
   { id: "bucatarie-luminoasa", name: "Bucătărie luminoasă", tagline: "2,4 m, corp alb și fronturi în stejar natur.", presetId: "bucatarie-240", paletteId: "alb-stejar-natur" },
   { id: "bucatarie-l-casmir", name: "Bucătărie în L, cașmir", tagline: "Colț, chiuvetă și cuptor, în alb și cașmir.", presetId: "bucatarie-l-270", paletteId: "alb-casmir" },
+  { id: "baie-calda", name: "Baie caldă", tagline: "Lavoar suspendat cu coloană, alb și stejar natur.", presetId: "baie-lavoar-coloana-120", paletteId: "alb-stejar-natur" },
   { id: "etajera-stejar", name: "Etajeră în stejar", tagline: "Trei nișe deschise, pentru cărți și plante.", presetId: "suspendat-etajera-150", paletteId: "stejar-natur" },
 ];
 
@@ -703,6 +774,6 @@ export function presetById(id: string): LayoutPreset | undefined {
  */
 export function presetAvailable(preset: LayoutPreset, catalog: Pick<AtelierCatalog, "glass" | "worktops">): boolean {
   // a kitchen needs a CRM that knows kitchens (it lists the worktops)
-  if (preset.category === "BUCATARIE") return (catalog.worktops?.length ?? 0) > 0;
+  if (preset.category === "BUCATARIE" || preset.category === "BAIE") return (catalog.worktops?.length ?? 0) > 0;
   return !preset.shape.doors.fills || !!catalog.glass;
 }
