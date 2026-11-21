@@ -12,6 +12,14 @@ export function prefersReducedMotion(): boolean {
   }
 }
 
+/**
+ * The shadow map is redrawn only on request (see the Canvas: autoUpdate is off), so that orbiting
+ * costs one pass, not two. Whatever moves or reshapes the piece asks for it here.
+ */
+export function refreshShadows(gl: { shadowMap: { needsUpdate: boolean } }) {
+  gl.shadowMap.needsUpdate = true;
+}
+
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 /**
@@ -59,6 +67,7 @@ export function useTween(target: number, apply: (value: number) => void, duratio
     s.value = t >= 1 ? s.to : s.from + (s.to - s.from) * easeInOut(t);
     applyRef.current(s.value);
     if (t >= 1) s.active = false;
+    refreshShadows(frame.gl);
     frame.invalidate();
   });
 }
