@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import { ContactView } from "@/components/contact/contact-view";
+import { baseOpenGraph } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Contact — EpicMob",
+  title: "Contact",
   description:
     "Scrie-ne despre proiectul tău sau sună-ne direct. Răspundem rapid, pe WhatsApp, telefon sau email.",
   alternates: { canonical: "/contact" },
   openGraph: {
-    title: "Contact Epic Mob",
+    ...baseOpenGraph,
+    title: "Contact | Epic Mob",
     description:
       "Scrie-ne despre proiectul tău sau sună-ne direct. Răspundem rapid, pe WhatsApp, telefon sau email.",
     url: "/contact",
-    type: "website",
   },
 };
 

@@ -40,9 +40,14 @@ export function offerFor(slug: string, category: string, today: string = buchare
   return running.sort((a, b) => (a.target === slug ? -1 : 0) - (b.target === slug ? -1 : 0) || b.percent - a.percent)[0];
 }
 
-/** Offer price, rounded down to whole lei. */
-export function offerPrice(price: number, offer: ShopOffer | null): number {
-  return offer ? Math.floor(price * (1 - offer.percent / 100)) : price;
+/**
+ * Offer price in whole lei. The CRM price is rounded once, to the whole lei shown as the crossed-out
+ * price, and the percent comes off that with integer math (30% off 90 is 63, not 62 from 90 × 0.7).
+ * Pages, the basket and the order route all use this, so they always agree.
+ */
+export function offerPrice(price: number, offer: Pick<ShopOffer, "percent"> | null): number {
+  const p = Math.round(price);
+  return offer ? Math.floor(Math.round(p * (100 - offer.percent)) / 100) : p;
 }
 
 /** „31 decembrie" */

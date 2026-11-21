@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { formatLei, headline, type PriceBreakdown } from "@/lib/admin/breakdown";
+import { foldText, formatLei, headline, type PriceBreakdown } from "@/lib/admin/breakdown";
 import type { AtelierConfig } from "@/lib/atelier/types";
 import { BreakdownView } from "./breakdown-view";
 import { postBreakdowns } from "./client";
@@ -59,13 +59,13 @@ export function PriceTable({ rows }: { rows: TableRow[] }) {
   const shown = rows.filter((r) => {
     if (cat && r.category !== cat) return false;
     if (slug && r.slug !== slug) return false;
-    if (q && !`${r.name} ${r.paletteName} ${r.variantLabel} ${r.slug}`.toLowerCase().includes(q.toLowerCase())) return false;
+    if (q && !foldText(`${r.name} ${r.paletteName} ${r.variantLabel} ${r.slug}`).includes(foldText(q.trim()))) return false;
     return !onlyBad || isBad(r.key);
   });
   const loaded = rows.filter((r) => data[r.key]).length;
 
   const exportCsv = () => {
-    const head = ["Produs", "Slug", "Categorie", "Culoare", "Varianta", "Materiale", "Feronerie", "Manopera %", "Manopera lei", "Pret fara oferta", "Oferta %", "Discount lei", "Pret final", "Probleme"];
+    const head = ["Produs", "Slug", "Categorie", "Culoare", "Variantă", "Materiale", "Feronerie", "Manoperă %", "Manoperă lei", "Preț fără ofertă", "Ofertă %", "Discount lei", "Preț final", "Probleme"];
     const lines = shown.map((r) => {
       const d = data[r.key];
       const b = d && !("error" in d) ? d : null;

@@ -72,7 +72,7 @@ export function ShareBlock({ config, price }: { config: AtelierConfig; price: nu
     const url = link();
     if (typeof navigator.share === "function") {
       try {
-        await navigator.share({ title: "Configurația mea EpicMob", text: "Uite ce mobilier am configurat pe EpicMob:", url });
+        await navigator.share({ title: "Configurația mea Epic Mob", text: "Uite ce mobilier am configurat pe Epic Mob:", url });
         return;
       } catch (error) {
         // closed without sending: nothing to do; anything else falls back to copying
@@ -114,7 +114,7 @@ export function ShareBlock({ config, price }: { config: AtelierConfig; price: nu
         </div>
       </Section>
 
-      <Section title="Ai o întrebare?" hint="Scrie-ne direct nouă, la EpicMob. Mesajul pornește cu linkul configurației tale.">
+      <Section title="Ai o întrebare?" hint="Scrie-ne direct nouă, la Epic Mob. Mesajul pornește cu linkul configurației tale.">
         {/* a real link (opens the app on phones); the message with the configuration is filled in at the tap */}
         <a
           className="atelier-share__btn atelier-share__btn--wa"
@@ -126,7 +126,7 @@ export function ShareBlock({ config, price }: { config: AtelierConfig; price: nu
           }}
         >
           <MessageCircle size={18} aria-hidden="true" />
-          Scrie-ne pe WhatsApp (EpicMob)
+          Scrie-ne pe WhatsApp (Epic Mob)
         </a>
       </Section>
     </>

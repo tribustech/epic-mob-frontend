@@ -6,6 +6,7 @@ import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetAvailable, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
 import { CATEGORY_DISPLAY } from "@/lib/atelier/categories";
 import { doorOpening, hasGlass, hasMirror } from "@/lib/atelier/door-types";
+import { paletteAllowed } from "@/lib/atelier/house-rules";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "@/lib/atelier/types";
 import { glazingOf, type Glazing } from "./glass-look";
@@ -120,7 +121,9 @@ export function StepModel({
   const combos = COMBO_PRESETS.flatMap((combo) => {
     const preset = presetById(combo.presetId);
     const palette = palettes.find((p) => p.id === combo.paletteId);
-    return preset && palette && preset.category === config.category && presetAvailable(preset, catalog) ? [{ combo, preset, palette }] : [];
+    // house rule: no dark chests of drawers or wall units, not even as a featured combination
+    const shown = preset && palette && preset.category === config.category && presetAvailable(preset, catalog) && paletteAllowed(preset.category, palette.id);
+    return shown ? [{ combo, preset, palette }] : [];
   });
   // Two lists share the space: ready-made combinations (model + colours) and the plain models.
   // Open on the one that holds the current choice.

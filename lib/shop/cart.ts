@@ -13,7 +13,34 @@ export interface CartLine {
   /** what the client saw when adding it; the order route prices it again */
   name: string;
   colour: string;
+  /** price of one piece, after the offer (whole lei) */
   price: number | null;
+  /** usual price of one piece; differs from `price` only while an offer runs */
+  regularPrice: number | null;
+  offerPercent: number;
+  offerLabel: string | null;
+}
+
+/** Current prices from the server (/api/magazin/preturi, or the order route's 409 answer). */
+export interface FreshPrice {
+  slug: string;
+  paletteId: string;
+  available: boolean;
+  name?: string;
+  colour?: string;
+  price: number | null;
+  finalPrice: number | null;
+  offerPercent: number;
+  offerLabel: string | null;
+}
+
+export interface PriceChange {
+  slug: string;
+  paletteId: string;
+  name: string;
+  colour: string;
+  before: number;
+  after: number;
 }
 
 const KEY = "epicmob-cos-v1";
@@ -44,6 +71,9 @@ function read(): CartLine[] {
           name: String(l.name ?? ""),
           colour: String(l.colour ?? ""),
           price: typeof l.price === "number" ? l.price : null,
+          regularPrice: typeof l.regularPrice === "number" ? l.regularPrice : null,
+          offerPercent: typeof l.offerPercent === "number" && l.offerPercent > 0 && l.offerPercent < 90 ? l.offerPercent : 0,
+          offerLabel: typeof l.offerLabel === "string" && l.offerLabel ? l.offerLabel : null,
         }));
     }
   } catch {
@@ -103,4 +133,39 @@ export function setQty(slug: string, paletteId: string, qty: number) {
 
 export function clearCart() {
   write([]);
+}
+
+/**
+ * The basket with today's prices. A line the server could not price now keeps what the client saw (the
+ * order route accepts that too); `changed` lists the lines whose price really moved since they were added.
+ */
+export function mergePrices(lines: CartLine[], fresh: FreshPrice[]): { lines: CartLine[]; changed: PriceChange[] } {
+  const changed: PriceChange[] = [];
+  const out = lines.map((l) => {
+    const f = fresh.find((x) => x.slug === l.slug && x.paletteId === l.paletteId);
+    if (!f || !f.available || f.finalPrice == null) return l;
+    if (l.price != null && l.price !== f.finalPrice) {
+      changed.push({ slug: l.slug, paletteId: l.paletteId, name: f.name ?? l.name, colour: f.colour ?? l.colour, before: l.price, after: f.finalPrice });
+    }
+    const offerPercent = f.offerPercent > 0 ? f.offerPercent : 0;
+    return {
+      ...l,
+      name: f.name ?? l.name,
+      colour: f.colour ?? l.colour,
+      price: f.finalPrice,
+      regularPrice: offerPercent > 0 ? f.price : null,
+      offerPercent,
+      offerLabel: offerPercent > 0 ? f.offerLabel : null,
+    };
+  });
+  const same = out.every((l, i) => l === lines[i]) || JSON.stringify(out) === JSON.stringify(lines);
+  return { lines: same ? lines : out, changed };
+}
+
+/** Writes today's prices into the stored basket; returns the lines whose price moved. */
+export function applyFreshPrices(fresh: FreshPrice[]): PriceChange[] {
+  const current = read();
+  const { lines, changed } = mergePrices(current, fresh);
+  if (lines !== current) write(lines);
+  return changed;
 }

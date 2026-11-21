@@ -90,3 +90,8 @@ export function shareCodeOf(text: string): string | null {
     return null;
   }
 }
+
+/** For search: „Parțială" → „partiala", so a search typed without diacritics still finds it. */
+export function foldText(s: string): string {
+  return s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+}

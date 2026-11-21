@@ -159,7 +159,7 @@ const DRESSING: PresetInput[] = [
     tagline: "Uși batante, umerașe la mijloc și trei sertare dedesubt.",
     paletteId: "antracit-stejar",
     size: [2000, 2500, 600],
-    columns: [col(600, "POLITE"), col(800, "BARA_SERTARE", { drawers: 3 }), col(600, "POLITE")],
+    columns: [col(600, "POLITE"), col(800, "BARA_SERTARE", { drawers: 3, doorsAcross: 2 }), col(600, "POLITE")],
     doors: { type: "BATANTE" },
   },
   {
@@ -168,7 +168,7 @@ const DRESSING: PresetInput[] = [
     tagline: "Bară dublă la îndemâna celor mici și multe polițe.",
     paletteId: "denim-alb",
     size: [1500, 2200, 550],
-    columns: [col(750, "BARA_DUBLA"), col(750, "POLITE")],
+    columns: [col(750, "BARA_DUBLA", { doorsAcross: 2 }), col(750, "POLITE", { doorsAcross: 2 })],
     doors: { type: "BATANTE" },
   },
   {
@@ -178,9 +178,9 @@ const DRESSING: PresetInput[] = [
     paletteId: "supermat-crem",
     size: [2700, 2800, 600],
     columns: [
-      col(900, "BARA", { doorRows: 2 }),
-      col(900, "POLITE_BARA", { doorRows: 2, shelves: 3 }),
-      col(900, "POLITE", { doorRows: 2 }),
+      col(900, "BARA", { doorRows: 2, doorsAcross: 2 }),
+      col(900, "POLITE_BARA", { doorRows: 2, doorsAcross: 2, shelves: 3 }),
+      col(900, "POLITE", { doorRows: 2, doorsAcross: 2 }),
     ],
     doors: { type: "BATANTE" },
     handle: { type: "PUSH" },
@@ -191,7 +191,7 @@ const DRESSING: PresetInput[] = [
     tagline: "Uși batante cu oglindă: te vezi din cap până în picioare la plecare.",
     paletteId: "alb-casmir",
     size: [1600, 2400, 450],
-    columns: [col(800, "POLITE_BARA", { shelves: 2 }), col(800, "POLITE")],
+    columns: [col(800, "POLITE_BARA", { shelves: 2, doorsAcross: 2 }), col(800, "POLITE", { doorsAcross: 2 })],
     doors: { type: "BATANTE_OGLINDA" },
   },
   {
@@ -206,10 +206,10 @@ const DRESSING: PresetInput[] = [
   {
     id: "dressing-oglinda-mijloc-240",
     name: "Dulap cu oglindă la mijloc 2,4 m",
-    tagline: "Uși batante, cu oglindă doar pe ușa din mijloc.",
+    tagline: "Uși batante, cu oglindă doar pe cele două uși din mijloc.",
     paletteId: "alb-casmir",
     size: [2400, 2500, 600],
-    columns: [col(800, "BARA"), col(800, "POLITE"), col(800, "BARA_SERTARE", { drawers: 2 })],
+    columns: [col(800, "BARA", { doorsAcross: 2 }), col(800, "POLITE", { doorsAcross: 2 }), col(800, "BARA_SERTARE", { drawers: 2, doorsAcross: 2 })],
     doors: { type: "BATANTE", fills: ["PANOU", "OGLINDA", "PANOU"] },
   },
   {
@@ -284,6 +284,33 @@ const DRESSING: PresetInput[] = [
     columns: [col(500, "POLITE"), col(500, "POLITE")],
     doors: { type: "BATANTE" },
   },
+  {
+    id: "dressing-oglinda-glisanta-200",
+    name: "Dulap cu două uși glisante cu oglindă 2 m",
+    tagline: "Oglindă pe ambele uși glisante: bară dublă, polițe la mijloc și bară pentru haine lungi.",
+    paletteId: "alb-casmir",
+    size: [2000, 2400, 600],
+    columns: [col(700, "BARA_DUBLA"), col(600, "POLITE"), col(700, "BARA")],
+    doors: { type: "GLISANTE_OGLINDA", count: 2 },
+  },
+  {
+    id: "dressing-3-usi-oglinda-150",
+    name: "Dulap cu 3 uși și oglindă 1,5 m",
+    tagline: "Polițe într-o parte, umerașe pe două uși și oglindă pe ușa din mijloc.",
+    paletteId: "alb-casmir",
+    size: [1500, 2200, 550],
+    columns: [col(500, "POLITE"), col(500, "BARA"), col(500, "BARA")],
+    doors: { type: "BATANTE", fills: ["PANOU", "OGLINDA", "PANOU"] },
+  },
+  {
+    id: "dressing-cuier-100",
+    name: "Cuier deschis de hol 1 m",
+    tagline: "Fără uși: bară pentru geci și polițe pentru genți, căciuli și încălțăminte.",
+    paletteId: "stejar-natur",
+    size: [1000, 2000, 400],
+    columns: [col(500, "BARA"), col(500, "POLITE")],
+    doors: { type: "NONE" },
+  },
 ];
 
 const COMODA: PresetInput[] = [
@@ -299,7 +326,7 @@ const COMODA: PresetInput[] = [
   {
     id: "comoda-4-sertare-100",
     name: "Comodă cu 4 sertare 1 m",
-    tagline: "Îngustă și înaltă, pentru lenjerie și tricouri.",
+    tagline: "Patru sertare largi, pentru lenjerie și tricouri.",
     paletteId: "alb-total",
     size: [1000, 950, 450],
     columns: [col(1000, "SERTARE", { drawers: 4 })],
@@ -392,6 +419,22 @@ const COMODA: PresetInput[] = [
     size: [900, 750, 450],
     columns: [col(450, "SERTARE", { drawers: 3 }), col(450, "USI", { shelves: 1 })],
   },
+  {
+    id: "comoda-tv-160",
+    name: "Comodă TV 1,6 m",
+    tagline: "Pentru livingul mic: două sertare într-o parte, nișă deschisă pentru aparate în cealaltă.",
+    paletteId: "alb-stejar-natur",
+    size: [1600, 500, 400],
+    columns: [col(800, "SERTARE", { drawers: 2 }), col(800, "DESCHIS", { shelves: 1 })],
+  },
+  {
+    id: "noptiera-deschisa-45",
+    name: "Noptieră deschisă 45 cm",
+    tagline: "Îngustă, fără uși: două nișe pentru carte, telefon și ochelari.",
+    paletteId: "stejar-natur",
+    size: [450, 550, 400],
+    columns: [col(450, "DESCHIS", { shelves: 1 })],
+  },
 ];
 
 const SEPARATOR: PresetInput[] = [
@@ -441,7 +484,7 @@ const SEPARATOR: PresetInput[] = [
   {
     id: "separator-ingust-90",
     name: "Coloană separator 0,9 m",
-    tagline: "Îngust, lângă intrare: sertar jos și polițe pentru plante.",
+    tagline: "Îngust, lângă intrare: două sertare jos și polițe pentru plante.",
     paletteId: "salvie-stejar",
     size: [900, 2200, 300],
     columns: [col(450, "DESCHIS", { shelves: 4 }), col(450, "DESCHIS", { shelves: 4 })],
@@ -470,7 +513,7 @@ const SUSPENDAT: PresetInput[] = [
   {
     id: "suspendat-clasic-120",
     name: "Corp suspendat 1,2 m",
-    tagline: "Două uși batante, pentru hol, birou sau spălătorie.",
+    tagline: "Două uși batante, deasupra biroului, a blatului sau a mașinii de spălat.",
     paletteId: "alb-total",
     size: [1200, 600, 350],
     columns: [col(600, "USI", { shelves: 1 }), col(600, "USI", { shelves: 1 })],
@@ -548,6 +591,14 @@ const SUSPENDAT: PresetInput[] = [
     size: [900, 700, 250],
     columns: [col(300, "DESCHIS", { shelves: 2 }), col(600, "USI", { shelves: 2 })],
   },
+  {
+    id: "suspendat-pat-240",
+    name: "Corp suspendat peste pat 2,4 m",
+    tagline: "Patru uși deasupra patului, pentru lenjerie, pături și perne de rezervă.",
+    paletteId: "alb-total",
+    size: [2400, 400, 350],
+    columns: [col(600, "USI", { shelves: 0 }), col(600, "USI", { shelves: 0 }), col(600, "USI", { shelves: 0 }), col(600, "USI", { shelves: 0 })],
+  },
 ];
 
 /*
@@ -579,6 +630,16 @@ const BUCATARIE: PresetInput[] = [
     kitchen: { layout: "LINIAR" },
   },
   {
+    id: "bucatarie-260",
+    name: "Bucătărie 2,6 m",
+    tagline: "Pe un perete: sertare, plită pe sertare, mașină de vase și chiuvetă de 80 cm.",
+    paletteId: "alb-casmir",
+    size: [2600, 2200, 600],
+    legsMm: 150,
+    columns: [col(600, "SERTARE", { drawers: 3 }), col(600, "PLITA"), col(600, "MASINA_VASE"), col(800, "CHIUVETA")],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
     id: "bucatarie-frigider-300",
     name: "Bucătărie 3 m cu frigider",
     tagline: "Frigider încorporat într-o coloană înaltă, totul pe un perete.",
@@ -589,7 +650,7 @@ const BUCATARIE: PresetInput[] = [
     kitchen: { layout: "LINIAR" },
   },
   {
-    id: "bucatarie-coloane-360",
+    id: "bucatarie-coloane-380",
     name: "Bucătărie 3,8 m cu coloane",
     tagline: "Frigider și cuptor la înălțime în coloane, mult loc de lucru.",
     paletteId: "stejar-alb",
@@ -661,8 +722,8 @@ const BUCATARIE: PresetInput[] = [
 const BAIE: PresetInput[] = [
   {
     id: "baie-lavoar-coloana-120",
-    name: "Lavoar cu coloană 1,2 m",
-    tagline: "Lavoar cu două sertare, dulap cu oglindă și o coloană pentru prosoape.",
+    name: "Mobilier lavoar cu coloană 1,2 m",
+    tagline: "Corp de lavoar cu două sertare, dulap cu oglindă și o coloană pentru prosoape.",
     badge: "Cea mai aleasă",
     paletteId: "alb-stejar-natur",
     size: [1200, 1900, 480],
@@ -672,8 +733,8 @@ const BAIE: PresetInput[] = [
   },
   {
     id: "baie-lavoar-60",
-    name: "Lavoar suspendat 60 cm",
-    tagline: "Pentru baia mică: un lavoar cu sertare și dulapul cu oglindă deasupra.",
+    name: "Mobilier lavoar suspendat 60 cm",
+    tagline: "Pentru baia mică: un corp de lavoar cu sertare și dulapul cu oglindă deasupra.",
     paletteId: "alb-total",
     size: [600, 1900, 460],
     legsMm: 0,
@@ -681,9 +742,19 @@ const BAIE: PresetInput[] = [
     kitchen: { layout: "LINIAR" },
   },
   {
+    id: "baie-lavoar-50",
+    name: "Mobilier lavoar suspendat 50 cm",
+    tagline: "Pentru baia foarte mică: corp de lavoar cu două sertare și dulap cu oglindă deasupra.",
+    paletteId: "alb-stejar-natur",
+    size: [500, 1900, 400],
+    legsMm: 0,
+    columns: [col(500, "LAVOAR", { drawers: 2, upper: "OGLINDA" })],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
     id: "baie-lavoar-80",
-    name: "Lavoar suspendat 80 cm",
-    tagline: "Lavoar cu două sertare largi și dulap cu oglindă cu două uși.",
+    name: "Mobilier lavoar suspendat 80 cm",
+    tagline: "Corp de lavoar cu două sertare largi și dulap cu oglindă cu două uși.",
     paletteId: "alb-casmir",
     size: [800, 1900, 480],
     legsMm: 0,
@@ -692,8 +763,8 @@ const BAIE: PresetInput[] = [
   },
   {
     id: "baie-dubla-140",
-    name: "Lavoar dublu 1,4 m",
-    tagline: "Două lavoare, fiecare cu sertarele și dulapul lui cu oglindă.",
+    name: "Mobilier baie cu lavoar dublu 1,4 m",
+    tagline: "Două corpuri de lavoar, fiecare cu sertarele și dulapul lui cu oglindă.",
     paletteId: "alb-stejar-deschis",
     size: [1400, 1900, 480],
     legsMm: 0,
@@ -702,7 +773,7 @@ const BAIE: PresetInput[] = [
   },
   {
     id: "baie-masina-140",
-    name: "Lavoar cu mașina de spălat 1,4 m",
+    name: "Mobilier lavoar cu mașina de spălat 1,4 m",
     tagline: "Mașina de spălat sub același blat cu lavoarul, dulap deasupra ei.",
     paletteId: "alb-antracit",
     size: [1400, 1950, 600],
@@ -712,8 +783,8 @@ const BAIE: PresetInput[] = [
   },
   {
     id: "baie-picioare-100",
-    name: "Lavoar pe picioare 1 m",
-    tagline: "Lavoar și un corp cu trei sertare, pe picioare, cu oglindă și raft deasupra.",
+    name: "Mobilier lavoar pe picioare 1 m",
+    tagline: "Corp de lavoar și un corp cu trei sertare, pe picioare, cu oglindă și raft deasupra.",
     paletteId: "alb-gri-matase",
     size: [1000, 1900, 480],
     legsMm: 100,
@@ -735,7 +806,7 @@ export const LAYOUT_PRESETS: LayoutPreset[] = [
 export const COMBO_PRESETS: ComboPreset[] = [
   { id: "scandinav-luminos", name: "Scandinav luminos", tagline: "Dressing 2,4 m alb, cu uși în stejar natur.", presetId: "dressing-clasic-240", paletteId: "alb-stejar-natur" },
   { id: "dormitor-cu-oglinda", name: "Dormitor cu oglindă", tagline: "Uși glisante cu oglindă, corp alb și cașmir.", presetId: "dressing-oglinda-240", paletteId: "alb-casmir" },
-  { id: "oglinda-la-mijloc", name: "Oglindă la mijloc", tagline: "Dulap alb cu uși cașmir și oglindă pe ușa din mijloc.", presetId: "dressing-oglinda-mijloc-240", paletteId: "alb-casmir" },
+  { id: "oglinda-la-mijloc", name: "Oglindă la mijloc", tagline: "Dulap alb cu uși cașmir și oglindă pe ușile din mijloc.", presetId: "dressing-oglinda-mijloc-240", paletteId: "alb-casmir" },
   { id: "nuc-crem-dormitor", name: "Nuc & crem de dormitor", tagline: "Dulap de 1,8 m în nuc, cu uși crem.", presetId: "dressing-dormitor-180", paletteId: "nuc-crem" },
   { id: "casmir-total", name: "Cașmir de la un perete la altul", tagline: "Dressing de 3,6 m, tot în gri cașmir.", presetId: "dressing-mare-360", paletteId: "gri-casmir" },
   { id: "walk-in-stejar", name: "Walk-in în stejar", tagline: "Dressing deschis, cald, cu totul la vedere.", presetId: "dressing-deschis-280", paletteId: "stejar-natur" },
@@ -744,18 +815,18 @@ export const COMBO_PRESETS: ComboPreset[] = [
   { id: "grafit-elegant", name: "Grafit elegant", tagline: "Dulap cu sertare, antracit și stejar.", presetId: "dressing-sertare-200", paletteId: "antracit-stejar" },
   { id: "supermat-pana-in-tavan", name: "Supermat până în tavan", tagline: "Fronturi AGT crem supermat, fără mânere.", presetId: "dressing-tavan-270", paletteId: "supermat-crem" },
   { id: "comoda-nordica", name: "Comodă nordică", tagline: "Șase sertare albe pe corp de stejar.", presetId: "comoda-clasica-160", paletteId: "stejar-alb" },
-  { id: "living-negru-nuc", name: "Living în negru mat & nuc", tagline: "Comodă TV de 2,4 m, cu fronturi negre supermat.", presetId: "comoda-tv-240", paletteId: "nuc-negru-mat" },
+  { id: "living-stejar-casmir", name: "Living în stejar & cașmir", tagline: "Comodă TV de 2,4 m în stejar, cu fronturi cașmir.", presetId: "comoda-tv-240", paletteId: "stejar-casmir" },
   { id: "noptiera-calda", name: "Noptieră caldă", tagline: "Stejar cu sertare cașmir.", presetId: "noptiera-50", paletteId: "stejar-casmir" },
   { id: "bufet-salvie", name: "Bufet verde salvie", tagline: "Uși și sertare salvie pe stejar deschis.", presetId: "comoda-mixta-180", paletteId: "salvie-stejar" },
   { id: "biblioteca-aerisita", name: "Bibliotecă aerisită", tagline: "Separator cu sertare albe la bază.", presetId: "separator-sertare-160", paletteId: "stejar-alb" },
   { id: "separator-loft", name: "Separator de loft", tagline: "Rafturi scunde, antracit și stejar.", presetId: "separator-scund-200", paletteId: "antracit-stejar" },
   { id: "perete-de-carti", name: "Perete de cărți", tagline: "Separator înalt în stejar bardolino.", presetId: "separator-inalt-240", paletteId: "bardolino-gri" },
-  { id: "tv-plutitor", name: "TV plutitor", tagline: "Corp suspendat în stejar, cu uși negre.", presetId: "suspendat-tv-180", paletteId: "stejar-negru" },
+  { id: "tv-plutitor", name: "TV plutitor", tagline: "Corp suspendat alb, cu uși în stejar natur.", presetId: "suspendat-tv-180", paletteId: "alb-stejar-natur" },
   { id: "baie-luminoasa", name: "Baie luminoasă", tagline: "Dulăpior alb cu ușă cașmir.", presetId: "suspendat-baie-60", paletteId: "alb-casmir" },
   { id: "birou-supermat", name: "Birou alb supermat", tagline: "Corpuri Aventos cu fronturi AGT albe.", presetId: "suspendat-aventos-180", paletteId: "supermat-alb" },
   { id: "bucatarie-luminoasa", name: "Bucătărie luminoasă", tagline: "2,4 m, corp alb și fronturi în stejar natur.", presetId: "bucatarie-240", paletteId: "alb-stejar-natur" },
   { id: "bucatarie-l-casmir", name: "Bucătărie în L, cașmir", tagline: "Colț, chiuvetă și cuptor, în alb și cașmir.", presetId: "bucatarie-l-270", paletteId: "alb-casmir" },
-  { id: "baie-calda", name: "Baie caldă", tagline: "Lavoar suspendat cu coloană, alb și stejar natur.", presetId: "baie-lavoar-coloana-120", paletteId: "alb-stejar-natur" },
+  { id: "baie-calda", name: "Baie caldă", tagline: "Mobilier lavoar suspendat cu coloană, alb și stejar natur.", presetId: "baie-lavoar-coloana-120", paletteId: "alb-stejar-natur" },
   { id: "etajera-stejar", name: "Etajeră în stejar", tagline: "Trei nișe deschise, pentru cărți și plante.", presetId: "suspendat-etajera-150", paletteId: "stejar-natur" },
 ];
 

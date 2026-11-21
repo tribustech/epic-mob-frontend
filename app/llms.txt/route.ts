@@ -2,6 +2,8 @@ import { business, SITE_URL } from "@/lib/business-data";
 import { materials } from "@/lib/materials-data";
 import { portfolioRooms } from "@/lib/portfolio-data";
 import { faqItems } from "@/lib/faq-data";
+import { WARRANTY_YEARS } from "@/lib/legal";
+import { DELIVERY_TEXT, SHOP_CATEGORIES, SHOP_PRODUCTS } from "@/lib/shop/products";
 
 // Serves /llms.txt — the emerging convention (llmstxt.org) that gives LLM agents
 // a concise, factual, linkable summary of the business so they can describe and
@@ -10,6 +12,14 @@ export const dynamic = "force-static";
 
 export function GET() {
   const rooms = portfolioRooms.map((r) => r.label).join(", ");
+  const shopByCategory = SHOP_CATEGORIES.map((c) => {
+    const products = SHOP_PRODUCTS.filter((p) => p.category === c.id);
+    if (!products.length) return "";
+    const links = products.map((p) => `- [${p.preset.name}](${SITE_URL}/magazin/${p.slug})`).join("\n");
+    return `### ${c.label}\n${c.blurb}\n${links}`;
+  })
+    .filter(Boolean)
+    .join("\n\n");
 
   const body = `# Epic Mob
 
@@ -36,11 +46,23 @@ ${materials
 
 ## Pagini principale
 - [Acasă](${SITE_URL}/)
+- [Magazin](${SITE_URL}/magazin)
+- [Atelier 3D (configurator)](${SITE_URL}/configurator)
 - [Portofoliu (${rooms})](${SITE_URL}/portfolio)
 - [Materiale și accesorii](${SITE_URL}/materiale)
 - [Întrebări frecvente](${SITE_URL}/intrebari-frecvente)
 - [Cere ofertă](${SITE_URL}/cere-oferta)
 - [Contact](${SITE_URL}/contact)
+- [Termeni și condiții](${SITE_URL}/termeni-si-conditii)
+
+## Magazin
+Modele gata gândite, cu preț afișat pe loc (confirmat la măsurători), în mai
+multe combinații de culori. Categorii: ${SHOP_CATEGORIES.map((c) => c.label.toLowerCase()).join(", ")}.
+${DELIVERY_TEXT}. Montajul este inclus în preț. Garanție ${WARRANTY_YEARS} ani.
+Atelierul 3D (configuratorul) permite configurarea dimensiunilor, coloanelor și
+materialelor, cu preț estimativ pe loc.
+
+${shopByCategory}
 
 ## Întrebări frecvente
 ${faqItems.map((item) => `### ${item.question}\n${item.answer}`).join("\n\n")}

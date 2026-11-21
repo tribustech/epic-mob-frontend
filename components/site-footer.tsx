@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
+import { legalEntity } from "@/lib/business-data";
+import { ANPC_SAL_URL, EU_SOL_URL } from "@/lib/legal";
 import { contactDetails, navigation } from "@/lib/site-data";
 
 export function SiteFooter() {
@@ -65,15 +67,30 @@ function WarmFooter({ hasMobileBar }: { hasMobileBar: boolean }) {
         </div>
       </div>
 
-      <div className="section-shell warm-footer__divider flex flex-col items-center gap-3 py-6 text-xs text-espresso/45 sm:flex-row sm:justify-between">
-        <p>
-          &copy; {new Date().getFullYear()} Epic Mob. Toate drepturile rezervate.
-        </p>
-        <div className="flex gap-5">
+      <div className="section-shell warm-footer__divider flex flex-col items-center gap-3 py-6 text-center text-xs text-espresso/45 sm:flex-row sm:justify-between sm:text-left">
+        <div className="space-y-1">
+          <p>
+            &copy; {new Date().getFullYear()} Epic Mob. Toate drepturile rezervate.
+          </p>
+          <p>
+            {legalEntity.name} · CUI {legalEntity.cui} · Reg. Com.{" "}
+            {legalEntity.tradeRegister}
+          </p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 sm:justify-end">
+          <Link href="/termeni-si-conditii" className="hover:text-espresso">
+            Termeni și condiții
+          </Link>
           <Link href="/politica-confidentialitate" className="hover:text-espresso">
             Politica de confidențialitate
           </Link>
           <CookieSettingsButton className="hover:text-espresso" />
+          <a href={ANPC_SAL_URL} target="_blank" rel="noreferrer" className="hover:text-espresso">
+            ANPC – SAL
+          </a>
+          <a href={EU_SOL_URL} target="_blank" rel="noreferrer" className="hover:text-espresso">
+            SOL – litigii online
+          </a>
         </div>
       </div>
     </footer>

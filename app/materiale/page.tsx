@@ -5,6 +5,7 @@ import { materials } from "@/lib/materials-data";
 import { hardware } from "@/lib/hardware-data";
 import { handles } from "@/lib/handle-data";
 import { leds } from "@/lib/led-data";
+import { baseOpenGraph } from "@/lib/seo";
 import { MaterialCard } from "@/components/materials/material-card";
 import { HardwareCard } from "@/components/materials/hardware-card";
 import { HandleCard } from "@/components/materials/handle-card";
@@ -16,12 +17,12 @@ export const metadata: Metadata = {
     "Din ce construim mobila ta: lemnul (PAL melaminat, MDF melaminat, înfoliat, vopsit), feroneria Blum, tipurile de mânere și iluminatul LED — explicate pe înțelesul tău.",
   alternates: { canonical: "/materiale" },
   openGraph: {
-    title: "Materiale & accesorii EpicMob",
+    ...baseOpenGraph,
+    title: "Materiale & accesorii Epic Mob",
     description:
       "Lemnul, feroneria, mânerele și iluminatul LED din care construim mobila la comandă.",
     url: "/materiale",
-    type: "website",
-    images: [{ url: "/materials/pal-01.webp", alt: "Materiale EpicMob" }],
+    images: [{ url: "/materials/pal-01.webp", alt: "Materiale Epic Mob" }],
   },
 };
 

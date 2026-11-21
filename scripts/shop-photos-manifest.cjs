@@ -11,8 +11,15 @@ const path = require("node:path");
 const root = path.join(__dirname, "..");
 const dir = path.join(root, "public", "magazin", "foto");
 const renders = JSON.parse(fs.readFileSync(path.join(root, "lib", "shop", "renders.json"), "utf8"));
+/**
+ * Models whose photos show an older build and must be shot again (scripts/shop-art-direction-v3.json briefs
+ * them): their hinged doors were split to at most 65 cm wide (2026-11-21, hinge limit), so the old photos
+ * show half as many doors. Remove a model from here once its new photos are in its folder.
+ */
+const STALE = new Set(["dressing-sertare-200", "dressing-copii-150", "dressing-tavan-270", "dressing-hol-oglinda-160", "dressing-oglinda-mijloc-240"]);
 const out = {};
 for (const slug of Object.keys(renders)) {
+  if (STALE.has(slug)) continue;
   const folder = path.join(dir, slug);
   if (!fs.existsSync(folder)) continue;
   const have = new Set(fs.readdirSync(folder).filter((f) => f.endsWith(".webp")).map((f) => f.slice(0, -5)));

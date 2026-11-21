@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // renamed shop products (old links and search results keep working)
+  async redirects() {
+    return [{ source: "/magazin/bucatarie-coloane-360", destination: "/magazin/bucatarie-coloane-380", permanent: true }];
+  },
   async rewrites() {
     return crm ? [{ source: "/decoruri/:path*", destination: `${crm}/decoruri/:path*` }] : [];
   },

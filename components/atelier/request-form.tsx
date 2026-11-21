@@ -6,6 +6,7 @@ import { getFunnelSessionId, trackFunnel, trackFunnelOnce } from "@/lib/atelier/
 import { withShownHandle } from "@/lib/atelier/handles";
 import type { AtelierConfig, AtelierIssue } from "@/lib/atelier/types";
 import { trackPixel } from "@/lib/meta-pixel";
+import { ConsentNote } from "@/components/legal/consent-note";
 import type { LeadContact } from "./session";
 import { issueMessage } from "./ui";
 
@@ -288,6 +289,7 @@ export function RequestForm({
           Corectează mai întâi configurația (vezi mesajul de lângă preț), apoi poți trimite cererea.
         </p>
       )}
+      <ConsentNote className="atelier-form__wide" />
     </form>
   );
 }

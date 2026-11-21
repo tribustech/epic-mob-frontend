@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { CrmUnavailableError } from "@/lib/atelier/crm";
 import { fetchBreakdowns } from "@/lib/admin/server";
 import { currentAdmin } from "@/lib/admin/session";
 import type { BreakdownRequest } from "@/lib/admin/breakdown";
@@ -30,7 +31,13 @@ export async function POST(request: Request) {
     const items = await fetchBreakdowns(lines, admin.token, catalog);
     return NextResponse.json({ items }, { headers: { "cache-control": "no-store" } });
   } catch (error) {
-    console.error("Admin breakdown failed", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: "CRM-ul nu răspunde sau nu ți-a acceptat login-ul (ieși și intră din nou)." }, { status: 503 });
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Admin breakdown failed", message);
+    // only 401/403 mean the login; a timeout or a CRM error is not fixed by logging in again
+    const login = error instanceof CrmUnavailableError && /CRM responded 40[13]\b/.test(message);
+    return NextResponse.json(
+      { error: login ? "CRM-ul nu ți-a acceptat login-ul (ieși și intră din nou)." : "CRM-ul nu răspunde acum (sau a dat o eroare). Încearcă din nou peste un minut." },
+      { status: login ? 401 : 503 },
+    );
   }
 }

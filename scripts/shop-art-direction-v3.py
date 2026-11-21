@@ -19,6 +19,7 @@ DECOR = {
     "U707": "silk grey (Egger U707 ST9: light neutral grey plain colour, matt)",
     "H1145": "Natural Bardolino oak (Egger H1145 ST10: pale beige-grey Scandinavian oak decor with fine planked grain)",
     "U638": "sage green (Egger U638 ST9: muted grey-green plain colour, matt)",
+    "AGT398": "cream supermatt (AGT MDF: a soft warm cream, completely matt and velvety, no grain, no gloss)",
     "U732": "dust grey (Egger U732 ST9: a mid, slightly warm grey plain colour, matt; clearly darker than cashmere, not blue)",
 }
 PAL = {  # id: (name, body, fronts)
@@ -37,6 +38,7 @@ PAL = {  # id: (name, body, fronts)
     "grafit-total": ("Grafit total", "U961", "U961"),
     "alb-stejar-deschis": ("Scandinav deschis", "W1000", "H1145"),
     "alb-antracit": ("Alb & antracit", "W1000", "U961"),
+    "supermat-crem": ("Crem supermat", "W1000", "AGT398"),
 }
 HANDLE_TXT = {
     ("APLICAT", "NEGRU"): "slim straight bar handles in matt black, one per front: vertical near the opening edge on doors, horizontal and centred near the top edge on drawers, positioned exactly as in the render. Same finish on every handle, real metal with soft reflections.",
@@ -304,7 +306,7 @@ NEW.update({
    "gri-casmir": ("Warm family kitchen: a wooden bread board, a stoneware jar and a small radio-free shelf of spices on the worktop; white zellige-look backsplash tiles. Worktop: natural oak look. Room surfaces: walls painted warm white; mid-brown oak laminate floor.", "Cloudy-afternoon daylight from a window on the right side wall.", "a tea towel on the oven handle"),
    "alb-total": ("Bright modern kitchen: an espresso machine and a bowl of lemons on the worktop; light grey large-format backsplash. Worktop: white marble look. Room surfaces: walls painted pale greige so the white cabinets separate from the wall; light oak laminate floor.", "Soft overcast daylight from a window on the left side wall.", "a cutting board with a knife beside the sink"),
   }),
- "bucatarie-coloane-360": dict(
+ "bucatarie-coloane-380": dict(
   kind="kitchen", room="Large kitchen open to the dining area.",
   piece="Fitted kitchen on one wall, 380 cm long, 230 cm high. Left two 60 cm tall columns: the fridge column (tall lower door, short top door) and the oven column (2 drawers below, a built-in oven and a microwave above it at eye level, a small door on top). Then under the worktop: 3 drawers (60 cm); the sink cabinet with 2 doors (80 cm); the integrated dishwasher (60 cm); the induction hob over a stack of drawers (60 cm). Wall cabinets with doors above, a stainless chimney hood over the hob. Everything closed.",
   body=K_BODY, fronts=K_FRONTS,
@@ -563,6 +565,196 @@ NEW.update({
   }),
 })
 
+# ───────────────────────── range of 2026-11-21 (second pass): new models and models whose doors changed ─────────────────────────
+CAM_WARDROBE = "Camera at 1.35–1.45 m height, 35 mm full-frame equivalent, standing 4 m back, three-quarter view about 15–20° off the wardrobe wall; verticals perfectly straight, no fisheye, no wide-angle stretching at the edges. 4:3 landscape. The whole wardrobe is visible from plinth to top with the ceiling line above and floor below; it fills about 45–55% of the frame width."
+SLIDING_NO_HANDLE = "none. Sliding doors: no handles, knobs or grooves on the doors; the thin door frame is the grip, exactly as in the render."
+# the old photos of these models show one door per section; the doors are now split to at most 65 cm (hinge limit)
+SPLIT_DOORS = "The current photo shows the older build with one wide door per section. The hinged doors are now split so that no door is wider than 65 cm: shoot again with the door count stated here."
+TV_RULE["comoda-tv-160"] = "The TV is 50 inch, 111 cm wide, 16:9: about 70% as long as the unit, leaving about 25 cm of unit visible on each side. The screen (62 cm high) is a little taller than the unit (50 cm). The unit spans no more than 50% of the frame width."
+MOUNT_REL["suspendat-pat-240"] = "underside 150 cm above the floor: about 45 cm above a 105 cm headboard, top at 190 cm (15 cm below the door-frame top), 70 cm of wall between its top and the ceiling"
+
+NEW.update({
+ "dressing-oglinda-glisanta-200": dict(
+  kind="tall", room="Bedroom (dormitor).",
+  piece="Sliding-door wardrobe 200 cm wide × 240 cm high × 60 cm deep with exactly 2 sliding doors of equal width (100 cm each), both faced edge to edge with full-height silver mirror inside a thin frame in the front colour, exactly as in the render; on a 10 cm recessed plinth. Both doors closed, one slightly in front of the other on its track.",
+  body="side panels, top and plinth", fronts="the thin frame around each mirror door",
+  handleText=SLIDING_NO_HANDLE,
+  placement="Floor-standing against a full wall of the bedroom, one side tight in the room corner; never in front of the window, radiator or door. The top is at 2.40 m: 35 cm above the top of the 2.05 m door frame and 20 cm below the 2.60 m ceiling. A double bed stands opposite or beside it with at least 80 cm of passage. The mirrors reflect the real room in correct perspective, with no camera or person visible.",
+  mount=None, camera=CAM_WARDROBE,
+  ratio="The wardrobe is 1.2 times as tall as it is wide (200 × 240 cm). Each sliding door is 100 cm wide and 2.4 times as tall as wide; the two doors are equal.",
+  anchors="a 2.05 m interior door frame (the wardrobe is 35 cm taller), the ceiling at 2.60 m (20 cm of wall above the wardrobe) and a socket at 30 cm",
+  checklist=["Exactly 2 equal sliding doors, both full mirror in a thin frame of the front colour", "No handles or knobs on the doors", "200 × 240 cm: 35 cm above the door frame, 20 cm of wall below the ceiling", "Mirrors reflect only this bedroom, no camera or person; recessed plinth, in a corner"],
+  ourRefs=v2["products"]["dressing-oglinda-240"]["ourRefs"], webRefs=v2["products"]["dressing-oglinda-240"]["webRefs"],
+  scenes={
+   "alb-casmir": ("On the wall facing the foot of a double bed; the mirror doors reflect the bed with light linen bedding and the window wall; a rug on the floor in front. Room surfaces: walls painted a warm greige so the white side panels separate clearly from the wall; natural oak laminate floor.", "Soft overcast daylight from a window on the left, neutral white balance.", "a folded throw on the bed"),
+   "alb-stejar-natur": ("In the corner beside the bedroom door; the mirror doors reflect the opposite wall with one plain abstract print and the edge of the bed with grey bedding. Room surfaces: walls painted light warm grey; pale grey-beige laminate floor (clearly different from the oak door frames).", "Cloudy-afternoon daylight from a window on the right, even and slightly cool.", "a laundry basket beside the bed"),
+  }),
+ "dressing-3-usi-oglinda-150": dict(
+  kind="tall", room="Bedroom or child's room (dormitor, camera copilului).",
+  piece="Classic three-door wardrobe 150 cm wide × 220 cm high × 55 cm deep with exactly 3 full-height hinged doors of equal width (50 cm each): the two outer doors are plain panels, the MIDDLE door is faced with a full-height silver mirror (a narrow strip of the door colour stays beside the mirror where its handle sits, as in the render). On a 10 cm recessed plinth. All doors closed.",
+  body="side panels, top and plinth", fronts="the two outer doors and the strip beside the mirror",
+  placement="Floor-standing against a full wall of the room, one side tight in the room corner; never in front of the window, radiator or door. The top is at 2.20 m: 15 cm above the top of the 2.05 m door frame and 40 cm below the 2.60 m ceiling. The mirror reflects the real room in correct perspective, with no camera or person visible.",
+  mount=None, camera=CAM_WARDROBE,
+  ratio="The wardrobe is 1.5 times as tall as it is wide (150 × 220 cm). Each door is 50 cm wide and more than four times as tall as wide; the three doors are equal.",
+  anchors="a 2.05 m interior door frame (the wardrobe is 15 cm taller), the ceiling at 2.60 m (40 cm of wall above the wardrobe) and a socket at 30 cm",
+  checklist=["Exactly 3 equal hinged doors, the middle one full mirror", "One vertical matt-black bar handle per door, as in the render", "150 × 220 cm: 15 cm above the door frame, 40 cm of wall below the ceiling", "Mirror reflects only this room, no camera or person; recessed plinth, in a corner"],
+  ourRefs=["public/portfolio/cappuccino-wardrobe-v2.webp", "public/portfolio/mirror-hall-wardrobe-cover.webp", "public/portfolio/mustard-bedroom-wardrobe.webp"], webRefs=v2["products"]["dressing-sertare-200"]["webRefs"],
+  scenes={
+   "alb-casmir": ("In the corner of a bedroom beside the window wall; the mirror reflects the double bed with oatmeal linen bedding; a small rug in front. Room surfaces: walls painted a pale sage grey so the white body and the cashmere doors separate from the wall; natural oak laminate floor.", "Soft overcast daylight from a window on the left, neutral white balance.", "a folded blanket on the bed"),
+   "alb-total": ("In the corner of a child's room; the mirror reflects a single bed with a plain blue duvet; a low white desk on the adjacent wall; a round play rug. Room surfaces: walls painted a warm greige so the white wardrobe separates clearly from the wall; light oak laminate floor.", "Bright late-morning daylight from a window on the right, filtered through sheer white curtains.", "a drawing pad on the desk"),
+  }),
+ "dressing-cuier-100": dict(
+  kind="tall", open=True, room="Entrance hall (hol).",
+  piece="Open hall stand 100 cm wide × 200 cm high × 40 cm deep, with no doors: on the left a 50 cm compartment with a top shelf and a clothes rail under it for coats, on the right a 50 cm compartment with shelves from top to bottom; a back panel and a 10 cm recessed plinth.",
+  body="the frame, shelves, back panel and plinth", fronts="",
+  placement="Floor-standing against the long wall of the entrance hall near the entrance door, one side tight to the side wall. The top is at 2.00 m: 5 cm below the top of the 2.05 m door frame and 60 cm below the ceiling. It is open and lightly used: two coats and a jacket on hangers on the rail, a bag and a cap on the shelves, two pairs of shoes on the lowest shelf.",
+  mount=None, camera=CAM_TALL,
+  ratio="The stand is twice as tall as it is wide (100 × 200 cm). The two compartments are equal halves of 50 cm. It is only 40 cm deep.",
+  anchors="the 2.05 m entrance door (the stand's top is level with the door frame and it is a little wider than the door leaf), the ceiling at 2.60 m (60 cm of wall above) and a socket at 30 cm",
+  checklist=["Two open compartments: rail with coats on the left, shelves on the right; no doors", "100 × 200 × 40 cm: top level with the door frame, 60 cm of wall below the ceiling", "Back panel and recessed plinth, tight to a side wall in a real entrance hall", "Lightly filled: 2–3 coats, a bag, a cap, two pairs of shoes; no clutter"],
+  ourRefs=["public/portfolio/olive-hall-overview.webp", "public/portfolio/olive-hall-cover.webp"], webRefs=v2["products"]["dressing-hol-120"]["webRefs"],
+  scenes={
+   "stejar-natur": ("Narrow entrance hall of a new apartment: the entrance door at the left frame edge with a doormat in front of it. Room surfaces: plain white walls; light grey large floor tiles (so the oak stand does not merge with the floor).", "Soft daylight from an open room door on the left plus a ceiling light out of frame (about 4000 K).", "an umbrella leaning against the side wall"),
+   "alb-total": ("Hall of an older apartment: the entrance door at the right frame edge; a light switch at 1.05 m beside the stand. Room surfaces: walls painted a warm greige so the white stand separates clearly from the wall; mid-brown oak laminate floor.", "Daylight from an open room door on the right plus soft ambient light.", "a scarf over one of the coats"),
+  }),
+ "comoda-tv-160": dict(
+  kind="tvstand", room="Living room (living) or a bedroom of a small apartment.",
+  piece="Low TV unit 160 cm wide × 50 cm high × 40 cm deep on a 10 cm recessed plinth: left section (80 cm) with exactly 2 drawers one above the other, right section (80 cm) an open niche with exactly 1 shelf.",
+  body="top, side panels, the open niche and plinth", fronts="the 2 drawer fronts",
+  placement="Against the living-room wall facing the sofa, tight to the wall. A 50 inch TV stands on the unit or hangs on the wall above it, its lower edge 15–20 cm above the top. A games console or a small speaker and two plain boxes in the niche.",
+  mount=None, camera=CAM_LOW,
+  ratio="The unit is 3.2 times as long as it is high (160 × 50 cm). The drawer section and the open niche are equal halves.",
+  anchors="a socket at 30 cm (the unit's top is 20 cm above it), a light switch at 1.05 m and a 2.05 m door frame or the ceiling at 2.60 m",
+  checklist=["Exactly 2 drawers on the left, an open niche with 1 shelf on the right, equal halves", "No bars or knobs: thin steel-coloured channel above each drawer, as in the render", "160 × 50 cm, 3.2 times longer than high; TV 50 inch, about 70% of its length", "Recessed plinth, against the wall facing the sofa; light colours only"],
+  ourRefs=v2["products"]["comoda-tv-200"]["ourRefs"], webRefs=v2["products"]["comoda-tv-200"]["webRefs"],
+  scenes={
+   "alb-stejar-natur": ("Living room of a two-room apartment: the TV on the unit, a game console and two plain fabric boxes in the niche; the back of a grey sofa at the lower frame edge; a floor plant beside the unit. Room surfaces: walls painted a warm greige so the white body separates clearly from the wall; light grey laminate floor (clearly different from the oak drawer fronts).", "Soft overcast daylight from a window on the left, neutral white balance.", "a remote control on the top"),
+   "alb-total": ("Studio flat: the TV wall-mounted above the unit; a small speaker and a stack of books with plain spines in the niche; the corner of a bed at the lower right. Room surfaces: walls painted a pale sage grey so the white unit separates from the wall; natural oak laminate floor.", "Cloudy-afternoon daylight from a window on the right, even and slightly cool.", "a small plant on the top"),
+  }),
+ "noptiera-deschisa-45": dict(
+  kind="chest", open=True, room="Bedroom or child's room (dormitor, camera copilului).",
+  piece="Open bedside table 45 cm wide × 55 cm high × 40 cm deep on a 10 cm recessed plinth: no doors and no drawers; one fixed shelf divides it into exactly 2 open niches, with a back panel.",
+  body="the whole piece: top, sides, shelf, back and plinth", fronts="",
+  placement="Beside the head of a bed, tight to the wall; its top is level with the top of the mattress (55 cm). A table lamp (switched off) and a book on top, a second book and a small box in the niches.",
+  mount=None, camera=CAM_LOW.replace("it fills about 45–50% of the frame width", "the bedside table fills about 20% of the frame width and most of the bed beside it is visible"),
+  ratio="The bedside table is a little taller than wide (45 × 55 cm). Its top is level with the top of the mattress; the two niches have the same height.",
+  anchors="the mattress top at 55 cm (level with the table's top), a socket at 30 cm and a light switch at 1.05 m",
+  checklist=["Open: exactly 2 niches, 1 shelf, back panel; no doors or drawers", "45 × 55 cm: top level with the mattress", "Recessed plinth, beside the bed head, against the wall", "Lamp switched off; only the objects named; the only cabinet in the photo"],
+  ourRefs=v2["products"]["noptiera-50"]["ourRefs"], webRefs=v2["products"]["noptiera-50"]["webRefs"],
+  scenes={
+   "stejar-natur": ("Beside a double bed with white linen bedding and a plain upholstered headboard; a ceramic table lamp (switched off) and a paperback with a plain cover on top; a basket in the lower niche. Room surfaces: plain white walls; light grey laminate floor (so the oak table does not merge with the floor).", "Soft overcast daylight from a window on the left, neutral white balance.", "reading glasses on the book"),
+   "alb-total": ("Beside a single bed with a plain green duvet in a child's room; a small lamp (switched off) on top, two picture books with plain covers in the niche. Room surfaces: walls painted a warm greige so the white table separates clearly from the wall; natural oak laminate floor.", "Bright late-morning daylight from a window on the right, filtered through sheer curtains.", "a small plush toy on the bed"),
+  }),
+ "suspendat-pat-240": dict(
+  kind="wall", room="Bedroom (dormitor), over the bed.",
+  piece="Wall-hung cabinet over a bed, 240 cm wide × 40 cm high × 35 cm deep with exactly 4 equal hinged doors (60 cm each, each door 1.5 times wider than high); no legs, no plinth, fixed to the wall. All doors closed.",
+  body="sides, top and underside", fronts="the 4 doors",
+  placement="Hung on the bedroom wall, centred over the head of a 160 cm double bed, with its underside 150 cm above the floor (top at 190 cm): about 45 cm above the top of the 105 cm headboard, so a person sitting up in bed does not touch it, and 70 cm of wall between its top and the ceiling. It is 40 cm wider than the bed on each side.",
+  mount=150, camera=CAM_WALL,
+  ratio="The cabinet is a long band, six times as long as it is high (240 × 40 cm). Each door is 60 × 40 cm. It is 80 cm longer than the 160 cm bed below it (40 cm on each side).",
+  anchors="the headboard at 105 cm and the mattress at 55 cm below it, a 2.05 m door frame (the cabinet's top is 15 cm below it) and the ceiling at 2.60 m",
+  checklist=["Exactly 4 equal doors, each wider than high", "No handles at all (push-to-open)", "Underside about 150 cm above the floor, 45 cm above the headboard; top about 190 cm", "Centred over a double bed, 40 cm wider on each side; bedside lamps switched off"],
+  ourRefs=["public/portfolio/mustard-bedroom-cover.webp", "public/portfolio/double-office-cover.webp"], webRefs=v2["products"]["suspendat-aventos-180"]["webRefs"],
+  scenes={
+   "alb-total": ("Over a 160 cm double bed with an upholstered light-grey headboard and white linen bedding; two open metal-frame bedside tables (not cabinets) with switched-off lamps. Room surfaces: walls painted a warm greige so the white cabinet separates clearly from the wall; natural oak laminate floor.", "Soft overcast daylight from a window on the left, neutral white balance.", "a book on one bedside table"),
+   "alb-stejar-natur": ("Over a 160 cm double bed with a walnut-tone wooden headboard and grey bedding; a rug at the foot of the bed. Room surfaces: walls painted light warm grey; pale grey-beige laminate floor (clearly different from the oak doors).", "Cloudy-afternoon daylight from a window on the right, even and slightly cool.", "a folded throw at the foot of the bed"),
+  }),
+ "bucatarie-260": dict(
+  kind="kitchen", room="Kitchen of a Romanian apartment (bucătărie).",
+  piece="Fitted kitchen on one wall, 260 cm long, 220 cm high. Under the worktop, from left to right: a stack of 3 drawers (60 cm); the induction hob over a stack of drawers (60 cm, no oven under it); the integrated dishwasher (60 cm); the sink cabinet with 2 doors (80 cm). Wall cabinets with doors above, a stainless chimney hood over the hob. Everything closed.",
+  body=K_BODY, fronts=K_FRONTS,
+  placement="Along the full 2.60 m wall of an apartment kitchen; a small dining table 1.2 m in front; the window on a side wall.",
+  mount=None, camera=CAM_KITCHEN,
+  ratio="The run is 2.6 m long and 2.2 m high, about 1.2 times longer than high; base units 90 cm high, wall cabinets and hood on the same top line, as in the render.",
+  anchors="the 2.05 m door frame on the side, the ceiling at 2.60 m and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK + ["No oven: drawers under the hob, exactly as in the render"], ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "alb-casmir": ("Apartment kitchen: a kettle and a wooden chopping board on the worktop; white square backsplash tiles. Worktop: light oak look. Room surfaces: walls painted warm white; mid-brown oak laminate floor.", "Soft overcast daylight from a window on the left side wall.", "a tea towel on the dishwasher front"),
+   "alb-total": ("Bright kitchen of a new block: a coffee maker and a small herb pot on the worktop; pale grey large-format backsplash. Worktop: dark grey stone look (so the white fronts contrast). Room surfaces: walls painted pale greige so the white kitchen separates from the wall; light oak laminate floor.", "Bright overcast daylight from a window on the right side wall.", "a cookbook with a plain cover on the worktop"),
+  }),
+ "baie-lavoar-50": dict(
+  kind="vanity", bath=True, room="Very small bathroom or guest toilet of a Romanian apartment (baie).",
+  piece="Wall-hung vanity 50 cm wide and only 40 cm deep, with 2 drawers under a 38 mm worktop with a small white countertop basin and a chrome tap; above it, 30 cm over the worktop, a 50 cm mirror cabinet with one mirror door up to 1.90 m. Everything closed.",
+  body=V_BODY, fronts=V_FRONTS,
+  placement="On the short wall of a very small bathroom or guest toilet, between the toilet (at the frame edge) and the side wall. " + HUNG,
+  mount=31, camera=CAM_VANITY,
+  ratio="The piece is 50 cm wide and 1.9 m high: almost four times as tall as wide; the worktop at 85 cm, the mirror cabinet 75 cm high.",
+  anchors="the 2.05 m bathroom door frame, the ceiling at 2.60 m and the toilet beside it (40 cm seat height)",
+  checklist=V_CHECK, ourRefs=V_REFS, webRefs=BATH_WEB,
+  scenes={
+   "alb-stejar-natur": ("Guest toilet of a new apartment: matt warm-grey large-format wall tiles (so the white body separates from the wall); light terrazzo-look floor tiles (clearly different from the oak fronts); a white wall-hung toilet at the left frame edge.", "Even neutral ceiling light (the lamp out of frame), about 4000 K.", "a small hand towel on a ring beside the vanity"),
+  }),
+ "dressing-sertare-200": dict(
+  kind="tall", isNew=False, critique=SPLIT_DOORS, room=v2["products"]["dressing-sertare-200"]["room"],
+  piece="Floor-standing wardrobe 200 cm wide × 250 cm high × 60 cm deep with exactly 4 full-height hinged doors: one 60 cm door at each end and a pair of 40 cm doors in the middle, on a 10 cm recessed plinth. The drawers are inside, behind the middle pair, and are not visible. All doors closed.",
+  body="side panels, top and plinth", fronts="the 4 doors",
+  placement="Floor-standing against a bedroom wall, one side tight in the room corner; never in front of the window, radiator or door. The top is at 2.50 m: 45 cm above the top of the 2.05 m door frame and 10–12 cm below a 2.62 m ceiling. At least 80 cm of free floor in front for the doors to open.",
+  mount=None, camera=CAM_WARDROBE,
+  ratio="The wardrobe is 1.25 times as tall as it is wide (200 × 250 cm). The two outer doors are 60 cm wide, the two middle doors 40 cm each.",
+  anchors="a 2.05 m interior door frame (the wardrobe is 45 cm taller), the ceiling at 2.62 m (10–12 cm of wall above the wardrobe) and a socket at 30 cm",
+  checklist=["Exactly 4 full-height doors: 60 + 40 + 40 + 60 cm, closed; the drawers are not visible", "One vertical matt-black bar handle per door, as in the render", "200 × 250 cm: 45 cm above the door frame, about 10 cm of wall below the ceiling", "Recessed plinth, in a bedroom corner, clear floor in front"],
+  ourRefs=v2["products"]["dressing-sertare-200"]["ourRefs"], webRefs=v2["products"]["dressing-sertare-200"]["webRefs"],
+  scenes={
+   "antracit-stejar": ("Wardrobe on the wall opposite the window; a bed with grey bedding at the lower left, a rug. Room surfaces: plain white walls; light oak laminate floor.", "Soft overcast daylight from a window on the left, neutral white balance.", "a folded blanket on the bed"),
+   "alb-stejar-natur": ("Wardrobe on the short wall of the room; a chair beside it; a full-length mirror on the adjacent wall. Room surfaces: walls painted light warm grey; pale grey-beige laminate floor (clearly different from the oak fronts).", "Clear winter daylight from a window on the right, cool-neutral, soft shadows.", "a sweater folded on the chair"),
+  }),
+ "dressing-copii-150": dict(
+  kind="tall", isNew=False, critique=SPLIT_DOORS, room=v2["products"]["dressing-copii-150"]["room"],
+  piece="Floor-standing wardrobe 150 cm wide × 220 cm high × 55 cm deep with exactly 4 full-height hinged doors of equal width (37.5 cm each), on a 10 cm recessed plinth. All doors closed.",
+  body="side panels, top and plinth", fronts="the 4 doors",
+  placement="Floor-standing against a wall of the child's room, one side tight in the corner; never in front of the window, radiator or door. The top is at 2.20 m: 15 cm above the top of the 2.05 m door frame and 40 cm below the 2.60 m ceiling. A child's bed or desk nearby; a play rug on the floor.",
+  mount=None, camera=CAM_WARDROBE,
+  ratio="The wardrobe is 1.5 times as tall as it is wide (150 × 220 cm). Each of the 4 doors is 37.5 cm wide, almost six times as tall as wide.",
+  anchors="a 2.05 m interior door frame (the wardrobe is 15 cm taller), the ceiling at 2.60 m (40 cm of wall above the wardrobe) and a socket at 30 cm",
+  checklist=["Exactly 4 equal narrow full-height doors, closed", "One small brushed-steel knob per door near the opening edge, as in the render", "150 × 220 cm: 15 cm above the door frame, 40 cm of wall below the ceiling", "Recessed plinth, in a corner of a real child's room, clear floor in front"],
+  ourRefs=v2["products"]["dressing-copii-150"]["ourRefs"], webRefs=v2["products"]["dressing-copii-150"]["webRefs"],
+  scenes={
+   "denim-alb": ("Wardrobe in the corner; a single bed with a patterned duvet at the lower left, a round play rug, a box of wooden toys. Room surfaces: cream-white walls; light oak laminate floor.", "Soft overcast daylight from a window on the left, neutral white balance.", "a plush toy on the bed"),
+   "alb-total": ("Wardrobe beside a small white desk with a chair and a desk lamp (switched off). Room surfaces: walls painted a warm greige so the white furniture separates clearly from the wall; natural oak laminate floor.", "Bright late-morning daylight from a window on the right, filtered through sheer white curtains.", "a drawing pad on the desk"),
+  }),
+ "dressing-tavan-270": dict(
+  kind="tall", isNew=False, critique=SPLIT_DOORS, room=v2["products"]["dressing-tavan-270"]["room"],
+  piece="Floor-to-ceiling wardrobe 270 cm wide × 280 cm high × 60 cm deep with exactly 12 hinged doors in two rows: 6 lower doors and 6 upper doors (3 sections of 90 cm, each with a pair of 45 cm doors per row), with one continuous horizontal joint line exactly where the render has it, on a 10 cm recessed plinth. All doors closed.",
+  body="side panels, top and plinth", fronts="the 12 doors",
+  placement="Built in from floor to ceiling against the end wall: the top closes against the 2.85 m ceiling with only a 3–5 cm shadow gap or filler strip, and one side meets the side wall. It must read as reaching the ceiling.",
+  mount=None, camera=CAM_WARDROBE.replace("it fills about 45–55% of the frame width", "it fills about 55–60% of the frame width"),
+  ratio="The wardrobe is almost square, a little taller than wide (270 × 280 cm). Every door is 45 cm wide; the doors of one row are all equal.",
+  anchors="a 2.05 m interior door (the wardrobe is 75 cm taller), the 2.85 m ceiling (the wardrobe reaches it) and a socket at 30 cm",
+  checklist=["Exactly 12 doors: 6 per row, in pairs of 45 cm, joint line as in the render", "No handles at all (push-to-open)", "270 × 280 cm: reaches the 2.85 m ceiling with only a shadow gap", "Recessed plinth, wall to wall in a real bedroom"],
+  ourRefs=v2["products"]["dressing-tavan-270"]["ourRefs"], webRefs=v2["products"]["dressing-tavan-270"]["webRefs"],
+  scenes={
+   "supermat-crem": ("Wardrobe on the wall opposite the window; a bed with linen bedding at the lower left; the ceiling cornice visible above the wardrobe. Room surfaces: plain white walls; medium oak laminate floor.", "Soft overcast daylight from a window on the left, neutral white balance.", "a folded blanket on the bed"),
+   "stejar-natur": ("Wardrobe on the end wall of the bedroom, wall to wall; a bed along the side wall, a rug. Room surfaces: plain white walls; light grey laminate floor (so the oak furniture does not merge with the floor).", "Cloudy-afternoon daylight from a window on the right, even and slightly cool.", "a book on the bed"),
+  }),
+ "dressing-hol-oglinda-160": dict(
+  kind="tall", isNew=False, critique=SPLIT_DOORS, room=v2["products"]["dressing-hol-oglinda-160"]["room"],
+  piece="Floor-standing hall wardrobe 160 cm wide × 240 cm high × 45 cm deep with exactly 4 full-height hinged doors of equal width (40 cm each), all faced with silver mirror; a narrow vertical strip of the door colour remains at the opening edge of each door, where the handles sit, exactly as in the render. 10 cm recessed plinth. All doors closed.",
+  body="side panels, top and plinth", fronts="the narrow strips beside the mirrors",
+  placement="Against the long wall of the entrance hall near the apartment's entrance door, one side in a corner; the top is at 2.40 m, 20 cm below the 2.60 m ceiling. The mirrors reflect the real opposite wall of the same hall (hooks, a door) in correct perspective, with no camera or person visible.",
+  mount=None, camera=CAM_WARDROBE,
+  ratio="The wardrobe is 1.5 times as tall as it is wide (160 × 240 cm). Each of the 4 doors is 40 cm wide, six times as tall as wide.",
+  anchors="the 2.05 m entrance door (the wardrobe is 35 cm taller), the ceiling at 2.60 m (20 cm of wall above) and a socket at 30 cm",
+  checklist=["Exactly 4 equal mirror doors, each with a narrow strip of the door colour at the handle edge", "One vertical matt-black bar handle per door, as in the render", "160 × 240 × 45 cm: 35 cm above the door frame, 20 cm below the ceiling", "Mirrors reflect only this hall, no camera or person; recessed plinth"],
+  ourRefs=v2["products"]["dressing-hol-oglinda-160"]["ourRefs"], webRefs=v2["products"]["dressing-hol-oglinda-160"]["webRefs"],
+  scenes={
+   "alb-casmir": ("Entrance door at the end of the hall; the mirrors show the opposite wall with coat hooks and a white interior door. Room surfaces: off-white walls with a slight grey tint; medium oak parquet-look laminate floor.", "Even neutral ceiling light (about 4000 K, the lamp out of frame) plus daylight spilling in from the adjacent room.", "a pair of sneakers on the doormat"),
+  }),
+ "dressing-oglinda-mijloc-240": dict(
+  kind="tall", isNew=False, critique=SPLIT_DOORS, room=v2["products"]["dressing-oglinda-mijloc-240"]["room"],
+  piece="Floor-standing wardrobe 240 cm wide × 250 cm high × 60 cm deep with exactly 6 full-height hinged doors of equal width (40 cm each), in three pairs: the outer pairs are plain panels, the MIDDLE pair is faced with full-height silver mirror (a narrow strip of the door colour stays beside each mirror where its handle sits, as in the render). 10 cm recessed plinth. All doors closed.",
+  body="side panels, top and plinth", fronts="the 4 plain doors and the strips beside the mirrors",
+  placement="Against a bedroom wall, one side in the corner; the top is at 2.50 m, 10–12 cm below a 2.62 m ceiling; at least 90 cm free in front. The mirrors reflect the real room in correct perspective, with no camera or person visible.",
+  mount=None, camera=CAM_WARDROBE,
+  ratio="The wardrobe is almost square, a little taller than wide (240 × 250 cm). All 6 doors are 40 cm wide; the two mirror doors are in the middle.",
+  anchors="a 2.05 m interior door frame (the wardrobe is 45 cm taller), the ceiling at 2.62 m (10–12 cm of wall above the wardrobe) and a socket at 30 cm",
+  checklist=["Exactly 6 equal doors: plain, plain, mirror, mirror, plain, plain", "One vertical brushed-gold bar handle per door, as in the render", "240 × 250 cm: 45 cm above the door frame, about 10 cm below the ceiling", "Mirrors reflect only this bedroom, no camera or person; recessed plinth"],
+  ourRefs=v2["products"]["dressing-oglinda-mijloc-240"]["ourRefs"], webRefs=v2["products"]["dressing-oglinda-mijloc-240"]["webRefs"],
+  scenes={
+   "alb-casmir": ("Wardrobe opposite the bed; the mirrors show the bed's foot and the headboard wall; a rug in front. Room surfaces: off-white walls with a slight grey tint; medium oak parquet-look laminate floor.", "Soft overcast daylight from a window on the left, neutral white balance.", "a folded throw on the bed"),
+   "alb-stejar-natur": ("Wardrobe beside the room door; a bed at the lower right with beige bedding; the mirrors show the window and its curtains. Room surfaces: walls painted light warm grey; pale grey-beige laminate floor (clearly different from the oak fronts).", "Cloudy-afternoon daylight from a window on the right, even and slightly cool.", "a laundry basket beside the bed"),
+  }),
+})
+
 def colours_line(pal_id, body_part, fronts_part, open_piece=False):
     name, b, f = PAL[pal_id]
     if open_piece:
@@ -575,7 +767,7 @@ def rule_lines(slug, kind, bath, handle, ratio, anchors, obj, idx, has_fronts=Tr
     L = []
     L.append(f"Proportion (must hold): {ratio} Keep the exact height-to-width ratio of the render; never make the piece slimmer, longer, taller or bulkier than the render.")
     L.append(f"Scale anchors: three references are visible in the frame and the piece has its real size against all three: {anchors}. The room is not compressed: full-height doors are 2.05 m, the ceiling is at 2.60 m or higher.")
-    if kind == "tv":
+    if kind in ("tv", "tvstand"):
         L.append("TV: " + TV_RULE[slug])
     if kind in ("wall", "tv", "lowwall"):
         L.append(f"Mounting height, as a number and as a relation: {MOUNT_REL[slug]}.")
@@ -583,7 +775,7 @@ def rule_lines(slug, kind, bath, handle, ratio, anchors, obj, idx, has_fronts=Tr
     L.append(f"Camera rule: 35 mm lens from far enough back that the far end of the piece is at least 80% as high in the picture as the near end; no wide-angle stretching. Camera on the {cam_side} side of the room. No ceiling lamp in the frame.")
     if has_fronts:
         L.append("Fronts: the doors and drawer fronts cover the entire front of the piece from the top edge down to the plinth (or underside) and from side to side. No frame, header, stile or rail is visible around or between them.")
-    if kind in ("tall", "chest", "divider"):
+    if kind in ("tall", "chest", "divider", "tvstand"):
         L.append("Base: the piece stands on a 10 cm high plinth set back 3 cm behind the fronts, visible along the whole bottom; no legs, no flush block.")
     if kind == "kitchen":
         L.append("Kitchen build: base units 90 cm high to the top of the 38 mm worktop, on a 15 cm plinth set back 5 cm in the body colour; 55 cm of backsplash between the worktop and the wall cabinets; every wall cabinet and tall column ends at the same top line, exactly as in the render. The worktop is one continuous slab in the named decor, 38 mm thick, flush with the front of the base units plus 2 cm overhang.")
@@ -594,13 +786,15 @@ def rule_lines(slug, kind, bath, handle, ratio, anchors, obj, idx, has_fronts=Tr
         L.append("Access: at least 80 cm of clear floor in front of the vanity; the shower, bath or toilet only at the frame edge, never in front of the piece.")
     if kind == "tall":
         L.append("Access: a clear strip of floor at least 85 cm wide runs along the whole front; no furniture within 90 cm of the doors. The window and radiator are on another wall or at least 1 m from the cupboard's end. One side of the cupboard touches the side wall; nothing stands between the cupboard and that wall. The strip of wall between its top and the ceiling is clearly visible, exactly as stated.")
-    elif kind == "chest":
+    elif kind in ("chest", "tvstand"):
         L.append("Access: the floor in front of the piece is clear for 90 cm; it is not in front of a window, radiator or door, and plain wall is visible on both sides of it for at least 40 cm (or the stated neighbour on one side).")
     elif kind == "divider":
         L.append("Access: a walkway of at least 85 cm stays free at the unit's open end and along its front; not in front of a window or radiator.")
     if kind == "chest":
         L.append("Chest rules: this piece is the only cabinet furniture in the photo: no wardrobe, no second chest, no shelving unit in the same decor; no TV on it or above it. On top only the objects named. Above it at most one mirror OR one picture OR one short shelf, fully visible, nothing in front of it.")
-    if kind in ("chest", "wall", "tv", "lowwall"):
+    if kind == "tvstand":
+        L.append("TV unit rules: this piece is the only cabinet furniture in the photo: no wardrobe, no second chest, no shelving unit in the same decor. Only the TV and the objects named are on it or in its niche; no soundbar, no cables in view.")
+    if kind in ("chest", "wall", "tv", "lowwall", "tvstand"):
         L.append("Light colours only: body, plinth and fronts exactly in the colours named; no black or dark grey panels anywhere on the piece.")
     if handle and handle["type"] == "GOLA":
         L.append("GOLA detail: one straight metal channel, full width, the same thickness everywhere: above each drawer front and along the opening edge of each door or flap; nothing else on the fronts.")
@@ -616,12 +810,13 @@ def rule_lines(slug, kind, bath, handle, ratio, anchors, obj, idx, has_fronts=Tr
 
 def extra_checks(kind, handle, bath, mount):
     c = ["Proportion as stated in the prompt (ratio measured in the photo within 10% of the render)", "Scale anchors present and consistent: door 2.05 m, ceiling 2.60 m, socket 30 cm (bathroom: 85 cm fixture)"]
-    if kind == "tv": c.append("TV 16:9 and the stated fraction of the unit's length; unit not stretched")
+    if kind in ("tv", "tvstand"): c.append("TV 16:9 and the stated fraction of the unit's length; unit not stretched")
     if mount is not None: c.append(f"Mounting height: underside about {mount} cm above the floor and the stated gap to the item below")
     if kind == "vanity": c.append("Worktop 85/90 cm, basin and tap only where the render shows them, mirror cabinet 30 cm above; wall-hung pieces show the floor under them")
     if kind == "kitchen": c.append("Worktop 90 cm, 55 cm backsplash, one top line; built-in sink/hob/oven exactly where the render shows them; fridge and dishwasher behind fronts")
-    if kind in ("tall", "chest", "divider"): c.append("10 cm recessed plinth along the whole bottom; fronts cover the whole front (no frame or header)")
+    if kind in ("tall", "chest", "divider", "tvstand"): c.append("10 cm recessed plinth along the whole bottom; fronts cover the whole front (no frame or header)")
     if kind == "tall": c.append("Clear floor in front, tight to a side wall, stated strip of wall below the ceiling")
+    if kind == "tvstand": c.append("Only cabinet in the photo; TV and named objects only; no dark panels")
     if kind == "chest": c.append("Only cabinet in the photo; no TV; at most one mirror/picture/shelf above; no dark panels")
     if handle and handle["type"] == "GOLA": c.append("GOLA: one straight channel per drawer / door edge, nothing else on the fronts")
     if handle and handle["type"] == "BUTON": c.append("Knobs: one identical 3 cm knob per front")
@@ -650,16 +845,16 @@ for p, idx, pid in todo:
                 "room": n["room"], "placement": n["placement"], "mountHeightCm": n["mount"], "handle": handle,
                 "ourRefs": n["ourRefs"], "webRefs": n["webRefs"], "camera": n["camera"],
                 "checklist": n["checklist"] + [COLOUR_CHECK, REALISM_CHECK] + extra_checks(kind, handle, bath, n["mount"]),
-                "critiqueOfCurrentPhoto": None, "isNew": True, "rooms": p["rooms"], "photoColours": p["photoColours"],
+                "critiqueOfCurrentPhoto": n.get("critique"), "isNew": n.get("isNew", True), "rooms": p["rooms"], "photoColours": p["photoColours"],
             }
         scene, light, obj = n["scenes"][pid]
         w, h, d = (x // 10 for x in p["size"])
-        open_piece = handle is None
+        open_piece = n.get("open", handle is None)
         hk = (handle["type"], handle.get("finish")) if handle else None
         lines = [INTRO,
                  f"Piece: {n['piece']} Real size {w} × {h} × {d} cm (width × height × depth).",
                  colours_line(pid, n["body"], n["fronts"], open_piece=open_piece),
-                 "Handles: " + (HANDLE_TXT[hk] if hk else "none; this model has no doors or drawers."),
+                 "Handles: " + (n["handleText"] if "handleText" in n else HANDLE_TXT[hk] if hk else "none; this model has no doors or drawers."),
                  f"Room: {n['room']} {n['placement']} Ceiling height 2.60–2.70 m. " + (f"Mounting height is critical: underside {n['mount']} cm above the finished floor." if n["mount"] is not None else "The piece stands on the floor on its plinth, tight against the wall, never floating."),
                  f"Scene for this photo: {scene} Light: {light}",
                  "Camera: " + n["camera"]]

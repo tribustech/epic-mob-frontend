@@ -1,4 +1,5 @@
 import { doorFills, doorOpening, isDoorFill, normalizeDoors } from "./door-types";
+import { hasFrontDrawers } from "./drawers";
 import { cleanHandle, hasHandledFronts } from "./handles";
 import { BARA_SERTARE_RANGE, BOTTOM_HEIGHT_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
@@ -224,10 +225,17 @@ function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
   return { ...state, widthMm, columns: withWidths(cols, fitted) };
 }
 
-/** Every change leaves the doors in their canonical form (see normalizeDoors). */
+/**
+ * Every change leaves the doors in their canonical form (see normalizeDoors), and the drawer runner choice
+ * only on furniture with front drawers (the choice is hidden elsewhere, so a stale one could not be undone).
+ */
 export function atelierReducer(state: AtelierConfig, action: AtelierAction): AtelierConfig {
-  const next = reduce(state, action);
+  let next = reduce(state, action);
   if (next === state) return state;
+  if (next.drawerExtension && !hasFrontDrawers(next)) {
+    next = { ...next };
+    delete next.drawerExtension;
+  }
   const doors = normalizeDoors(next);
   return doors === next.doors ? next : { ...next, doors };
 }
@@ -245,6 +253,7 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
       const next: AtelierConfig = { ...state, ...categoryDefaults(action.category) };
       delete next.handle;
       delete next.bottom;
+      delete next.drawerExtension;
       // the worktop and LED stay when coming back to a kitchen in the same visit
       if (!isKitchen(action)) delete next.kitchen;
       else if (state.kitchen?.worktopId) next.kitchen = { ...next.kitchen!, worktopId: state.kitchen.worktopId };

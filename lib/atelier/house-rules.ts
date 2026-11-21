@@ -1,10 +1,20 @@
 import { hasMirror, missingGlassIds } from "./door-types";
 import { categoryDefaultHandle, handleUnavailable, hasHandledFronts } from "./handles";
+import { PALETTES } from "./palettes";
 import type { AtelierAction } from "./state.ts";
-import type { AtelierCatalog, AtelierConfig } from "./types.ts";
+import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "./types.ts";
 
 /** The plain white board the palettes use for bodies, in order of preference (decor codes). */
 export const WHITE_BODY_CODES: readonly string[] = ["W1000 ST9", "W1100 ST9", "D129 PS10"];
+
+/** No black or dark chests of drawers and wall units (owner, 2026-11-20): light, wood and colour palettes only. */
+export const NO_DARK_CATEGORIES: ReadonlySet<AtelierCategory> = new Set<AtelierCategory>(["COMODA", "SUSPENDAT"]);
+
+/** A dark palette (mood „Închis"): black, anthracite, graphite fronts or bodies. */
+export const isDarkPalette = (paletteId: string): boolean => PALETTES.find((p) => p.id === paletteId)?.mood === "INCHIS";
+
+/** May this category be shown / sold in this palette (the no-dark rule above)? */
+export const paletteAllowed = (category: AtelierCategory, paletteId: string): boolean => !(NO_DARK_CATEGORIES.has(category) && isDarkPalette(paletteId));
 
 /** Is this body material an AGT panel (MDF melaminat: supermat / high gloss), not plain board? */
 export function isAgtBody(catalog: AtelierCatalog, materialId: string): boolean {
