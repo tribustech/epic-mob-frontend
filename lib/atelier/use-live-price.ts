@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AtelierConfig, AtelierPriceResult } from "./types.ts";
 
-export const PRICE_DEBOUNCE_MS = 400;
+/** A change that follows another one closely (a slider, typing, repeated „+") waits this long. */
+export const PRICE_DEBOUNCE_MS = 220;
+/** Changes further apart than this are separate taps: the price is asked at once. */
+export const PRICE_BURST_MS = 500;
+
+/** How long to wait before asking: nothing for a lone tap or the first load, the debounce inside a burst. */
+export function priceDelay(now: number, lastChangeAt: number | null): number {
+  return lastChangeAt !== null && now - lastChangeAt < PRICE_BURST_MS ? PRICE_DEBOUNCE_MS : 0;
+}
+
+let lastChangeAt: number | null = null;
 
 /** A response may only be applied if it belongs to the most recent request. */
 export function isLatest(requestId: number, latestId: number): boolean {
@@ -38,7 +48,11 @@ export function useLivePrice(config: AtelierConfig): {
   useEffect(() => {
     const requestId = ++counter;
     const controller = new AbortController();
-    if (attempts.current.key !== key) attempts.current = { key, n: 0 };
+    const fresh = attempts.current.key !== key;
+    if (fresh) attempts.current = { key, n: 0 };
+    const now = Date.now();
+    const wait = fresh ? priceDelay(now, lastChangeAt) : PRICE_DEBOUNCE_MS;
+    if (fresh) lastChangeAt = now;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     let onVisible: (() => void) | null = null;
     const down = () => {
@@ -88,7 +102,7 @@ export function useLivePrice(config: AtelierConfig): {
         }
       },
       // a retry has already waited its turn
-      ask.nonce > 0 && attempts.current.n > 0 ? 0 : PRICE_DEBOUNCE_MS,
+      ask.nonce > 0 && attempts.current.n > 0 ? 0 : wait,
     );
     return () => {
       clearTimeout(timer);

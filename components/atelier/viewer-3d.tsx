@@ -2124,10 +2124,13 @@ export default function Viewer3D({
           style={{ opacity: stale && !updating ? 0.5 : 1, transition: "opacity 0.3s ease" }}
           // a frame is drawn only when something changed (a tween, an orbit, new props); off screen, never
           frameloop={onScreen ? "demand" : "never"}
-          dpr={[1, 2]}
+          // above 1.5 the picture costs about twice the GPU work for no visible gain
+          dpr={[1, 1.5]}
           shadows="percentage"
           // the shadow map is redrawn when the piece changes (see Wardrobe, useTween), not on every orbit frame
           onCreated={({ gl }) => {
+            // the check stalls the first frame while shaders compile; keep it for development only
+            gl.debug.checkShaderErrors = process.env.NODE_ENV !== "production";
             gl.shadowMap.autoUpdate = false;
             refreshShadows(gl);
           }}
@@ -2190,7 +2193,7 @@ export default function Viewer3D({
           title={allLabel}
           onClick={toggleAll}
           className={`atelier-doors absolute left-2 top-2 flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold shadow-sm backdrop-blur transition-colors sm:left-3 sm:top-3 sm:px-3.5 ${
-            everythingOpen ? "bg-[var(--home-orange)] text-white" : "bg-white/90 text-[var(--home-ivory)]/85 hover:text-[var(--home-ivory)]"
+            everythingOpen ? "bg-[#b85c00] text-white" : "bg-white/90 text-[var(--home-ivory)]/85 hover:text-[var(--home-ivory)]"
           }`}
         >
           {everythingOpen ? <DoorOpen size={18} aria-hidden="true" /> : <DoorClosed size={18} aria-hidden="true" />}
