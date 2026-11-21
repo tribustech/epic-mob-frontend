@@ -653,3 +653,24 @@ Mount heights: nothing hangs too high. The one height problem is a top edge push
 | suspendat-hol-90 / alb-stejar-natur (redo) | ACCEPT | 8.5 | Underside ~123 cm, ~23 cm above the switch and ~83 cm above the bench seat (brief 140); hooks in the gap; lamp off. Minor: thin white slivers on both sides, the right one with a clipped top corner (A15), and the hooks sit low (~110 cm) |
 
 With these two, all 50 v3 variants are accepted.
+
+---
+
+# Batch 14 (18 photos)
+
+Reviewed: `/tmp/claude-0/batch14/<slug>/<colour>.webp` against the current renders (several models now have 4, 6 or 12 doors) and the v3 briefs. 12 accepted, 6 rejected.
+
+## Rejects
+
+| Photo | Reason |
+|---|---|
+| comoda-4-sertare-100 / gri-casmir | C1: a wardrobe in the same cashmere decor with bar handles fills the left of the frame (same defect as batch 6). Chest itself is right |
+| comoda-clasica-160 / stejar-natur | C1: TV on legs standing on the chest in front of the wall mirror, plus a wardrobe at the left (same defect as batch 6) |
+| comoda-hol-120 / nuc-crem | A14: table lamp switched on; A10: fruit bowl in a hall. Cabinet itself is right |
+| dressing-hol-oglinda-160 / alb-casmir | A9: strong wide-angle stretching (far end ~70% of near end); the 160 cm wardrobe looks ~3 m long. Doors, strips and handles match the render |
+| dressing-ingust-90 / gri-casmir | A1: front is 2.0 : 1 instead of 2.7 : 1; reads ~125 cm wide beside the room door (same defect as batch 6) |
+| dressing-sticla-300 / grafit-total | A14: bright glowing lines under the top of all three sections read as LED strips. Coats and hooks are gone |
+
+## Accepted
+
+comoda-tv-200/alb-total (a soundbar is on top, against A4; not worth a redo), dressing-copii-150/alb-total, dressing-copii-150/denim-alb (top-right corner of the front slightly rounded), dressing-mare-360/alb-stejar-natur (no lamps), dressing-oglinda-glisanta-200/alb-casmir (reflection matches bed and window), dressing-oglinda-mijloc-240/alb-casmir, dressing-oglinda-mijloc-240/alb-stejar-natur, dressing-sertare-200/alb-stejar-natur, dressing-sertare-200/antracit-stejar, dressing-tavan-270/stejar-natur, dressing-tavan-270/supermat-crem, separator-sertare-160/gri-casmir (lamp gone; sun patches on the wall).
