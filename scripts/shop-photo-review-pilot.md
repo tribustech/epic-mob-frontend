@@ -749,3 +749,34 @@ Ten new models/variants (briefs from `shop-art-direction-v3.json`, renders from 
 - Kitchen note, no rule change: on runs of 3 m and more the far module is 71-77% of the near one. That is geometry at 4 m and 15-25 degrees, not lens stretching, so A9's 80% should not be enforced on kitchens longer than 2.6 m.
 - Small props drift from the brief (book instead of fruit bowl, board instead of lemons). Not worth redos.
 - Wall units over a bed still tend to hang 15-20 cm low and the bed grows with them: keep stating the height as a relation to the door frame and the bed width as a fraction of the cabinet.
+
+---
+
+# Batch 17
+
+9 photos: 6 kitchens (two L-shaped models, open shelves, handle-less lift-up), 2 bathroom sets, 1 redo. `suspendat-pat-240/alb-stejar-natur` skipped (old reject). All cm figures are pixel estimates, +-10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| bucatarie-l-270/alb-casmir | ACCEPT | 8.5/10 | L-shape as render: left leg with white end panel, 3 drawers, oven with hob; main wall with corner door, 2 sink doors, plain dishwasher front. Uppers and hood as render, gold bar handles, continuous oak worktop, board and spoon jar, window right, round table. Worktop about 88 cm against the room door. |
+| bucatarie-l-270/alb-stejar-natur | REJECT | 7/10 | Everything matches except the drawer stack on the left leg: 4 drawers with 4 handles, render and brief have exactly 3. Room, worktop, uppers, hood, scale are fine. |
+| bucatarie-l-frigider-300/bardolino-gri | ACCEPT | 8/10 | Fridge column with oak side, 3 drawers, 2 sink doors, corner door; right leg with dishwasher front, oven with hob, 3 drawers; uppers on both walls, hood over the hob: as render. Grey fronts, pale oak body and plinth, black handles, white worktop as briefed. Worktop about 91 cm, total about 217 cm. Dishwasher front carries a horizontal bar with a tea towel; harmless. |
+| bucatarie-rafturi-240/salvie-stejar | ACCEPT | 8.5/10 | Lowers: 3 drawers, sink door, plain front, oven with hob. Uppers: open shelf unit, door, open shelf unit, door over the hood: as render. Sage fronts, pale oak body, small gold knobs. Plates, glasses, two unlabelled jars, board, zellige tiles. Total reads about 210 cm. |
+| bucatarie-ridicabile-300/alb-total | ACCEPT | 8.5/10 | No handles, knobs or grooves on any front; only the oven's own handle. Fridge column with tall door + top door, 3 drawers, 2 plain fronts, oven with hob, 4 tall flat upper fronts, hood under the last: as render. Oak worktop, plant, kettle. Worktop about 85 cm, total about 225-235 cm. |
+| bucatarie-ridicabile-300/grafit-total | ACCEPT | 8.5/10 | Same layout, no handles anywhere. Reads as dark charcoal, not black. White marble worktop and slab backsplash, empty white vase, espresso machine. Worktop about 86 cm, total about 229 cm against doorway and switch. Bowl of apples on the dining table is fine in a kitchen. |
+| baie-lavoar-coloana-120/alb-total | ACCEPT | 7/10 | Wall-hung vanity with 2 drawers, countertop basin, 2-door mirror cabinet, 2-door column, black handles: as render, proportions 0.79 vs 0.75. Bathtub edge left, sage tiles. Scale is the weak point: against tile line, socket and tub rim the set reads 10-20% large (about 135-150 cm wide); the anchors disagree with each other, and the picture is believable. Column is not tight to the side wall. |
+| baie-lavoar-coloana-120/alb-stejar-natur | ACCEPT | 8.5/10 | Same set in oak with white body. Washing machine on the same wall gives a firm scale: vanity top level with the machine top (about 85-88 cm), vanity about 80 cm wide, underside about 32 cm, top about 198 cm. Mirror reflects the window and wall of this room. Walk-in shower glass at the right. |
+| comoda-tv-160/alb-total (redo) | ACCEPT | 7/10 | Now a living room with sofa and rug; 2 drawers with steel GOLA channels, niche with one shelf, console and two boxes; TV wall-mounted about 20 cm above. Still a little large: top at about 57% of door-handle height, so it reads about 58-60 cm high and 190 cm wide with a 55-60 inch TV. Proportions of the piece are right (3.1:1) and the room is believable; at the limit, redo optional. |
+
+## Rejects
+
+**bucatarie-l-270/alb-stejar-natur**
+- The drawer stack on the left leg has exactly 3 drawers, not 4: three equal oak fronts, three gold handles, one per front.
+- Count the handles on that stack in the render: 3. Do not add a fourth front or a narrow top drawer.
+
+## Patterns
+
+- Push-to-open prompt works: both handle-less kitchens show completely flat fronts with no handle, knob or groove.
+- L-shaped kitchens keep the corner, the continuous worktop and the split of modules between the two walls.
+- New defect type for kitchens: an extra drawer in a stack (4 instead of 3). Worth a general line for all kitchen prompts: "Every drawer stack has exactly 3 drawers unless the render shows another number; count the handles."
+- Bathroom sets: a washing machine or a door on the same wall as the furniture gives a reliable scale (alb-stejar-natur); without it the set drifts large (alb-total). Prefer scenes with a same-wall anchor.

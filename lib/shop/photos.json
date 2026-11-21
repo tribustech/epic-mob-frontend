@@ -263,6 +263,23 @@
     "stejar-alb",
     "alb-total"
   ],
+  "bucatarie-l-270": [
+    "alb-casmir"
+  ],
+  "bucatarie-l-frigider-300": [
+    "bardolino-gri"
+  ],
+  "bucatarie-rafturi-240": [
+    "salvie-stejar"
+  ],
+  "bucatarie-ridicabile-300": [
+    "grafit-total",
+    "alb-total"
+  ],
+  "baie-lavoar-coloana-120": [
+    "alb-stejar-natur",
+    "alb-total"
+  ],
   "dressing-oglinda-glisanta-200": [
     "alb-casmir",
     "alb-stejar-natur"
@@ -276,7 +293,8 @@
     "alb-total"
   ],
   "comoda-tv-160": [
-    "alb-stejar-natur"
+    "alb-stejar-natur",
+    "alb-total"
   ],
   "noptiera-deschisa-45": [
     "stejar-natur",
