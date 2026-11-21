@@ -174,5 +174,24 @@
   ],
   "suspendat-hol-90": [
     "gri-casmir"
+  ],
+  "dressing-3-usi-150": [
+    "alb-total"
+  ],
+  "dressing-baie-60": [
+    "alb-total",
+    "alb-stejar-natur"
+  ],
+  "dressing-birou-100": [
+    "alb-stejar-natur",
+    "stejar-natur"
+  ],
+  "dressing-camara-90": [
+    "alb-total",
+    "alb-stejar-natur"
+  ],
+  "dressing-serviciu-80": [
+    "alb-total",
+    "gri-casmir"
   ]
 }

@@ -454,3 +454,43 @@ The single rotating object (A10) now repeats in new forms. Across batches 5–7:
 - `Coats and bags hang only in an entrance hall, never in a living room or bedroom.`
 - `No fruit bowl in a bedroom or hall.`
 - Extend the A10 list and pick by product index so the same object is not used twice within one product: `a folded blanket | a pair of sneakers | a tote bag (hall only) | a book on the bed | a plant on the floor | a laundry basket | reading glasses | a mug | a toy | an umbrella (hall only)`.
+
+---
+
+# Batch 8 (v3) (11 photos)
+
+Reviewed: `/tmp/claude-0/batch8/<slug>/<paletteId>.webp` against the renders and the v3 prompts in `scripts/shop-art-direction-v3.json` (rules A1–A14, M1–M4, C1–C5). Measurements are pixel estimates, ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-mixta-180 / nuc-crem | REJECT (borderline) | 8.5 | Sideboard is right (door + 4 drawers + door, gold bars, walnut body); a coat hangs on a hook in the dining room (A10) and there are four props, not one |
+| dressing-3-usi-150 / alb-stejar-natur | REJECT | 7.5 | 3 doors and handles right, but the front is 0.80 wide-to-high against 0.71 (reads ~170 cm wide), and the white side panel is an impossible chamfered sliver ~10 cm deep on the side facing away from the camera |
+| dressing-3-usi-150 / alb-total | ACCEPT | 9 | 3 equal doors, steel bars as in the render, ratio 0.71; about 5 cm above the door frame once depth is allowed for |
+| dressing-baie-60 / alb-stejar-natur | ACCEPT | 8.5 | 2 stacked doors, joint at mid-height, handles at the joint on the right; bathroom with basin and washing machine; reads ~170–175 cm high |
+| dressing-baie-60 / alb-total | ACCEPT | 8.5 | 2 stacked doors, handles at the joint; beside the washing machine, towel radiator; lower door slightly taller than the upper |
+| dressing-birou-100 / alb-stejar-natur | ACCEPT | 9 | 2 doors, steel knobs, twice as tall as wide, in the corner; desk, laptop, lamp off |
+| dressing-birou-100 / stejar-natur | ACCEPT | 8.5 | All oak; top just below the door frame; the monitor has a tiny logo on its bezel (A5), illegible at site size |
+| dressing-camara-90 / alb-stejar-natur | ACCEPT | 9 | 2 × 2 doors, joint at mid-height, 4 black bars at the joint; beside a free-standing fridge, kitchen tiles |
+| dressing-camara-90 / alb-total | ACCEPT | 8.5 | 2 × 2 doors, handles right; upper doors ~10% taller than lower (render: equal); green kitchen units and kettle at the frame edge |
+| dressing-serviciu-80 / alb-total | ACCEPT | 8.5 | 2 doors, no handles; hall with entrance door, hooks, umbrella; reads ~10% wide |
+| dressing-serviciu-80 / gri-casmir | ACCEPT | 9 | 2 doors, no handles, greige; hall corner beside the kitchen doorway |
+
+Door counts: both dressing-camara-90 photos have exactly 4 doors in 2 rows and both dressing-baie-60 photos exactly 2 stacked doors, with joints and handles where the renders have them. Rooms fit the pieces in all 11.
+
+## Rejects
+
+### dressing-3-usi-150 / alb-stejar-natur
+- Prompt additions:
+  - `The wardrobe is clearly taller than wide: 1.4 times taller than wide. Each door is four times taller than wide (50 cm × 200 cm).`
+  - `The wardrobe is a 55 cm deep box. Only the side nearer to the camera is visible, as a plain white rectangle 55 cm deep with square corners; the far side is hidden.`
+  - `Camera on the side of the room away from the corner the wardrobe stands in.`
+
+### comoda-mixta-180 / nuc-crem
+- Prompt additions:
+  - `No coat, no wall hook, no bag anywhere in the room.`
+  - `On the sideboard only a lamp (switched off) and one stack of plates; nothing else.`
+
+## New general rule
+
+- A15: `The piece is a solid box with its real depth: the side nearer the camera is visible as a plain rectangle of the stated depth with square corners; the far side is never visible; no chamfered or angled side panels.`
+- Tighten A10 in the wording sent to the model: name the forbidden items positively per room (`No coat or wall hook in this living room / bedroom / office.`) instead of the general rule; the general form was ignored again.
