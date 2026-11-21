@@ -636,12 +636,12 @@ export function legBTransform(scene: AtelierScene): { position: [number, number,
   const left = k.layout === "L_STANGA";
   const theta = left ? Math.PI / 2 : -Math.PI / 2;
   // three.js rotation about y: x' = x cos + z sin, z' = −x sin + z cos (cos = 0 here)
-  const rx = (a: number, b: number) => (left ? b : -b);
-  const rz = (a: number, b: number) => (left ? -a : a);
+  const rx = (_a: number, b: number) => (left ? b : -b);
+  const rz = (a: number) => (left ? -a : a);
   const tx = left ? 0 : W;
   const tz = left ? k.legBLengthMm : 0;
   return {
-    position: [(rx(W / 2, D / 2) + tx - W / 2) * S, 0, (rz(W / 2, D / 2) + tz - D / 2) * S],
+    position: [(rx(W / 2, D / 2) + tx - W / 2) * S, 0, (rz(W / 2) + tz - D / 2) * S],
     rotation: [0, theta, 0],
   };
 }
