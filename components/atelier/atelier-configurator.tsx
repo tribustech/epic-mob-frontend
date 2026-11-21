@@ -30,7 +30,7 @@ import {
   type StepId,
 } from "./session";
 import { StepBar } from "./step-bar";
-import { StepColors } from "./step-colors";
+import { StepColors, type ColorPart } from "./step-colors";
 import { StepDoors } from "./step-doors";
 import { StepInterior } from "./step-interior";
 import { StepModel } from "./step-model";
@@ -160,7 +160,13 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   // a new body decor is hidden behind closed doors: open them for a moment so the change is seen
   const [peek, setPeek] = useState(false);
   const peekTimer = useRef<number | null>(null);
-  const doorsOpen = manualDoors ?? (step === "interior" || peek);
+  // „Culori": the part being coloured is the part shown — doors open for the body, closed for the fronts
+  const [colorPart, setColorPart] = useState<ColorPart | null>(null);
+  const onColorPart = useCallback((part: ColorPart | null) => {
+    setColorPart(part);
+    if (part) setManualDoors(null);
+  }, []);
+  const doorsOpen = manualDoors ?? (step === "interior" || peek || (step === "culori" && colorPart === "corp"));
   // „Uși și mânere": the 3D view looks at what is being chosen — the whole front for doors and
   // mirrors, a close view of a front edge for handles
   const [usiPart, setUsiPart] = useState<"doors" | "handles">("doors");
@@ -343,6 +349,8 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
       else if (INTERIOR_ACTIONS.has(a.type)) trackFunnelOnce("interior_changed");
     }
   }, [catalog]);
+
+  const undo = useCallback(() => dispatch({ type: "undo" }), []);
 
   const onDoorsToggle = useCallback((open: boolean) => {
     autoClosed.current = false;
@@ -564,6 +572,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                     act={act}
                     noTwoFaces={noTwoFaces !== null && noTwoFaces === vopsitModel}
                     focus={focus?.anchor ?? null}
+                    onPart={onColorPart}
                   />
                 )}
                 {step === "dimensiuni" && isKitchen && (
@@ -580,7 +589,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                     heightIssue={heightIssue ? issueMessage(heightIssue.message, config.category === "DRESSING") : null}
                   />
                 )}
-                {step === "usi" && <StepDoors catalog={catalog} config={config} act={act} front={front} />}
+                {step === "usi" && <StepDoors catalog={catalog} config={config} act={act} front={front} onUndo={undo} />}
                 {step === "interior" && isKitchen && (
                   <StepKitchen config={config} act={act} pick={kitchenPick} onPick={onKitchenPick} />
                 )}

@@ -21,12 +21,15 @@ export function StepDoors({
   config,
   act,
   front,
+  onUndo,
 }: {
   catalog: AtelierCatalog;
   config: AtelierConfig;
   act: Act;
   /** the look of the fronts (the door chips are drawn with it; a painted handle starts from it) */
   front: MaterialLook;
+  /** takes back the last change (the handle picker's „Anulează") */
+  onUndo?: () => void;
 }) {
   const dressing = categoryRules(config.category).slidingDoors;
   const handled = hasHandledFronts(config);
@@ -39,7 +42,7 @@ export function StepDoors({
   return (
     <div className="atelier-stack">
       {dressing && <DoorsPanel catalog={catalog} config={config} act={act} front={front} />}
-      {handled && <HandlePicker catalog={catalog} config={config} act={act} front={front} />}
+      {handled && <HandlePicker catalog={catalog} config={config} act={act} front={front} onUndo={onUndo} />}
       {dressing && !handled && (
         <Section title="Mânere" anchor="manere">
           <div className="atelier-box atelier-nohandles">

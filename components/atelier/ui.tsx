@@ -97,6 +97,45 @@ export function decorTitle(name: string): string {
   return decorName(at > 0 && at < name.length - 3 ? name.slice(at + 3) : name);
 }
 
+/** English words in panel names (AGT), as a client would say them. */
+const EN_WORDS: Record<string, string> = {
+  white: "Alb", black: "Negru", grey: "Gri", gray: "Gri", cream: "Crem", blue: "Albastru", green: "Verde", gold: "Auriu",
+  oak: "Stejar", walnut: "Nuc", wood: "Lemn", stone: "Piatră", light: "deschis", dark: "închis", anthracite: "Antracit",
+  metallic: "metalizat", natural: "natur", cashmere: "Cașmir", capucino: "Cappuccino", beige: "Bej", clay: "Lut", olive: "Oliv", sky: "Cer",
+};
+/** English puts the colour last („Storm Grey"); Romanian puts it first („Gri Storm"). */
+const EN_HEAD = new Set(["white", "black", "grey", "gray", "cream", "blue", "green", "gold", "oak", "walnut", "wood", "anthracite"]);
+const GLOSS = /^HG\s+/i;
+const MATTE = /^(Soft Touch|Super Matt|Supramat|Matt)\s+|\s+(Mat|Soft)$/i;
+
+/**
+ * The name under a swatch, in one to three plain words: no decor code, no supplier shorthand, no shouting.
+ * „W1000 ST9 · Alb Premium" → „Alb Premium"; „601 · HG White" → „Alb" (finish „lucios");
+ * „726 · Soft Touch Storm Grey" → „Gri Storm" (finish „mat"); „STEJAR MALMO" → „Stejar Malmo".
+ */
+export function decorLabel(name: string): { label: string; finish: "lucios" | "mat" | null } {
+  let text = decorTitle(name).replace(/\s+\d[\s-]*f[ae][țt][ăae](?!\p{L})/giu, "").trim();
+  // a name written all in capitals: „STEJAR MALMO", „NUC ALTURA"
+  if (text === text.toUpperCase()) text = text.replace(/\p{L}{3,}/gu, (w) => w.charAt(0) + w.slice(1).toLowerCase());
+  let finish: "lucios" | "mat" | null = null;
+  if (GLOSS.test(text)) {
+    finish = "lucios";
+    text = text.replace(GLOSS, "");
+  }
+  while (MATTE.test(text) && text.replace(MATTE, "").trim()) {
+    finish ??= "mat";
+    text = text.replace(MATTE, "").trim();
+  }
+  let words = text.split(/\s+/).filter(Boolean);
+  const last = words[words.length - 1]?.toLowerCase();
+  if (words.length > 1 && last && EN_HEAD.has(last)) words = [words[words.length - 1], ...words.slice(0, -1)];
+  words = words.map((w, i) => {
+    const ro = EN_WORDS[w.toLowerCase()];
+    return ro ? (i === 0 ? ro.charAt(0).toUpperCase() + ro.slice(1) : ro) : w;
+  });
+  return { label: decorName(words.join(" ")) || decorTitle(name), finish };
+}
+
 export function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
 }
