@@ -5,7 +5,8 @@ import { ChevronDown, Search } from "lucide-react";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import { MOOD_LABELS, defaultVopsitModelId, type PaletteMood, type ResolvedPalette } from "@/lib/atelier/palettes";
 import type { AtelierCatalog, AtelierConfig, AtelierFronts, AtelierMaterial, FrontKind } from "@/lib/atelier/types";
-import { cropBox, materialLook, paletteLooks, swatchStyle, type MaterialLook } from "./material-look";
+import { cropBox, materialLook, paletteLooks, swatchStyle, worktopLook, worktopMaterialLook, type MaterialLook } from "./material-look";
+import { FEATURED_WORKTOP_CODES, usableWorktops } from "@/lib/atelier/house-rules";
 
 import type { Act } from "./session";
 import { ralLabel, ralNameRo } from "@/lib/atelier/ral-names";
@@ -349,6 +350,26 @@ export function StepColors({
     return items.map((item, i) => ({ item, i })).sort((a, b) => rank(a.item.id) - rank(b.item.id) || a.i - b.i).map((x) => x.item);
   }, [catalog]);
 
+  const kitchen = (config.category === "BUCATARIE" || config.category === "BAIE");
+  const worktopItems = useMemo(() => {
+    if (!kitchen) return [];
+    const rank = (code: string | null | undefined) => {
+      const at = FEATURED_WORKTOP_CODES.findIndex((c) => fold(c).replace(/\s+/g, "") === fold(code ?? "").replace(/\s+/g, ""));
+      return at < 0 ? FEATURED_WORKTOP_CODES.length : at;
+    };
+    return usableWorktops(catalog, config.depthMm)
+      .map((m, i) => ({ m, i }))
+      .sort((a, b) => rank(a.m.decorCode) - rank(b.m.decorCode) || a.i - b.i)
+      .map(({ m }) => {
+        const item = materialItem(m, "PAL");
+        // the board of the same decor when there is one; else the supplier's worktop photo is still the best picture
+        const board = worktopMaterialLook(catalog, m);
+        return board.imageUrl ? { ...item, look: board } : item;
+      });
+  }, [catalog, config.depthMm, kitchen]);
+  const worktop = worktopLook(catalog, config);
+  const worktopName = (catalog.worktops ?? []).find((m) => m.id === config.kitchen?.worktopId)?.name ?? "—";
+
   const kinds = (Object.keys(KIND_LABELS) as FrontKind[]).filter((k) => catalog.fronts[k].length > 0);
   const setFronts = (next: AtelierFronts) => {
     if (JSON.stringify(next) === JSON.stringify(fronts)) return;
@@ -414,6 +435,29 @@ export function StepColors({
               {allPalettes ? "Arată mai puține" : `Vezi toate combinațiile (${paletteList.length})`}
             </button>
           )}
+        </Section>
+      )}
+
+      {kitchen && worktopItems.length > 0 && (
+        <Section title="Blat" anchor="blat" hint="Blat de 38 mm, rezistent la apă, tăiat pe măsura bucătăriei.">
+          <div className="atelier-box">
+            {worktop && (
+              <div className="atelier-box__head">
+                <p className="atelier-hint">Ales acum</p>
+                <Current look={worktop} name={worktopName} />
+              </div>
+            )}
+            <SwatchPicker
+              label="Decor blat"
+              items={worktopItems}
+              selectedId={config.kitchen?.worktopId}
+              placeholder="Caută: stejar, marmură, beton…"
+              onPick={(worktopId) => {
+                act({ type: "setWorktop", worktopId });
+                trackFunnel("material_changed", { part: "blat" });
+              }}
+            />
+          </div>
         </Section>
       )}
 

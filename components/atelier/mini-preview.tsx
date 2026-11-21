@@ -8,6 +8,7 @@ import { FINISH_INFO, effectiveHandle } from "@/lib/atelier/handles";
 import type { DoorFill } from "@/lib/atelier/types";
 import { glassStops, type Glazing } from "./glass-look";
 import type { MaterialLook } from "./material-look";
+import { KitchenMini } from "./kitchen-mini";
 
 /**
  * A small front elevation of a model, drawn from its shape alone (no CRM call): what the
@@ -50,7 +51,12 @@ function luminance(color: string): number {
   return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 }
 
-export function MiniPreview({
+export function MiniPreview(props: Parameters<typeof FurniturePreview>[0] & { worktop?: MaterialLook | null }) {
+  if (props.shape.category === "BUCATARIE" || props.shape.category === "BAIE") return <KitchenMini {...props} />;
+  return <FurniturePreview {...props} />;
+}
+
+function FurniturePreview({
   shape,
   carcass,
   front,

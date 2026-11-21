@@ -1,3 +1,4 @@
+import { MODULE_LABELS, moduleLabel, upperOf } from "../atelier/kitchen";
 import { CONTENT_LABELS } from "../atelier/categories";
 import { hasMirror } from "../atelier/door-types";
 import { hasHandledFronts } from "../atelier/handles";
@@ -15,13 +16,15 @@ import RENDERS from "./renders.json";
  */
 
 export type ShopRoom = "dormitor" | "living" | "hol" | "bucatarie" | "baie" | "copii" | "birou";
-export type ShopCategory = "dulapuri" | "comode" | "biblioteci" | "suspendate";
+export type ShopCategory = "dulapuri" | "bucatarii" | "comode" | "biblioteci" | "suspendate" | "baie";
 
 export const SHOP_CATEGORIES: { id: ShopCategory; label: string; atelier: AtelierCategory; blurb: string }[] = [
   { id: "dulapuri", label: "Dulapuri și dressinguri", atelier: "DRESSING", blurb: "Cu uși glisante, batante, cu oglindă sau deschise." },
   { id: "comode", label: "Comode și noptiere", atelier: "COMODA", blurb: "Sertare, comode TV, bufete și pantofare." },
   { id: "biblioteci", label: "Biblioteci și separatoare", atelier: "SEPARATOR", blurb: "Rafturi care despart camera fără să ia lumina." },
   { id: "suspendate", label: "Corpuri suspendate", atelier: "SUSPENDAT", blurb: "Comode TV plutitoare, etajere și dulăpioare." },
+  { id: "bucatarii", label: "Bucătării", atelier: "BUCATARIE", blurb: "Pe un perete sau în L, cu blat, chiuvetă și loc pentru electrocasnice." },
+  { id: "baie", label: "Mobilier baie", atelier: "BAIE", blurb: "Lavoar cu sertare, dulap cu oglindă, coloană și nișă pentru mașina de spălat." },
 ];
 
 export const ROOM_LABELS: Record<ShopRoom, string> = {
@@ -125,6 +128,22 @@ const COLOURS: Record<string, string[]> = {
   "separator-copii-120": ["alb-total", "stejar-alb", "denim-alb", "salvie-stejar"],
   "suspendat-bucatarie-180": ["alb-total", "alb-stejar-natur", "gri-casmir", "salvie-stejar"],
   "suspendat-baie-nisa-90": ["alb-total", "stejar-alb", "alb-casmir", "gri-casmir"],
+  // kitchens: what Romanian kitchens are bought in (white, white with oak, cashmere, sage), the model's own first
+  "bucatarie-240": ["alb-stejar-natur", "alb-total", "gri-casmir", "salvie-stejar"],
+  "bucatarie-compacta-180": ["alb-total", "alb-stejar-natur", "gri-casmir", "stejar-alb"],
+  "bucatarie-frigider-300": ["gri-casmir", "alb-total", "alb-stejar-natur", "stejar-casmir"],
+  "bucatarie-coloane-360": ["stejar-alb", "alb-total", "gri-casmir", "antracit-stejar"],
+  "bucatarie-l-270": ["alb-casmir", "alb-total", "alb-stejar-natur", "salvie-stejar"],
+  "bucatarie-l-frigider-300": ["bardolino-gri", "alb-total", "gri-casmir", "stejar-alb"],
+  "bucatarie-rafturi-240": ["salvie-stejar", "alb-total", "stejar-alb", "alb-stejar-natur"],
+  "bucatarie-ridicabile-300": ["grafit-total", "alb-total", "gri-casmir", "antracit-stejar"],
+  // bathroom furniture: a mirror cabinet over the basin, so white bodies only
+  "baie-lavoar-coloana-120": ["alb-stejar-natur", "alb-total", "alb-casmir", "alb-stejar-deschis"],
+  "baie-lavoar-60": ["alb-total", "alb-stejar-natur", "alb-casmir", "alb-gri-matase"],
+  "baie-lavoar-80": ["alb-casmir", "alb-total", "alb-stejar-natur", "alb-antracit"],
+  "baie-dubla-140": ["alb-stejar-deschis", "alb-total", "alb-casmir", "alb-stejar-natur"],
+  "baie-masina-140": ["alb-antracit", "alb-total", "alb-stejar-natur", "alb-casmir"],
+  "baie-picioare-100": ["alb-gri-matase", "alb-total", "alb-stejar-natur", "alb-casmir"],
 };
 
 export interface ShopProduct {
@@ -143,8 +162,10 @@ const CATEGORY_OF: Record<AtelierCategory, ShopCategory> = {
   COMODA: "comode",
   SEPARATOR: "biblioteci",
   SUSPENDAT: "suspendate",
+  BUCATARIE: "bucatarii",
+  BAIE: "baie",
 };
-const DEFAULT_ROOM: Record<AtelierCategory, ShopRoom> = { DRESSING: "dormitor", COMODA: "dormitor", SEPARATOR: "living", SUSPENDAT: "living" };
+const DEFAULT_ROOM: Record<AtelierCategory, ShopRoom> = { DRESSING: "dormitor", COMODA: "dormitor", SEPARATOR: "living", SUSPENDAT: "living", BUCATARIE: "bucatarie", BAIE: "baie" };
 
 /** 3D renders of each colour (scripts/render-shop-images.cjs): public/magazin/randari/<slug>/<palette>.webp */
 export function renderOf(slug: string, paletteId: string): string | null {
@@ -209,6 +230,16 @@ export const HANDLES: Record<string, AtelierHandle> = {
   "separator-copii-120": { type: "BUTON", finish: "AURIU" },
   "suspendat-bucatarie-180": { type: "GOLA", finish: "INOX" },
   "suspendat-baie-nisa-90": { type: "BUTON", finish: "NEGRU" },
+  "bucatarie-240": { type: "APLICAT", finish: "NEGRU" },
+  "bucatarie-compacta-180": { type: "APLICAT", finish: "INOX" },
+  "bucatarie-frigider-300": { type: "APLICAT", finish: "INOX" },
+  "bucatarie-coloane-360": { type: "APLICAT", finish: "NEGRU" },
+  "bucatarie-l-270": { type: "APLICAT", finish: "AURIU" },
+  "bucatarie-l-frigider-300": { type: "APLICAT", finish: "NEGRU" },
+  "bucatarie-rafturi-240": { type: "BUTON", finish: "AURIU" },
+  "baie-lavoar-coloana-120": { type: "APLICAT", finish: "NEGRU" },
+  "baie-lavoar-80": { type: "APLICAT", finish: "AURIU" },
+  "baie-dubla-140": { type: "APLICAT", finish: "INOX" },
 };
 
 
@@ -317,6 +348,20 @@ export const PHOTO_COLOURS: Record<string, string[]> = {
   "suspendat-hol-90": ["gri-casmir", "alb-stejar-natur"],
   "suspendat-bucatarie-180": ["alb-total", "alb-stejar-natur"],
   "suspendat-baie-nisa-90": ["alb-total", "stejar-alb"],
+  "bucatarie-240": ["alb-stejar-natur", "alb-total"],
+  "bucatarie-compacta-180": ["alb-total"],
+  "bucatarie-frigider-300": ["gri-casmir", "alb-total"],
+  "bucatarie-coloane-360": ["stejar-alb", "alb-total"],
+  "bucatarie-l-270": ["alb-casmir", "alb-stejar-natur"],
+  "bucatarie-l-frigider-300": ["bardolino-gri"],
+  "bucatarie-rafturi-240": ["salvie-stejar"],
+  "bucatarie-ridicabile-300": ["grafit-total", "alb-total"],
+  "baie-lavoar-coloana-120": ["alb-stejar-natur", "alb-total"],
+  "baie-lavoar-60": ["alb-total"],
+  "baie-lavoar-80": ["alb-casmir"],
+  "baie-dubla-140": ["alb-stejar-deschis"],
+  "baie-masina-140": ["alb-antracit"],
+  "baie-picioare-100": ["alb-gri-matase"],
 };
 
 export const SHOP_PRODUCTS: ShopProduct[] = LAYOUT_PRESETS.map((preset) => {
@@ -343,6 +388,11 @@ const cmText = (mm: number) => `${Math.round(mm / 10)}`;
 /** „240 × 260 × 60 cm" (lățime × înălțime × adâncime) */
 export function sizeText(preset: LayoutPreset): string {
   const s = preset.shape;
+  if (s.category === "BAIE") return `${cmText(s.widthMm)} × ${cmText(s.heightMm)} × ${cmText(s.depthMm)} cm, ${s.legsMm === 0 ? "suspendat" : "pe picioare"}`;
+  if (s.category === "BUCATARIE") {
+    const b = s.kitchen?.layout !== "LINIAR" ? s.kitchen?.legB : undefined;
+    return `${cmText(s.widthMm)}${b ? ` + ${cmText(b.widthMm)}` : ""} cm, înaltă de ${cmText(s.heightMm)} cm, blat de ${cmText(s.depthMm)} cm`;
+  }
   return `${cmText(s.widthMm)} × ${cmText(s.heightMm)} × ${cmText(s.depthMm)} cm`;
 }
 
@@ -359,6 +409,8 @@ const DOOR_TEXT: Record<string, string> = {
 /** The facts of the model, one line each (product page „Ce include"). */
 export function productFacts(preset: LayoutPreset): string[] {
   const s = preset.shape;
+  if (s.category === "BUCATARIE") return kitchenFacts(preset);
+  if (s.category === "BAIE") return bathFacts(preset);
   const facts: string[] = [`Dimensiuni: ${sizeText(preset)} (lățime × înălțime × adâncime)`];
   if (s.category === "DRESSING") {
     const fills = s.doors.fills ?? [];
@@ -377,6 +429,35 @@ export function productFacts(preset: LayoutPreset): string[] {
   if (s.bottom?.type === "USI") facts.push("Dulăpioare cu uși la bază");
   if (s.category === "SUSPENDAT") facts.push("Se prinde de perete, fără picioare");
   else facts.push(`Pe picioare de ${s.legsMm / 10} cm`);
+  return facts;
+}
+
+function kitchenFacts(preset: LayoutPreset): string[] {
+  const s = preset.shape;
+  const L = s.kitchen?.layout !== "LINIAR" && !!s.kitchen?.legB;
+  const all = [...s.columns, ...(L ? s.kitchen!.legB!.columns : [])];
+  const facts = [`${L ? "În L" : "Pe un perete"}: ${sizeText(preset)}`];
+  facts.push(`${all.length} module: ${all.map((c) => (MODULE_LABELS[c.content] ?? CONTENT_LABELS[c.content]).toLowerCase()).join(", ")}`);
+  const drawers = all.reduce((n, c) => n + (c.content === "SERTARE" || c.content === "PLITA" ? c.drawers ?? 3 : c.content === "COLOANA_CUPTOR" ? 2 : 0), 0);
+  if (drawers > 0) facts.push(`${drawers} sertare pe glisiere Blum Tandem cu închidere lină`);
+  facts.push("Blat de 38 mm, decupat pentru chiuvetă și plită");
+  if (s.kitchen?.led) facts.push("Lumină LED sub dulapurile de sus");
+  facts.push("Electrocasnicele și chiuveta nu sunt incluse: lăsăm loc exact pentru ale tale");
+  facts.push(`Pe picioare de ${s.legsMm / 10} cm, cu plintă`);
+  return facts;
+}
+
+function bathFacts(preset: LayoutPreset): string[] {
+  const s = preset.shape;
+  const facts = [`Dimensiuni: ${sizeText(preset)} (lățime × înălțime până sus × adâncime)`];
+  facts.push(`${s.columns.length} ${s.columns.length === 1 ? "modul" : "module"}: ${s.columns.map((c) => moduleLabel(c.content, true).toLowerCase()).join(", ")}`);
+  const drawers = s.columns.reduce((n, c) => n + (c.content === "LAVOAR" ? c.drawers ?? 2 : c.content === "SERTARE" ? c.drawers ?? 3 : 0), 0);
+  if (drawers > 0) facts.push(`${drawers} ${drawers === 1 ? "sertar" : "sertare"} pe glisiere Blum Tandem cu închidere lină`);
+  const mirrors = s.columns.filter((c) => upperOf(c, true) === "OGLINDA").length;
+  if (mirrors > 0) facts.push(mirrors === 1 ? "Dulap cu uși oglindă deasupra lavoarului" : `${mirrors} dulapuri cu uși oglindă`);
+  facts.push("Blat de 38 mm, decupat pentru lavoar");
+  facts.push(s.columns.some((c) => c.content === "MASINA_SPALAT") ? "Lavoarul, bateria și mașina de spălat nu sunt incluse: lăsăm loc exact pentru ale tale" : "Lavoarul și bateria nu sunt incluse: decupăm blatul pentru ale tale");
+  facts.push(s.legsMm === 0 ? "Suspendat pe perete, podeaua rămâne liberă" : `Pe picioare de ${s.legsMm / 10} cm, cu plintă`);
   return facts;
 }
 

@@ -9,7 +9,8 @@ import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetById, presetsFor } from "@/lib/atelier/presets";
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 import { glazingOf } from "./glass-look";
-import { swatchStyle, type MaterialLook } from "./material-look";
+import { swatchStyle, worktopLook, type MaterialLook } from "./material-look";
+import { LAYOUT_LABELS, MODULE_LABELS, isBath, kitchenLayout, upperOf } from "@/lib/atelier/kitchen";
 import { MiniPreview } from "./mini-preview";
 import { LeadSent, RequestForm, leadSentFor, type LeadStatus } from "./request-form";
 import { shapeKey, shapeOf, type LeadContact, type StepId } from "./session";
@@ -122,6 +123,19 @@ export function StepOffer({
   const shownHandle = effectiveHandle(config);
   const handle = shownHandle ? handleText(shownHandle) : null;
   const dressing = config.category === "DRESSING";
+  const kitchen = (config.category === "BUCATARIE" || config.category === "BAIE");
+  const bath = isBath(config);
+  const worktop = kitchen ? worktopLook(catalog, config) : null;
+  const worktopName = (catalog.worktops ?? []).find((m) => m.id === config.kitchen?.worktopId)?.name ?? "—";
+  const kitchenModules = kitchen
+    ? [...config.columns, ...(config.kitchen?.legB && kitchenLayout(config) !== "LINIAR" ? config.kitchen.legB.columns : [])]
+    : [];
+  const appliances = kitchenModules
+    .map((c) => c.content)
+    .filter((c, i, all) => ["CHIUVETA", "CUPTOR", "PLITA", "MASINA_VASE", "FRIGIDER", "COLOANA_CUPTOR", "LAVOAR", "MASINA_SPALAT"].includes(c) && all.indexOf(c) === i)
+    .map((c) => MODULE_LABELS[c]?.toLowerCase())
+    .filter(Boolean);
+  const mirrors = bath ? config.columns.filter((c) => upperOf(c, true) === "OGLINDA").length : 0;
   const sent = leadSentFor(status, config);
 
   return (
@@ -131,7 +145,7 @@ export function StepOffer({
         <div className="atelier-summary">
           <div className="atelier-summary__top">
             <span className="atelier-summary__art">
-              <MiniPreview shape={shapeOf(config)} carcass={carcass} front={front} glazing={glazingOf(catalog, config.doors)} className="h-full w-full" />
+              <MiniPreview shape={shapeOf(config)} carcass={carcass} front={front} worktop={worktop} glazing={glazingOf(catalog, config.doors)} className="h-full w-full" />
             </span>
             <div className="min-w-0">
               <p className="atelier-summary__name">{combo?.name ?? preset?.name ?? "Configurație personalizată"}</p>
@@ -145,9 +159,21 @@ export function StepOffer({
             </div>
           </div>
           <dl>
-            <Row label="Dimensiuni" step="dimensiuni" anchor="dimensiuni" onStep={onStep}>
-              {cm(config.widthMm)} × {cm(config.heightMm)} × {cm(config.depthMm)} cm
-            </Row>
+            {bath ? (
+              <Row label="Dimensiuni" step="dimensiuni" anchor="dimensiuni" onStep={onStep}>
+                {cm(config.widthMm)} × {cm(config.heightMm)} × {cm(config.depthMm)} cm · {config.legsMm === 0 ? "suspendat" : "pe picioare"}
+              </Row>
+            ) : kitchen ? (
+              <Row label="Dimensiuni" step="dimensiuni" anchor="dimensiuni" onStep={onStep}>
+                {LAYOUT_LABELS[kitchenLayout(config)]} · {cm(config.widthMm)}
+                {config.kitchen?.legB && kitchenLayout(config) !== "LINIAR" ? ` + ${cm(config.kitchen.legB.widthMm)}` : ""} cm, înaltă de{" "}
+                {cm(config.heightMm)} cm
+              </Row>
+            ) : (
+              <Row label="Dimensiuni" step="dimensiuni" anchor="dimensiuni" onStep={onStep}>
+                {cm(config.widthMm)} × {cm(config.heightMm)} × {cm(config.depthMm)} cm
+              </Row>
+            )}
             {palette && (
               <Row label="Culori" step="culori" anchor="culori" onStep={onStep}>
                 {palette.name}
@@ -162,10 +188,24 @@ export function StepOffer({
                 <Decor look={front} name={frontName} />
               </Row>
             )}
-            <Row label={dressing ? "Interior" : "Compartimente"} step="interior" anchor={bottom && !dressing ? "jos" : "coloane"} onStep={onStep}>
-              {plural(config.columns.length, dressing ? "coloană" : "compartiment", dressing ? "coloane" : "compartimente")}
-              {bottom ? ` · ${bottom}` : ""}
-            </Row>
+            {kitchen && (
+              <Row label="Blat" step="culori" anchor="blat" onStep={onStep}>
+                {worktop ? <Decor look={worktop} name={worktopName} /> : "—"}
+              </Row>
+            )}
+            {kitchen ? (
+              <Row label="Module" step="interior" anchor="coloane" onStep={onStep}>
+                {plural(kitchenModules.length, "modul", "module")}
+                {appliances.length ? ` · ${bath ? "" : "loc pentru "}${appliances.join(", ")}` : ""}
+                {mirrors ? ` · ${mirrors > 1 ? `${mirrors} dulapuri` : "dulap"} cu oglindă` : ""}
+                {config.kitchen?.led ? " · LED sub dulapuri" : ""}
+              </Row>
+            ) : (
+              <Row label={dressing ? "Interior" : "Compartimente"} step="interior" anchor={bottom && !dressing ? "jos" : "coloane"} onStep={onStep}>
+                {plural(config.columns.length, dressing ? "coloană" : "compartiment", dressing ? "coloane" : "compartimente")}
+                {bottom ? ` · ${bottom}` : ""}
+              </Row>
+            )}
             {doors && (
               <Row label="Uși" step="usi" anchor="usi" onStep={onStep}>
                 {doors}

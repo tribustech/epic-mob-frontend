@@ -43,7 +43,7 @@ function fullCatalog(): AtelierCatalog {
 const inRange = (v: number, [lo, hi]: readonly [number, number]) => v >= lo && v <= hi;
 
 test("there are enough presets in every category", () => {
-  const min = { DRESSING: 10, COMODA: 7, SEPARATOR: 5, SUSPENDAT: 6 } as const;
+  const min = { DRESSING: 10, COMODA: 7, SEPARATOR: 5, SUSPENDAT: 6, BUCATARIE: 6, BAIE: 5 } as const;
   for (const category of CATEGORY_ORDER) {
     assert.ok(presetsFor(category).length >= min[category], `${category}: ${presetsFor(category).length}`);
   }
@@ -81,8 +81,9 @@ for (const preset of LAYOUT_PRESETS) {
       assert.ok(inRange(c.widthMm, rules.column), `column ${i + 1} width`);
       assert.ok(rules.contents.includes(c.content), `column ${i + 1} content ${c.content}`);
       if (c.drawers !== undefined) {
-        assert.ok(c.content === "SERTARE" || c.content === "BARA_SERTARE", `column ${i + 1}: drawers on ${c.content}`);
-        assert.ok(inRange(c.drawers, c.content === "SERTARE" ? SERTARE_RANGE : BARA_SERTARE_RANGE), `column ${i + 1} drawers`);
+        assert.ok(c.content === "SERTARE" || c.content === "BARA_SERTARE" || c.content === "LAVOAR", `column ${i + 1}: drawers on ${c.content}`);
+        const range = c.content === "SERTARE" ? SERTARE_RANGE : c.content === "LAVOAR" ? ([1, 2] as const) : BARA_SERTARE_RANGE;
+        assert.ok(inRange(c.drawers, range), `column ${i + 1} drawers`);
       }
       if (c.shelves !== undefined) assert.ok(Number.isInteger(c.shelves) && inRange(c.shelves, [0, 15]), `column ${i + 1} shelves`);
       if (c.railPosition !== undefined) assert.equal(c.content, "POLITE_BARA");
@@ -150,7 +151,7 @@ test("mirror presets: one mirrored sliding door, a mirror on the middle column, 
 
 test("a few presets carry a badge", () => {
   const badges = LAYOUT_PRESETS.filter((p) => p.badge);
-  assert.ok(badges.length >= 3 && badges.length <= 6, `${badges.length} badges`);
+  assert.ok(badges.length >= 3 && badges.length <= 9, `${badges.length} badges`);
 });
 
 test("combos reference existing presets and palettes, across all categories", () => {
