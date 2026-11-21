@@ -79,7 +79,7 @@ export function optionVariants(config: AtelierConfig, catalog: AtelierCatalog): 
         const type = doorType(o, f);
         if (type === config.doors.type && !config.doors.fills) continue;
         const doors = o === "GLISANTE" && doorOpening(config.doors.type) === "GLISANTE" && config.doors.count ? { type, count: config.doors.count } : { type };
-        push(`usi:${type}`, `Uși ${DOOR_LABEL[type]}`, apply(catalog, config, { type: "setDoors", doors }));
+        push(`usi:${type}`, type === "NONE" ? "Fără uși" : `Uși ${DOOR_LABEL[type]}`, apply(catalog, config, { type: "setDoors", doors }));
       }
     }
   }
