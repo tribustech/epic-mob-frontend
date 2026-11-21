@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetAvailable, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
-import { CATEGORY_ORDER } from "@/lib/atelier/categories";
+import { CATEGORY_DISPLAY } from "@/lib/atelier/categories";
 import { doorOpening, hasGlass, hasMirror } from "@/lib/atelier/door-types";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "@/lib/atelier/types";
@@ -20,6 +20,7 @@ export const CATEGORY_SHORT: Record<AtelierCategory, string> = {
   COMODA: "Comodă",
   SEPARATOR: "Separator",
   SUSPENDAT: "Suspendat",
+  BUCATARIE: "Bucătărie",
 };
 
 /** „2,4 m" / „50 cm": the width a model starts from, shown as its own badge so it never truncates. */
@@ -143,7 +144,7 @@ export function StepModel({
     <div className="atelier-stack">
       <Section title="Ce construim?" className="atelier-section--cats">
         <RadioGroup label="Tip de mobilier" className="atelier-cats">
-          {CATEGORY_ORDER.map((id) => {
+          {CATEGORY_DISPLAY.map((id) => {
             const sample = presetsFor(id)[0];
             return (
               <button

@@ -75,6 +75,7 @@ export function categoryDefaultHandle(category: AtelierCategory): HandleKind | n
 export function hasHandledFronts(config: Pick<AtelierConfig, "category" | "doors" | "bottom" | "columns">): boolean {
   if (config.category === "DRESSING") return config.doors.type.startsWith("BATANTE");
   if (config.category === "SEPARATOR") return !!config.bottom && config.bottom.type !== "NONE";
+  if (config.category === "BUCATARIE") return true;
   if (config.category === "COMODA" || config.category === "SUSPENDAT")
     return config.columns.some((c) => FRONT_CONTENTS.has(c.content));
   return false;

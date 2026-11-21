@@ -43,7 +43,7 @@ function fullCatalog(): AtelierCatalog {
 const inRange = (v: number, [lo, hi]: readonly [number, number]) => v >= lo && v <= hi;
 
 test("there are enough presets in every category", () => {
-  const min = { DRESSING: 10, COMODA: 7, SEPARATOR: 5, SUSPENDAT: 6 } as const;
+  const min = { DRESSING: 10, COMODA: 7, SEPARATOR: 5, SUSPENDAT: 6, BUCATARIE: 6 } as const;
   for (const category of CATEGORY_ORDER) {
     assert.ok(presetsFor(category).length >= min[category], `${category}: ${presetsFor(category).length}`);
   }

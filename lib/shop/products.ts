@@ -15,13 +15,14 @@ import RENDERS from "./renders.json";
  */
 
 export type ShopRoom = "dormitor" | "living" | "hol" | "bucatarie" | "baie" | "copii" | "birou";
-export type ShopCategory = "dulapuri" | "comode" | "biblioteci" | "suspendate";
+export type ShopCategory = "dulapuri" | "bucatarii" | "comode" | "biblioteci" | "suspendate";
 
 export const SHOP_CATEGORIES: { id: ShopCategory; label: string; atelier: AtelierCategory; blurb: string }[] = [
   { id: "dulapuri", label: "Dulapuri și dressinguri", atelier: "DRESSING", blurb: "Cu uși glisante, batante, cu oglindă sau deschise." },
   { id: "comode", label: "Comode și noptiere", atelier: "COMODA", blurb: "Sertare, comode TV, bufete și pantofare." },
   { id: "biblioteci", label: "Biblioteci și separatoare", atelier: "SEPARATOR", blurb: "Rafturi care despart camera fără să ia lumina." },
   { id: "suspendate", label: "Corpuri suspendate", atelier: "SUSPENDAT", blurb: "Comode TV plutitoare, etajere și dulăpioare." },
+  { id: "bucatarii", label: "Bucătării", atelier: "BUCATARIE", blurb: "Pe un perete sau în L, cu blat, chiuvetă și loc pentru electrocasnice." },
 ];
 
 export const ROOM_LABELS: Record<ShopRoom, string> = {
@@ -143,8 +144,9 @@ const CATEGORY_OF: Record<AtelierCategory, ShopCategory> = {
   COMODA: "comode",
   SEPARATOR: "biblioteci",
   SUSPENDAT: "suspendate",
+  BUCATARIE: "bucatarii",
 };
-const DEFAULT_ROOM: Record<AtelierCategory, ShopRoom> = { DRESSING: "dormitor", COMODA: "dormitor", SEPARATOR: "living", SUSPENDAT: "living" };
+const DEFAULT_ROOM: Record<AtelierCategory, ShopRoom> = { DRESSING: "dormitor", COMODA: "dormitor", SEPARATOR: "living", SUSPENDAT: "living", BUCATARIE: "bucatarie" };
 
 /** 3D renders of each colour (scripts/render-shop-images.cjs): public/magazin/randari/<slug>/<palette>.webp */
 export function renderOf(slug: string, paletteId: string): string | null {

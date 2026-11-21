@@ -50,6 +50,7 @@ interface PresetInput {
   legsMm?: PresetShape["legsMm"];
   bottom?: PresetShape["bottom"];
   handle?: PresetShape["handle"];
+  kitchen?: PresetShape["kitchen"];
 }
 
 function make(category: AtelierCategory, p: PresetInput): LayoutPreset {
@@ -65,6 +66,7 @@ function make(category: AtelierCategory, p: PresetInput): LayoutPreset {
   };
   if (p.bottom) shape.bottom = p.bottom;
   if (p.handle) shape.handle = p.handle;
+  if (p.kitchen) shape.kitchen = p.kitchen;
   const preset: LayoutPreset = { id: p.id, category, name: p.name, tagline: p.tagline, shape, paletteId: p.paletteId };
   if (p.badge) preset.badge = p.badge;
   return preset;
@@ -548,11 +550,115 @@ const SUSPENDAT: PresetInput[] = [
   },
 ];
 
+/*
+ * Kitchens: modules left to right as you face the wall. In an L the corner unit (COLT, 110 cm) sits on the
+ * main wall at the corner end, and the second wall's modules fill its length minus the worktop depth (60 cm).
+ * The sink sits next to the dishwasher; the hob (with the oven under it) is never right next to the fridge.
+ */
+const L_B = (widthMm: number, layout: "L_STANGA" | "L_DREAPTA", columns: Column[]): PresetShape["kitchen"] => ({ layout, legB: { widthMm, columns } });
+const BUCATARIE: PresetInput[] = [
+  {
+    id: "bucatarie-240",
+    name: "Bucătărie 2,4 m",
+    tagline: "Sertare, chiuvetă, mașină de vase și cuptor, pe un perete.",
+    badge: "Cea mai aleasă",
+    paletteId: "alb-stejar-natur",
+    size: [2400, 2200, 600],
+    legsMm: 150,
+    columns: [col(600, "SERTARE", { drawers: 3 }), col(600, "CHIUVETA"), col(600, "MASINA_VASE"), col(600, "CUPTOR")],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "bucatarie-compacta-180",
+    name: "Bucătărie compactă 1,8 m",
+    tagline: "Pentru garsonieră sau apartament mic: chiuvetă, cuptor, sertare.",
+    paletteId: "alb-total",
+    size: [1800, 2200, 600],
+    legsMm: 150,
+    columns: [col(600, "CHIUVETA"), col(600, "SERTARE", { drawers: 3 }), col(600, "CUPTOR")],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "bucatarie-frigider-300",
+    name: "Bucătărie 3 m cu frigider",
+    tagline: "Frigider încorporat într-o coloană înaltă, totul pe un perete.",
+    paletteId: "gri-casmir",
+    size: [3000, 2200, 600],
+    legsMm: 150,
+    columns: [col(600, "FRIGIDER"), col(600, "SERTARE", { drawers: 3 }), col(600, "CHIUVETA"), col(600, "MASINA_VASE"), col(600, "CUPTOR")],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "bucatarie-coloane-360",
+    name: "Bucătărie 3,8 m cu coloane",
+    tagline: "Frigider și cuptor la înălțime în coloane, mult loc de lucru.",
+    paletteId: "stejar-alb",
+    size: [3800, 2300, 600],
+    legsMm: 150,
+    columns: [col(600, "FRIGIDER"), col(600, "COLOANA_CUPTOR"), col(600, "SERTARE", { drawers: 3 }), col(800, "CHIUVETA"), col(600, "MASINA_VASE"), col(600, "PLITA")],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "bucatarie-l-270",
+    name: "Bucătărie în L 2,7 × 1,8 m",
+    tagline: "Colț cu chiuvetă pe un perete și cuptor pe celălalt.",
+    badge: "Mult loc de lucru",
+    paletteId: "alb-casmir",
+    size: [2700, 2200, 600],
+    legsMm: 150,
+    columns: [col(1100, "COLT"), col(1000, "CHIUVETA"), col(600, "MASINA_VASE")],
+    kitchen: L_B(1800, "L_STANGA", [col(600, "SERTARE", { drawers: 3 }), col(600, "CUPTOR")]),
+  },
+  {
+    id: "bucatarie-l-frigider-300",
+    name: "Bucătărie în L 3 × 2,4 m",
+    tagline: "Frigider încorporat, colț și plită pe al doilea perete.",
+    paletteId: "bardolino-gri",
+    size: [3000, 2200, 600],
+    legsMm: 150,
+    columns: [col(600, "FRIGIDER"), col(500, "SERTARE", { drawers: 3 }), col(800, "CHIUVETA"), col(1100, "COLT")],
+    kitchen: L_B(2400, "L_DREAPTA", [col(600, "MASINA_VASE"), col(600, "CUPTOR"), col(600, "SERTARE", { drawers: 3 })]),
+  },
+  {
+    id: "bucatarie-rafturi-240",
+    name: "Bucătărie cu rafturi deschise 2,4 m",
+    tagline: "Rafturi deschise sus, pentru o bucătărie aerisită.",
+    paletteId: "salvie-stejar",
+    size: [2400, 2200, 600],
+    legsMm: 150,
+    columns: [
+      col(600, "SERTARE", { drawers: 3, upper: "DESCHIS" }),
+      col(600, "CHIUVETA"),
+      col(600, "MASINA_VASE", { upper: "DESCHIS" }),
+      col(600, "CUPTOR"),
+    ],
+    kitchen: { layout: "LINIAR" },
+  },
+  {
+    id: "bucatarie-ridicabile-300",
+    name: "Bucătărie modernă 3 m",
+    tagline: "Dulapuri sus cu uși care se ridică, fronturi fără mâner la vedere.",
+    paletteId: "grafit-total",
+    size: [3000, 2300, 600],
+    legsMm: 150,
+    handle: { type: "PUSH" },
+    columns: [
+      col(600, "FRIGIDER"),
+      col(600, "SERTARE", { drawers: 3, upper: "RIDICABILA" }),
+      col(600, "CHIUVETA", { upper: "RIDICABILA" }),
+      col(600, "MASINA_VASE", { upper: "RIDICABILA" }),
+      col(600, "CUPTOR"),
+    ],
+    kitchen: { layout: "LINIAR", led: true },
+  },
+];
+
 export const LAYOUT_PRESETS: LayoutPreset[] = [
   ...DRESSING.map((p) => make("DRESSING", p)),
   ...COMODA.map((p) => make("COMODA", p)),
   ...SEPARATOR.map((p) => make("SEPARATOR", p)),
   ...SUSPENDAT.map((p) => make("SUSPENDAT", p)),
+  ...BUCATARIE.map((p) => make("BUCATARIE", p)),
 ];
 
 /** Featured model + colour pairs, in the order they are shown. */
@@ -577,6 +683,8 @@ export const COMBO_PRESETS: ComboPreset[] = [
   { id: "tv-plutitor", name: "TV plutitor", tagline: "Corp suspendat în stejar, cu uși negre.", presetId: "suspendat-tv-180", paletteId: "stejar-negru" },
   { id: "baie-luminoasa", name: "Baie luminoasă", tagline: "Dulăpior alb cu ușă cașmir.", presetId: "suspendat-baie-60", paletteId: "alb-casmir" },
   { id: "birou-supermat", name: "Birou alb supermat", tagline: "Corpuri Aventos cu fronturi AGT albe.", presetId: "suspendat-aventos-180", paletteId: "supermat-alb" },
+  { id: "bucatarie-luminoasa", name: "Bucătărie luminoasă", tagline: "2,4 m, corp alb și fronturi în stejar natur.", presetId: "bucatarie-240", paletteId: "alb-stejar-natur" },
+  { id: "bucatarie-l-casmir", name: "Bucătărie în L, cașmir", tagline: "Colț, chiuvetă și cuptor, în alb și cașmir.", presetId: "bucatarie-l-270", paletteId: "alb-casmir" },
   { id: "etajera-stejar", name: "Etajeră în stejar", tagline: "Trei nișe deschise, pentru cărți și plante.", presetId: "suspendat-etajera-150", paletteId: "stejar-natur" },
 ];
 
@@ -593,6 +701,8 @@ export function presetById(id: string): LayoutPreset | undefined {
  * per-door faces (it lists the mirror / glass types in the catalog); an older one would build it with
  * plain doors.
  */
-export function presetAvailable(preset: LayoutPreset, catalog: Pick<AtelierCatalog, "glass">): boolean {
+export function presetAvailable(preset: LayoutPreset, catalog: Pick<AtelierCatalog, "glass" | "worktops">): boolean {
+  // a kitchen needs a CRM that knows kitchens (it lists the worktops)
+  if (preset.category === "BUCATARIE") return (catalog.worktops?.length ?? 0) > 0;
   return !preset.shape.doors.fills || !!catalog.glass;
 }

@@ -56,6 +56,66 @@ export function ContentGlyph({ content, className = "" }: { content: ColumnConte
     case "DESCHIS":
       inner = [36, 66].map((y) => line(y));
       break;
+    /* kitchen modules */
+    case "CHIUVETA":
+      inner = [
+        <path key="s" d="M24 14 h52 v10 a8 8 0 0 1 -8 8 h-36 a8 8 0 0 1 -8 -8 z" fill="currentColor" fillOpacity={0.15} />,
+        <path key="t" d="M50 14 v-8 h10" strokeWidth={2.2} />,
+        <rect key="d" x={10} y={40} width={80} height={52} rx={2} fill="currentColor" fillOpacity={0.1} />,
+        <line key="h" x1={42} y1={46} x2={58} y2={46} strokeWidth={2.2} />,
+      ];
+      break;
+    case "CUPTOR":
+      inner = [
+        <line key="p" x1={20} y1={10} x2={80} y2={10} strokeWidth={3} />,
+        <rect key="o" x={12} y={22} width={76} height={50} rx={2} fill="currentColor" fillOpacity={0.35} />,
+        <line key="b" x1={28} y1={30} x2={72} y2={30} strokeWidth={2.2} />,
+        drawer(78, 14),
+      ];
+      break;
+    case "PLITA":
+      inner = [<line key="p" x1={20} y1={10} x2={80} y2={10} strokeWidth={3} />, drawer(20, 22), drawer(46, 22), drawer(72, 20)];
+      break;
+    case "MASINA_VASE":
+      inner = [
+        <rect key="d" x={10} y={8} width={80} height={84} rx={2} fill="currentColor" fillOpacity={0.1} />,
+        <line key="h" x1={36} y1={16} x2={64} y2={16} strokeWidth={2.2} />,
+        <circle key="c1" cx={35} cy={60} r={9} />,
+        <circle key="c2" cx={65} cy={60} r={9} />,
+      ];
+      break;
+    case "FRIGIDER":
+      inner = [
+        <rect key="u" x={10} y={6} width={80} height={24} rx={2} fill="currentColor" fillOpacity={0.1} />,
+        <rect key="d" x={10} y={34} width={80} height={60} rx={2} fill="currentColor" fillOpacity={0.1} />,
+        <line key="h" x1={78} y1={44} x2={78} y2={62} strokeWidth={2.4} />,
+        <path key="f" d="M44 56 l12 12 m0 -12 l-12 12 M50 54 v16" strokeWidth={1.4} />,
+      ];
+      break;
+    case "COLOANA_CUPTOR":
+      inner = [
+        <rect key="u" x={10} y={6} width={80} height={18} rx={2} fill="currentColor" fillOpacity={0.1} />,
+        <rect key="m" x={12} y={28} width={76} height={16} rx={2} fill="currentColor" fillOpacity={0.35} />,
+        <rect key="o" x={12} y={48} width={76} height={22} rx={2} fill="currentColor" fillOpacity={0.35} />,
+        drawer(74, 9),
+        drawer(85, 9),
+      ];
+      break;
+    case "COLOANA":
+      inner = [
+        <rect key="u" x={10} y={6} width={80} height={52} rx={2} fill="currentColor" fillOpacity={0.1} />,
+        <rect key="d" x={10} y={62} width={80} height={32} rx={2} fill="currentColor" fillOpacity={0.1} />,
+        <line key="h1" x1={78} y1={46} x2={78} y2={54} strokeWidth={2.4} />,
+        <line key="h2" x1={78} y1={66} x2={78} y2={74} strokeWidth={2.4} />,
+      ];
+      break;
+    case "COLT":
+      inner = [
+        <rect key="b" x={6} y={8} width={44} height={84} fill="currentColor" fillOpacity={0.25} />,
+        <rect key="d" x={52} y={8} width={40} height={84} rx={2} fill="currentColor" fillOpacity={0.1} />,
+        <line key="h" x1={58} y1={16} x2={58} y2={30} strokeWidth={2.4} />,
+      ];
+      break;
   }
 
   return (

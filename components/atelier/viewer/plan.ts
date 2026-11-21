@@ -109,7 +109,7 @@ const overlap = (a0: number, a1: number, b0: number, b1: number) => Math.min(a1,
  */
 function golaGapAbove(scene: AtelierScene, piece: ScenePiece): number | null {
   const top = piece.y + piece.h;
-  const above = (q: ScenePiece) => overlap(q.x, q.x + q.w, piece.x, piece.x + piece.w) > 20;
+  const above = (q: ScenePiece) => q.leg === piece.leg && overlap(q.x, q.x + q.w, piece.x, piece.x + piece.w) > 20;
   let ceiling = Infinity;
   // what was there before the CRM made room: 2 mm between two fronts, 1 mm under the carcass top
   let reveal = 2;
@@ -140,7 +140,7 @@ export function planScene(scene: AtelierScene, handle: EffectiveHandle): ScenePl
   // before and after the price response, whichever handle the scene on screen was computed for.
   const undoCrmGola = handle === "GOLA" || scene.handle === "GOLA";
   const fronts = scene.pieces.map((raw, index): FrontPlan | null => {
-    if (raw.role !== "FRONT") return null;
+    if (raw.role !== "FRONT" || raw.front === "FIX") return null;
     // a door is hinged; a front without hinges is a drawer front unless the CRM says otherwise
     const mode: FrontMode | null = raw.hinge ?? (raw.front === "USA" ? null : "DRAWER");
     if (!mode) return null;
@@ -152,7 +152,7 @@ export function planScene(scene: AtelierScene, handle: EffectiveHandle): ScenePl
     const coveredBy: number[] = [];
     if (kind === "drawer")
       scene.pieces.forEach((q, j) => {
-        if (j === index || !q.hinge || q.role !== "FRONT") return;
+        if (j === index || !q.hinge || q.role !== "FRONT" || q.leg !== piece.leg) return;
         if (q.z < piece.z + piece.d - 1) return;
         if (overlap(q.x, q.x + q.w, piece.x, piece.x + piece.w) > 20 && overlap(q.y, q.y + q.h, piece.y, piece.y + piece.h) > 20)
           coveredBy.push(j);
@@ -193,6 +193,7 @@ export function planScene(scene: AtelierScene, handle: EffectiveHandle): ScenePl
           g !== f &&
           g.channel &&
           g.edge === "TOP" &&
+          g.piece.leg === raw.leg &&
           Math.abs(g.piece.z - raw.z) < 30 &&
           Math.abs(g.channel.y + g.channel.h - raw.y) < 8 &&
           overlap(g.channel.x, g.channel.x + g.channel.w, raw.x, raw.x + raw.w) > 20,
@@ -206,7 +207,7 @@ export function planScene(scene: AtelierScene, handle: EffectiveHandle): ScenePl
   const stacks = new Map<string, FrontPlan[]>();
   for (const f of fronts) {
     if (!f || f.kind !== "drawer") continue;
-    const id = `${Math.round(f.piece.x)}|${Math.round(f.piece.w)}|${Math.round(f.piece.z)}`;
+    const id = `${f.piece.leg ?? "A"}|${Math.round(f.piece.x)}|${Math.round(f.piece.w)}|${Math.round(f.piece.z)}`;
     stacks.set(id, [...(stacks.get(id) ?? []), f]);
   }
   for (const stack of stacks.values()) {

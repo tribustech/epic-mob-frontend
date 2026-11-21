@@ -77,6 +77,8 @@ export interface Viewer3DProps {
   onInteract?: (kind: "door" | "drawer" | "sliding" | "all", open: boolean) => void;
   /** the scene on screen is not the current configuration's (errors / price service down) */
   stale?: boolean;
+  /** kitchens: the worktop decor */
+  worktop?: MaterialLook | null;
 }
 
 /* ── Shared textures: one THREE.Texture per imageUrl for the whole page ── */
@@ -619,6 +621,137 @@ function Piece({ piece, scene, material }: { piece: ScenePiece; scene: AtelierSc
   );
 }
 
+/* ── Kitchens: the second wall of an L, the worktop and the appliances (drawn only, never priced) ── */
+
+/**
+ * The group that turns the second wall of an L into place. Its pieces come in the second wall's own
+ * coordinates (x along it as you face it, z from the wall into the room) and are drawn like the others
+ * (centred on the scene); the group rotates them by ±90° and moves them onto the side wall.
+ */
+export function legBTransform(scene: AtelierScene): { position: [number, number, number]; rotation: [number, number, number] } | null {
+  const k = scene.kitchen;
+  if (!k || k.layout === "LINIAR" || !k.legBLengthMm) return null;
+  const W = scene.widthMm;
+  const D = scene.depthMm;
+  const left = k.layout === "L_STANGA";
+  const theta = left ? Math.PI / 2 : -Math.PI / 2;
+  // three.js rotation about y: x' = x cos + z sin, z' = −x sin + z cos (cos = 0 here)
+  const rx = (a: number, b: number) => (left ? b : -b);
+  const rz = (a: number, b: number) => (left ? -a : a);
+  const tx = left ? 0 : W;
+  const tz = left ? k.legBLengthMm : 0;
+  return {
+    position: [(rx(W / 2, D / 2) + tx - W / 2) * S, 0, (rz(W / 2, D / 2) + tz - D / 2) * S],
+    rotation: [0, theta, 0],
+  };
+}
+
+const centred = (p: ScenePiece, scene: AtelierScene): [number, number, number] => [
+  (p.x + p.w / 2 - scene.widthMm / 2) * S,
+  (p.y + p.h / 2) * S,
+  (p.z + p.d / 2 - scene.depthMm / 2) * S,
+];
+
+export interface ApplianceMaterials {
+  inox: THREE.Material;
+  glass: THREE.Material;
+  basin: THREE.Material;
+  white: THREE.Material;
+  ring: THREE.Material;
+}
+
+function Box({ size, at, material }: { size: [number, number, number]; at: [number, number, number]; material: THREE.Material }) {
+  return (
+    <mesh position={at} scale={size} geometry={UNIT_BOX} material={material} castShadow receiveShadow raycast={noRaycast} />
+  );
+}
+
+/** A sink, hob, oven, microwave, fridge or hood, drawn in the box the CRM gives for it. */
+function Appliance({ piece, scene, mats }: { piece: ScenePiece; scene: AtelierScene; mats: ApplianceMaterials }) {
+  const [cx, cy, cz] = centred(piece, scene);
+  const w = piece.w * S;
+  const h = piece.h * S;
+  const d = piece.d * S;
+  switch (piece.appliance) {
+    case "CHIUVETA": {
+      // a stainless rim on the worktop, the basin as a darker inset, a tap at the back
+      const top = cy + h / 2;
+      const tapX = cx;
+      const tapZ = cz - d / 2 + 0.035;
+      return (
+        <group>
+          <Box size={[w, 0.004, d]} at={[cx, top + 0.002, cz]} material={mats.inox} />
+          <Box size={[w - 0.05, 0.003, d - 0.05]} at={[cx, top + 0.0045, cz]} material={mats.basin} />
+          <Box size={[0.028, 0.26, 0.028]} at={[tapX, top + 0.13, tapZ]} material={mats.inox} />
+          <Box size={[0.024, 0.024, 0.2]} at={[tapX, top + 0.25, tapZ + 0.09]} material={mats.inox} />
+          <Box size={[0.012, 0.05, 0.035]} at={[tapX + 0.03, top + 0.22, tapZ]} material={mats.inox} />
+        </group>
+      );
+    }
+    case "PLITA": {
+      const top = cy + h / 2;
+      const rings: [number, number, number][] = [
+        [-0.14, -0.1, 0.085],
+        [0.14, -0.1, 0.07],
+        [-0.14, 0.12, 0.07],
+        [0.14, 0.12, 0.095],
+      ];
+      return (
+        <group>
+          <Box size={[w, h, d]} at={[cx, cy, cz]} material={mats.glass} />
+          {rings.map(([rx, rz, r], i) => (
+            <mesh key={i} position={[cx + rx, top + 0.0008, cz + rz]} rotation={[-Math.PI / 2, 0, 0]} material={mats.ring} raycast={noRaycast}>
+              <ringGeometry args={[r - 0.004, r, 40]} />
+            </mesh>
+          ))}
+        </group>
+      );
+    }
+    case "CUPTOR":
+    case "MICROUNDE": {
+      const front = cz + d / 2;
+      const strip = piece.appliance === "CUPTOR" ? 0.07 : 0;
+      return (
+        <group>
+          <Box size={[w, h, d]} at={[cx, cy, cz]} material={mats.glass} />
+          {strip > 0 && <Box size={[w, strip, 0.004]} at={[cx, cy + h / 2 - strip / 2, front + 0.002]} material={mats.inox} />}
+          <Box size={[w * 0.7, 0.016, 0.016]} at={[cx, cy + h / 2 - strip - 0.035, front + 0.03]} material={mats.inox} />
+          {piece.appliance === "MICROUNDE" && <Box size={[0.08, h * 0.8, 0.003]} at={[cx + w / 2 - 0.06, cy, front + 0.002]} material={mats.inox} />}
+        </group>
+      );
+    }
+    case "FRIGIDER":
+      return <Box size={[w, h, d]} at={[cx, cy, cz]} material={mats.white} />;
+    case "HOTA":
+      return <Box size={[w, h, d]} at={[cx, cy, cz]} material={mats.inox} />;
+    default:
+      return null;
+  }
+}
+
+/** Kitchens: the wall(s) behind the cabinets, so the room reads as a kitchen. */
+function KitchenWalls({ scene }: { scene: AtelierScene }) {
+  const W = scene.widthMm * S;
+  const D = scene.depthMm * S;
+  const H = (scene.heightMm + 250) * S;
+  const k = scene.kitchen;
+  const side = k && k.layout !== "LINIAR" ? (k.layout === "L_STANGA" ? -1 : 1) : 0;
+  return (
+    <group>
+      <mesh position={[0, H / 2, -D / 2 - 0.001]} receiveShadow raycast={noRaycast}>
+        <planeGeometry args={[W + (side ? 0 : 0.6), H]} />
+        <meshStandardMaterial color="#ece7df" roughness={0.95} />
+      </mesh>
+      {side !== 0 && (
+        <mesh position={[(side * W) / 2 + side * 0.001, H / 2, 0]} rotation={[0, -side * (Math.PI / 2), 0]} receiveShadow raycast={noRaycast}>
+          <planeGeometry args={[D, H]} />
+          <meshStandardMaterial color="#e6e0d7" roughness={0.95} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
 /* ── Fronts that open: hinged doors, lift-up doors, drawers ── */
 
 /** Desktop: the front under the pointer lights up a little (it can be opened). */
@@ -1133,7 +1266,8 @@ function Wardrobe({
   handle,
   handleFinish,
   onToggle,
-}: Pick<Viewer3DProps, "columns" | "railPositions" | "carcass" | "front"> & {
+  worktop,
+}: Pick<Viewer3DProps, "columns" | "railPositions" | "carcass" | "front" | "worktop"> & {
   scene: AtelierScene;
   plan: ScenePlan;
   open: OpenState;
@@ -1144,6 +1278,28 @@ function Wardrobe({
   const carcassMat = useLookMaterial(carcass, 0.75);
   const backMat = useLookMaterial(carcass, 0.9);
   const frontMat = useLookMaterial(front, 0.55);
+  const worktopMat = useLookMaterial(worktop ?? carcass, 0.45);
+  const env0 = useRoomEnvironment();
+  const applianceMats = useMemo<ApplianceMaterials>(
+    () => ({
+      inox: new THREE.MeshStandardMaterial({ color: "#c9ccd0", metalness: 1, roughness: 0.3, envMap: env0, envMapIntensity: 1 }),
+      glass: new THREE.MeshStandardMaterial({ color: "#131313", metalness: 0.3, roughness: 0.12, envMap: env0, envMapIntensity: 0.8 }),
+      basin: new THREE.MeshStandardMaterial({ color: "#8c9096", metalness: 1, roughness: 0.45, envMap: env0, envMapIntensity: 0.6 }),
+      white: new THREE.MeshStandardMaterial({ color: "#eef0f2", roughness: 0.5 }),
+      ring: new THREE.MeshBasicMaterial({ color: "#5d5d5d", toneMapped: false }),
+    }),
+    [env0],
+  );
+  useEffect(() => () => Object.values(applianceMats).forEach((m) => m.dispose()), [applianceMats]);
+  const legB = useMemo(() => legBTransform(scene), [scene]);
+  const onLeg = (piece: ScenePiece | undefined, key: string, el: React.ReactNode) =>
+    piece?.leg === "B" && legB ? (
+      <group key={key} position={legB.position} rotation={legB.rotation}>
+        {el}
+      </group>
+    ) : (
+      el
+    );
   const slidingTexture = useOptionalTexture(front);
   const faces = useFaceMaterials(scene, front.color);
   const env = useRoomEnvironment();
@@ -1253,29 +1409,36 @@ function Wardrobe({
       >
         {scene.pieces.map((piece, i) => {
           const f = plan.fronts[i];
+          if (piece.role === "APARAT") return onLeg(piece, `a-${i}`, <Appliance key={`a-${i}`} piece={piece} scene={scene} mats={applianceMats} />);
           if (!f)
-            return (
+            return onLeg(
+              piece,
+              `p-${i}`,
               <Piece
-                key={i}
+                key={`p-${i}`}
                 piece={piece}
                 scene={scene}
-                material={piece.role === "FRONT" ? frontMat : piece.role === "SPATE" ? backMat : carcassMat}
-              />
+                material={
+                  piece.role === "FRONT" ? frontMat : piece.role === "SPATE" ? backMat : piece.role === "BLAT" ? worktopMat : carcassMat
+                }
+              />,
             );
           const fill = piece.fill === "OGLINDA" || piece.fill === "STICLA" ? piece.fill : null;
           const face = fill ? (faces.get(faceKey(fill, piece)) ?? null) : null;
           const common = { plan: f, scene, handle, mats, amount: open.amount[i] ?? 0, hovered: hover === f.key };
-          return f.kind === "door" ? (
-            // a mirror / lacquered glass is glued on a board of the carcass material; a glass pane sits in a frame of the fronts' board
-            <HingedFront key={`${i}-${f.mode}`} {...common} material={face && !face.pane ? carcassMat : frontMat} face={face} />
-          ) : (
-            <DrawerFront key={`${i}-drawer`} {...common} material={frontMat} carcassMaterial={carcassMat} />
-          );
+          return f.kind === "door"
+            ? // a mirror / lacquered glass is glued on a board of the carcass material; a glass pane sits in a frame of the fronts' board
+              onLeg(piece, `${i}-${f.mode}`, <HingedFront key={`${i}-${f.mode}`} {...common} material={face && !face.pane ? carcassMat : frontMat} face={face} />)
+            : onLeg(piece, `${i}-drawer`, <DrawerFront key={`${i}-drawer`} {...common} material={frontMat} carcassMaterial={carcassMat} />);
         })}
         {plan.fronts.map((f, i) =>
-          f?.channel ? (
-            <GolaChannel key={`gola-${i}`} rect={f.channel} zFront={f.piece.z + f.piece.d} sceneW={scene.widthMm} sceneD={scene.depthMm} mats={mats} />
-          ) : null,
+          f?.channel
+            ? onLeg(
+                scene.pieces[i],
+                `gola-${i}`,
+                <GolaChannel key={`gola-${i}`} rect={f.channel} zFront={f.piece.z + f.piece.d} sceneW={scene.widthMm} sceneD={scene.depthMm} mats={mats} />,
+              )
+            : null,
         )}
         {rails.map((rail, i) => (
           <RailMesh key={i} rail={rail} scene={scene} material={railMat} />
@@ -1481,6 +1644,7 @@ export default function Viewer3D({
   focus = null,
   onInteract,
   stale = false,
+  worktop = null,
 }: Viewer3DProps) {
   const [doorsOpenLocal, setDoorsOpenLocal] = useState(false);
   const doorsOpen = doorsOpenProp ?? doorsOpenLocal;
@@ -1566,7 +1730,7 @@ export default function Viewer3D({
     let top = 0;
     plan.fronts.forEach((f, i) => {
       const amount = open.amount[i] ?? 0;
-      if (!f || amount <= 0) return;
+      if (!f || amount <= 0 || f.piece.leg === "B") return;
       const p = f.piece;
       if (f.mode === "DRAWER") {
         front = Math.max(front, f.travelMm * amount - (scene.depthMm - (p.z + p.d)));
@@ -1608,7 +1772,7 @@ export default function Viewer3D({
     let best: FrontPlan | null = null;
     let bestOff = Infinity;
     for (const f of plan.fronts) {
-      if (!f || !f.hardware || f.coveredBy.length > 0 || f.behindSliding) continue;
+      if (!f || !f.hardware || f.coveredBy.length > 0 || f.behindSliding || f.piece.leg === "B") continue;
       if (handleKind === "GOLA" && !f.channel) continue;
       const off = Math.abs(f.piece.x + f.piece.w / 2 - scene.widthMm / 2) - (f.kind === "door" ? 1 : 0);
       if (off < bestOff) {
@@ -1669,7 +1833,9 @@ export default function Viewer3D({
             handle={handleKind}
             handleFinish={handleFinish}
             onToggle={toggleOne}
+            worktop={worktop}
           />
+          {scene.kitchen && <KitchenWalls scene={scene} />}
           {highlight && <ColumnHighlight scene={scene} range={highlight} wallHung={wallHung} />}
           <OrbitControls
             makeDefault

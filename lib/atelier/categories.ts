@@ -81,9 +81,25 @@ export const CATEGORY_RULES: Record<AtelierCategory, SiteCategory> = {
     slidingDoors: false,
     defaults: { widthMm: 1200, heightMm: 600, depthMm: 350, legsMm: 0, doors: { type: "NONE" }, columns: ["USI", "USI"] },
   },
+  BUCATARIE: {
+    label: "Bucătării",
+    intro: "Bucătărie pe un perete sau în L: sertare, chiuvetă, loc pentru cuptor, frigider și mașina de vase, blat și dulapuri sus.",
+    sizeHint: "Lungimea pereților pe care stă bucătăria și înălțimea până sus la dulapuri.",
+    legs: [100, 150],
+    width: [1200, 6000], height: [2000, 2700], depth: [550, 650], column: COLUMN,
+    contents: ["SERTARE", "USI", "CHIUVETA", "CUPTOR", "PLITA", "MASINA_VASE", "FRIGIDER", "COLOANA_CUPTOR", "COLOANA", "COLT"],
+    fill: "SERTARE",
+    slidingDoors: false,
+    defaults: {
+      widthMm: 2400, heightMm: 2200, depthMm: 600, legsMm: 150, doors: { type: "NONE" },
+      columns: ["SERTARE", "CHIUVETA", "MASINA_VASE", "CUPTOR"],
+    },
+  },
 };
 
-export const CATEGORY_ORDER: readonly AtelierCategory[] = ["DRESSING", "COMODA", "SEPARATOR", "SUSPENDAT"];
+export const CATEGORY_ORDER: readonly AtelierCategory[] = ["DRESSING", "COMODA", "SEPARATOR", "SUSPENDAT", "BUCATARIE"];
+/** The order of the category chips (the share codes use CATEGORY_ORDER, which only grows at the end). */
+export const CATEGORY_DISPLAY: readonly AtelierCategory[] = ["DRESSING", "BUCATARIE", "COMODA", "SEPARATOR", "SUSPENDAT"];
 
 export function categoryRules(category: AtelierCategory): SiteCategory {
   return CATEGORY_RULES[category] ?? CATEGORY_RULES.DRESSING;
@@ -99,6 +115,14 @@ export const CONTENT_LABELS: Record<ColumnContent, string> = {
   USI: "Uși",
   DESCHIS: "Deschis (polițe)",
   USA_RIDICABILA: "Ușă Aventos",
+  CHIUVETA: "Chiuvetă",
+  CUPTOR: "Plită + cuptor",
+  PLITA: "Plită pe sertare",
+  MASINA_VASE: "Mașină de vase",
+  FRIGIDER: "Frigider",
+  COLOANA_CUPTOR: "Cuptor la înălțime",
+  COLOANA: "Cămară",
+  COLT: "Colț",
 };
 
 /** Contents that hang clothes (drawn as rails in the 3D view). */
