@@ -21,7 +21,7 @@ test("the doors step: named after what the furniture has, skipped when it has ne
   const open: AtelierConfig = { ...defaultConfig(base, "SEPARATOR"), bottom: undefined };
   assert.ok(!stepsFor(open).includes("usi"));
   // a link or a restored session that points at the missing step lands on the next one
-  assert.equal(nearestStep("usi", open), "interior");
+  assert.equal(nearestStep("usi", open), "culori");
   assert.equal(nearestStep("usi", dressing), "usi");
   assert.equal(nearestStep("oferta", open), "oferta");
 });

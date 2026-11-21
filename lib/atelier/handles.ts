@@ -23,6 +23,8 @@ export interface HandleInfo {
   benefit: string;
   /** photo under /public */
   image: string;
+  /** the name people may have heard in a showroom, shown small next to the plain name */
+  trade?: string;
 }
 
 /**
@@ -35,7 +37,7 @@ export const HANDLE_INFO: Record<HandleKind, HandleInfo> = {
   BUTON: { name: "Buton", benefit: "Mic și rotund, îl prinzi cu două degete", image: "/handles/buton.webp" },
   INGROPAT: { name: "Mâner îngropat", benefit: "Scobitură în ușă, prinzi cu degetele", image: "/handles/ingropat.webp" },
   PROFIL_J: { name: "Muchie oblică", benefit: "Marginea ușii e tăiată oblic, tragi de ea", image: "/handles/profil-j.webp" },
-  GOLA: { name: "Profil ascuns", benefit: "Canal de aluminiu lângă ușă, bagi degetele și tragi", image: "/handles/gola.webp" },
+  GOLA: { name: "Profil ascuns", benefit: "Canal de aluminiu lângă ușă, bagi degetele și tragi", image: "/handles/gola.webp", trade: "Gola" },
   PUSH: { name: "Fără mâner", benefit: "Apeși pe ușă și se deschide singură", image: "/handles/push.webp" },
 };
 

@@ -114,7 +114,10 @@ export function HandlePicker({
                     {selected && <SelectedMark className="absolute right-1.5 top-1.5" />}
                   </span>
                   <span className="atelier-handle__text">
-                    <span className="atelier-card__name">{info.name}</span>
+                    <span className="atelier-card__name">
+                      {info.name}
+                      {info.trade && <span className="ml-1 text-[11px] font-normal opacity-60">({info.trade})</span>}
+                    </span>
                     <span className="atelier-card__sub">{info.benefit}</span>
                     {tag && <span className="atelier-handle__tag">{tag}</span>}
                   </span>
