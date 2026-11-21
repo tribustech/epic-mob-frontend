@@ -61,6 +61,7 @@ export const HARDWARE_CATEGORY: Record<string, string> = {
   CLEMA_SOCLU: "Cleme soclu",
   PISTON_AVENTOS: "Aventos",
   HOLTSURUB: "Holtșuruburi",
+  CONFIRMAT: "Ericsoane",
   ACCESORIU: "Accesorii",
 };
 
