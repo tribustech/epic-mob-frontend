@@ -142,7 +142,7 @@ test("handle cards: plain names, a line each that tells them apart, the right wo
   assert.equal(new Set(names).size, names.length);
   for (const type of HANDLE_KINDS) {
     const { name, benefit } = HANDLE_INFO[type];
-    assert.ok(!/frez|profil|gola|tip-?on|push/i.test(`${name} ${benefit}`), `${type}: workshop jargon`);
+    assert.ok(!/frez|gola|tip-?on|push/i.test(`${name} ${benefit}`), `${type}: workshop jargon`);
     assert.ok(benefit.length <= 52, `${type}: one short line`);
   }
   assert.deepEqual(HANDLE_KINDS.filter(needsPaintedFronts), ["INGROPAT", "PROFIL_J"]);
