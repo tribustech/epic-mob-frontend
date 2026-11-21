@@ -119,7 +119,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  * cannot absorb it, a module is added (drawers) or the last flexible one is removed. null = impossible.
  */
 export function fitKitchen(cols: AtelierColumn[], total: number, keep: number | null = null, corner = -1): AtelierColumn[] | null {
-  let out = cols.map((c) => ({ ...c }));
+  const out = cols.map((c) => ({ ...c }));
   for (let guard = 0; guard < 12; guard++) {
     const flex = out.map((c, i) => i).filter((i) => i !== keep && i !== corner && isFlex(out[i].content));
     const fixed = sum(out.filter((_, i) => !flex.includes(i)));
@@ -146,7 +146,7 @@ export function fitKitchen(cols: AtelierColumn[], total: number, keep: number | 
       }
       return diff === 0 ? out : null;
     }
-    if (target > hi) {
+    if (target > hi && (flex.length > 0 || target >= widthRange("SERTARE")[0])) {
       // too long: one more drawer module, next to the corner / at the end
       const at = corner === out.length - 1 ? out.length - 1 : corner === 0 ? 1 : out.length;
       out.splice(at, 0, { widthMm: 600, content: "SERTARE" });
@@ -155,7 +155,8 @@ export function fitKitchen(cols: AtelierColumn[], total: number, keep: number | 
       continue;
     }
     // too short: drop the last flexible module (else the last one that is not kept)
-    const drop = flex.length > 0 ? flex[flex.length - 1] : out.map((_, i) => i).filter((i) => i !== keep && i !== corner).pop();
+    const drop =
+      flex.length > 0 && target < lo ? flex[flex.length - 1] : out.map((_, i) => i).filter((i) => i !== keep && i !== corner && !flex.includes(i)).pop() ?? flex[flex.length - 1];
     if (drop === undefined || out.length <= 1) return null;
     out.splice(drop, 1);
     if (keep !== null && drop < keep) keep--;
@@ -191,15 +192,36 @@ export function withLayout(config: AtelierConfig, layout: KitchenLayout): Atelie
     const fitted = fitKitchen(cols, config.widthMm);
     if (!fitted) return null;
     const { legB: _legB, ...rest } = config.kitchen ?? { layout };
+    void _legB;
     return { ...config, columns: fitted, kitchen: { ...rest, layout } };
   }
-  const corner = kitchenColumn("COLT");
+  let legB = config.kitchen?.legB;
+  if (prev === "LINIAR" || !legB) {
+    // the modules that no longer fit beside the corner unit move round the corner, onto the second wall
+    const moved: AtelierColumn[] = [];
+    const room = config.widthMm - CORNER_WIDTH_MM;
+    while (cols.length > 1 && sum(cols) > room) {
+      if (layout === "L_STANGA") moved.unshift(cols.shift()!);
+      else moved.push(cols.pop()!);
+    }
+    if (moved.length === 0) legB = legB ?? defaultLegB(config.depthMm);
+    else {
+      const widthMm = clamp(Math.max(1800, Math.ceil((sum(moved) + config.depthMm) / 100) * 100), ...LEG_B_RANGE);
+      const fittedB = fitKitchen(moved, widthMm - config.depthMm);
+      if (!fittedB) return null;
+      legB = { widthMm, columns: fittedB };
+    }
+  } else {
+    // the second wall is listed as you face it: its corner end is on the right for L_STANGA, on the left for L_DREAPTA
+    legB = { ...legB, columns: [...legB.columns].reverse() };
+  }
+  // the corner unit takes up what is left when the other modules cannot (90–120 cm)
+  const rest = config.widthMm - sum(cols);
+  const [cMin, cMax] = widthRange("COLT");
+  const corner = kitchenColumn("COLT", rest >= cMin && rest <= cMax && !cols.some((c) => isFlex(c.content)) ? rest : CORNER_WIDTH_MM);
   cols = layout === "L_STANGA" ? [corner, ...cols] : [...cols, corner];
   const idx = layout === "L_STANGA" ? 0 : cols.length - 1;
   const fitted = fitKitchen(cols, config.widthMm, idx, idx);
   if (!fitted) return null;
-  const legB = config.kitchen?.legB ?? defaultLegB(config.depthMm);
-  // the second wall is listed as you face it: its corner end is on the right for L_STANGA, on the left for L_DREAPTA
-  const flip = prev !== "LINIAR" ? [...legB.columns].reverse() : legB.columns;
-  return { ...config, columns: fitted, kitchen: { ...config.kitchen, layout, legB: { ...legB, columns: prev === "LINIAR" ? legB.columns : flip } } };
+  return { ...config, columns: fitted, kitchen: { ...config.kitchen, layout, legB } };
 }

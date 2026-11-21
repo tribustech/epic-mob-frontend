@@ -39,7 +39,7 @@ export function stepLabel(step: StepId, config: AtelierConfig): string {
     case "usi":
       return categoryRules(config.category).slidingDoors ? "Uși și mânere" : "Mânere";
     case "interior":
-      return config.category === "DRESSING" ? "Interior" : "Compartimente";
+      return config.category === "DRESSING" ? "Interior" : config.category === "BUCATARIE" ? "Module" : "Compartimente";
     case "oferta":
       return "Ofertă";
   }
@@ -106,7 +106,7 @@ const signature = (a: AtelierAction): string => {
   const keys = Object.keys(a)
     .filter((k) => k !== "type" && (a as Record<string, unknown>)[k] !== undefined)
     .sort();
-  const index = "index" in a ? `#${a.index}` : "";
+  const index = "index" in a ? `#${"leg" in a && a.leg ? a.leg : ""}${a.index}` : "";
   return `${a.type}${index}:${a.type === "setSize" ? keys.join(",") : ""}`;
 };
 
@@ -127,6 +127,11 @@ const CHANGE_NAMES: Partial<Record<AtelierAction["type"], string>> = {
   setBottom: "partea de jos",
   setColumnDoorRows: "ușile",
   setColumnDoorsAcross: "ușile",
+  setWorktop: "blatul",
+  setKitchenLayout: "forma bucătăriei",
+  setLegB: "dimensiunile",
+  setColumnUpper: "dulapurile de sus",
+  setLed: "lumina LED",
 };
 
 function changeName(actions: AtelierAction[]): string {
@@ -245,7 +250,9 @@ export function shapeKey(shape: PresetShape | AtelierConfig): string {
   void _g;
   // no handle chosen and the category's default chosen by hand are the same thing
   const handle = hasHandledFronts(rest) ? currentHandle(rest) : undefined;
-  return JSON.stringify(canonical({ ...rest, doors, handle }));
+  // the worktop is a colour, like the body and the fronts: not part of the shape
+  const kitchen = rest.kitchen ? (({ worktopId: _w, ...k }) => (void _w, k))(rest.kitchen) : undefined;
+  return JSON.stringify(canonical({ ...rest, doors, handle, kitchen }));
 }
 
 export function shapeOf(config: AtelierConfig): PresetShape {

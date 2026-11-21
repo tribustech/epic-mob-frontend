@@ -91,6 +91,25 @@ export function carcassLook(catalog: AtelierCatalog, config: AtelierConfig): Mat
   return lookOf(material, isMdf ? KIND_TONE.MDF_MELAMINAT : KIND_TONE.PAL);
 }
 
+/** Worktop look (kitchen BLAT pieces); null when the configuration has none. */
+export function worktopLook(catalog: AtelierCatalog, config: AtelierConfig): MaterialLook | null {
+  const id = config.kitchen?.worktopId;
+  if (config.category !== "BUCATARIE" || !id) return null;
+  const material = (catalog.worktops ?? []).find((m) => m.id === id);
+  return material ? worktopMaterialLook(catalog, material) : lookOf(undefined, KIND_TONE.PAL);
+}
+
+/**
+ * A worktop's look. Supplier worktop photos are product shots (white bars, an edge in view), so the board of the
+ * same decor is drawn when the catalog has it; else the flat tone only.
+ */
+export function worktopMaterialLook(catalog: AtelierCatalog, material: AtelierMaterial): MaterialLook {
+  const code = material.decorCode;
+  const board = code ? [...catalog.carcass, ...catalog.fronts.PAL].find((m) => m.decorCode === code && m.imageUrl) : undefined;
+  if (board) return lookOf(board, KIND_TONE.PAL);
+  return { ...lookOf(material, KIND_TONE.PAL), imageUrl: null };
+}
+
 /** Front look (drawer fronts and panel sliding doors). MDF vopsit uses the RAL colour. */
 export function frontLook(catalog: AtelierCatalog, config: AtelierConfig): MaterialLook {
   const { fronts } = config;

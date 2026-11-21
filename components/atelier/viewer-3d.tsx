@@ -1570,7 +1570,11 @@ function Stage({ W, H, D, wallHung }: { W: number; H: number; D: number; wallHun
 function ColumnHighlight({ scene, range, wallHung }: { scene: AtelierScene; range: { x0: number; x1: number }; wallHung: boolean }) {
   const width = Math.max(0.05, (range.x1 - range.x0) * S - 0.03);
   const x = ((range.x0 + range.x1) / 2 - scene.widthMm / 2) * S;
-  const front = (scene.depthMm / 2) * S;
+  // a kitchen's scene is as deep as its second wall: the strip goes in front of the main wall's base units
+  const frontMm = scene.kitchen
+    ? Math.max(0, ...scene.pieces.filter((p) => !p.leg && p.y < 900).map((p) => p.z + p.d))
+    : scene.depthMm;
+  const front = (frontMm - scene.depthMm / 2) * S;
   const material = <meshBasicMaterial color="#d96f0a" transparent opacity={0.85} depthWrite={false} toneMapped={false} />;
   if (wallHung)
     return (

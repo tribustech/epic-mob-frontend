@@ -1,3 +1,4 @@
+import { MODULE_LABELS } from "../atelier/kitchen";
 import { CONTENT_LABELS } from "../atelier/categories";
 import { hasMirror } from "../atelier/door-types";
 import { hasHandledFronts } from "../atelier/handles";
@@ -126,6 +127,15 @@ const COLOURS: Record<string, string[]> = {
   "separator-copii-120": ["alb-total", "stejar-alb", "denim-alb", "salvie-stejar"],
   "suspendat-bucatarie-180": ["alb-total", "alb-stejar-natur", "gri-casmir", "salvie-stejar"],
   "suspendat-baie-nisa-90": ["alb-total", "stejar-alb", "alb-casmir", "gri-casmir"],
+  // kitchens: what Romanian kitchens are bought in (white, white with oak, cashmere, sage), the model's own first
+  "bucatarie-240": ["alb-stejar-natur", "alb-total", "gri-casmir", "salvie-stejar"],
+  "bucatarie-compacta-180": ["alb-total", "alb-stejar-natur", "gri-casmir", "stejar-alb"],
+  "bucatarie-frigider-300": ["gri-casmir", "alb-total", "alb-stejar-natur", "stejar-casmir"],
+  "bucatarie-coloane-360": ["stejar-alb", "alb-total", "gri-casmir", "antracit-stejar"],
+  "bucatarie-l-270": ["alb-casmir", "alb-total", "alb-stejar-natur", "salvie-stejar"],
+  "bucatarie-l-frigider-300": ["bardolino-gri", "alb-total", "gri-casmir", "stejar-alb"],
+  "bucatarie-rafturi-240": ["salvie-stejar", "alb-total", "stejar-alb", "alb-stejar-natur"],
+  "bucatarie-ridicabile-300": ["grafit-total", "alb-total", "gri-casmir", "antracit-stejar"],
 };
 
 export interface ShopProduct {
@@ -211,6 +221,13 @@ export const HANDLES: Record<string, AtelierHandle> = {
   "separator-copii-120": { type: "BUTON", finish: "AURIU" },
   "suspendat-bucatarie-180": { type: "GOLA", finish: "INOX" },
   "suspendat-baie-nisa-90": { type: "BUTON", finish: "NEGRU" },
+  "bucatarie-240": { type: "APLICAT", finish: "NEGRU" },
+  "bucatarie-compacta-180": { type: "APLICAT", finish: "INOX" },
+  "bucatarie-frigider-300": { type: "APLICAT", finish: "INOX" },
+  "bucatarie-coloane-360": { type: "APLICAT", finish: "NEGRU" },
+  "bucatarie-l-270": { type: "APLICAT", finish: "AURIU" },
+  "bucatarie-l-frigider-300": { type: "APLICAT", finish: "NEGRU" },
+  "bucatarie-rafturi-240": { type: "BUTON", finish: "AURIU" },
 };
 
 
@@ -319,6 +336,14 @@ export const PHOTO_COLOURS: Record<string, string[]> = {
   "suspendat-hol-90": ["gri-casmir", "alb-stejar-natur"],
   "suspendat-bucatarie-180": ["alb-total", "alb-stejar-natur"],
   "suspendat-baie-nisa-90": ["alb-total", "stejar-alb"],
+  "bucatarie-240": ["alb-stejar-natur", "alb-total"],
+  "bucatarie-compacta-180": ["alb-total"],
+  "bucatarie-frigider-300": ["gri-casmir", "alb-total"],
+  "bucatarie-coloane-360": ["stejar-alb", "alb-total"],
+  "bucatarie-l-270": ["alb-casmir", "alb-stejar-natur"],
+  "bucatarie-l-frigider-300": ["bardolino-gri"],
+  "bucatarie-rafturi-240": ["salvie-stejar"],
+  "bucatarie-ridicabile-300": ["grafit-total", "alb-total"],
 };
 
 export const SHOP_PRODUCTS: ShopProduct[] = LAYOUT_PRESETS.map((preset) => {
@@ -345,6 +370,10 @@ const cmText = (mm: number) => `${Math.round(mm / 10)}`;
 /** „240 × 260 × 60 cm" (lățime × înălțime × adâncime) */
 export function sizeText(preset: LayoutPreset): string {
   const s = preset.shape;
+  if (s.category === "BUCATARIE") {
+    const b = s.kitchen?.layout !== "LINIAR" ? s.kitchen?.legB : undefined;
+    return `${cmText(s.widthMm)}${b ? ` + ${cmText(b.widthMm)}` : ""} cm, înaltă de ${cmText(s.heightMm)} cm, blat de ${cmText(s.depthMm)} cm`;
+  }
   return `${cmText(s.widthMm)} × ${cmText(s.heightMm)} × ${cmText(s.depthMm)} cm`;
 }
 
@@ -361,6 +390,7 @@ const DOOR_TEXT: Record<string, string> = {
 /** The facts of the model, one line each (product page „Ce include"). */
 export function productFacts(preset: LayoutPreset): string[] {
   const s = preset.shape;
+  if (s.category === "BUCATARIE") return kitchenFacts(preset);
   const facts: string[] = [`Dimensiuni: ${sizeText(preset)} (lățime × înălțime × adâncime)`];
   if (s.category === "DRESSING") {
     const fills = s.doors.fills ?? [];
@@ -379,6 +409,21 @@ export function productFacts(preset: LayoutPreset): string[] {
   if (s.bottom?.type === "USI") facts.push("Dulăpioare cu uși la bază");
   if (s.category === "SUSPENDAT") facts.push("Se prinde de perete, fără picioare");
   else facts.push(`Pe picioare de ${s.legsMm / 10} cm`);
+  return facts;
+}
+
+function kitchenFacts(preset: LayoutPreset): string[] {
+  const s = preset.shape;
+  const L = s.kitchen?.layout !== "LINIAR" && !!s.kitchen?.legB;
+  const all = [...s.columns, ...(L ? s.kitchen!.legB!.columns : [])];
+  const facts = [`${L ? "În L" : "Pe un perete"}: ${sizeText(preset)}`];
+  facts.push(`${all.length} module: ${all.map((c) => (MODULE_LABELS[c.content] ?? CONTENT_LABELS[c.content]).toLowerCase()).join(", ")}`);
+  const drawers = all.reduce((n, c) => n + (c.content === "SERTARE" || c.content === "PLITA" ? c.drawers ?? 3 : c.content === "COLOANA_CUPTOR" ? 2 : 0), 0);
+  if (drawers > 0) facts.push(`${drawers} sertare pe glisiere Blum Tandem cu închidere lină`);
+  facts.push("Blat de 38 mm, decupat pentru chiuvetă și plită");
+  if (s.kitchen?.led) facts.push("Lumină LED sub dulapurile de sus");
+  facts.push("Electrocasnicele și chiuveta nu sunt incluse: lăsăm loc exact pentru ale tale");
+  facts.push(`Pe picioare de ${s.legsMm / 10} cm, cu plintă`);
   return facts;
 }
 

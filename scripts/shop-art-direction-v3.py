@@ -19,6 +19,7 @@ DECOR = {
     "U707": "silk grey (Egger U707 ST9: light neutral grey plain colour, matt)",
     "H1145": "Natural Bardolino oak (Egger H1145 ST10: pale beige-grey Scandinavian oak decor with fine planked grain)",
     "U638": "sage green (Egger U638 ST9: muted grey-green plain colour, matt)",
+    "U732": "dust grey (Egger U732 ST9: a mid, slightly warm grey plain colour, matt; clearly darker than cashmere, not blue)",
 }
 PAL = {  # id: (name, body, fronts)
     "alb-total": ("Alb total", "W1000", "W1000"),
@@ -32,10 +33,13 @@ PAL = {  # id: (name, body, fronts)
     "stejar-casmir": ("Stejar & cașmir", "H1180", "U702"),
     "denim-alb": ("Albastru denim & alb", "W1000", "U540"),
     "stejar-alb": ("Stejar & alb", "H1180", "W1000"),
+    "bardolino-gri": ("Stejar bardolino & gri", "H1145", "U732"),
+    "grafit-total": ("Grafit total", "U961", "U961"),
 }
 HANDLE_TXT = {
     ("APLICAT", "NEGRU"): "slim straight bar handles in matt black, one per front: vertical near the opening edge on doors, horizontal and centred near the top edge on drawers, positioned exactly as in the render. Same finish on every handle, real metal with soft reflections.",
     ("APLICAT", "INOX"): "slim straight bar handles in brushed stainless steel, one per front: vertical near the opening edge on doors, horizontal and centred near the top edge on drawers, positioned exactly as in the render. Same finish on every handle, real metal with soft reflections.",
+    ("APLICAT", "AURIU"): "slim straight bar handles in brushed gold (satin brass look), one per front: vertical near the opening edge on doors, horizontal and centred near the top edge on drawers, positioned exactly as in the render. Same finish on every handle, real metal with soft reflections.",
     ("BUTON", "NEGRU"): "small round knobs (about 3 cm) in matt black, positioned exactly as in the render (near the opening edge on doors, centred on drawers). Same finish on every knob.",
     ("BUTON", "INOX"): "small round knobs (about 3 cm) in brushed stainless steel, positioned exactly as in the render (near the opening edge on doors, centred on drawers). Same finish on every knob.",
     ("BUTON", "AURIU"): "small round knobs (about 3 cm) in brushed gold (satin brass look), positioned exactly as in the render (near the opening edge on doors, centred on drawers). Same finish on every knob.",
@@ -251,6 +255,118 @@ NEW.update({
   }),
 })
 
+
+CAM_KITCHEN = "Camera at 1.4–1.5 m height, 35 mm full-frame equivalent, standing 4–4.5 m back in the room (from the dining area or doorway), three-quarter view about 15–25° off the main kitchen wall; verticals perfectly straight, no fisheye, no wide-angle stretching. 4:3 landscape. The whole kitchen is visible from the plinth to the top of the wall cabinets, with the ceiling line above and floor in front; it fills about 70–80% of the frame width."
+CAM_KITCHEN_L = CAM_KITCHEN.replace("three-quarter view about 15–25° off the main kitchen wall", "standing diagonally opposite the corner so both walls of the L are visible, the main wall a little more frontal")
+K_REFS = ["public/portfolio/shaker-white-kitchen-wide.webp", "public/portfolio/oak-studio-kitchen-wide-v2.webp", "public/portfolio/white-marble-kitchen-wide.webp", "public/portfolio/green-pesto-kitchen-corner.webp"]
+K_CHECK = ["Modules exactly as in the render, in the same order, same widths", "Worktop continuous at 90 cm in the named decor; 55 cm backsplash; wall cabinets as in the render", "Appliances built in only where the render shows them; fridge/dishwasher hidden behind fronts", "Real apartment kitchen with 1.10 m clear floor in front"]
+K_BODY = "visible end panels, plinth, the underside and sides of the wall cabinets"
+K_FRONTS = "all doors, drawer fronts and the panels in front of the dishwasher and fridge"
+
+NEW.update({
+ "bucatarie-240": dict(
+  kind="kitchen", room="Kitchen of a Romanian apartment (bucătărie).",
+  piece="Fitted kitchen on one wall, 240 cm long, 220 cm high to the top of the wall cabinets. Under the worktop, left to right, four 60 cm modules: a stack of 3 drawers; the sink cabinet with 2 doors; the integrated dishwasher (one full front); the built-in oven with the induction hob above it. Above them, four 60 cm wall cabinets with doors, except a stainless chimney hood above the hob. Doors and drawers closed.",
+  body=K_BODY, fronts=K_FRONTS,
+  placement="Fitted along the full 2.40 m wall of a small kitchen, wall to wall; the window is on the side wall; a small dining table for two stands 1.2 m in front of it.",
+  mount=None, camera=CAM_KITCHEN,
+  ratio="The run is 2.4 m long and 2.2 m high to the cabinet tops: a little longer than high. The base units are 90 cm high (worktop), the wall cabinets 72 cm, with 55 cm of backsplash between.",
+  anchors="a 2.05 m interior door or its frame on the side (the wall cabinet tops are 15 cm higher), the ceiling at 2.60 m (40 cm of wall above the cabinets) and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK, ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "alb-stejar-natur": ("Small kitchen of a new apartment: a kettle and a wooden chopping board on the worktop, a small herb pot by the window; light grey rectangular backsplash tiles. Worktop: pale grey stone look. Room surfaces: walls painted warm white; large light-grey floor tiles (clearly different from the oak fronts).", "Soft overcast daylight from a window on the left side wall, neutral white balance.", "a tea towel on the oven handle"),
+   "alb-total": ("Kitchen of a renovated older apartment: a fruit bowl and a coffee maker on the worktop; white square backsplash tiles with grey grout. Worktop: natural oak look. Room surfaces: walls painted a warm greige so the white cabinets separate from the wall; natural oak laminate floor.", "Bright late-morning daylight from a window on the right side wall.", "a cookbook with a plain cover on the worktop"),
+  }),
+ "bucatarie-compacta-180": dict(
+  kind="kitchen", room="Kitchenette of a studio apartment (garsonieră).",
+  piece="Compact fitted kitchen on one wall, 180 cm long, 220 cm high to the top of the wall cabinets. Under the worktop, left to right, three 60 cm modules: the sink cabinet with 1 door; a stack of 3 drawers; the built-in oven with the induction hob above it. Above them two 60 cm wall cabinets with doors and a stainless chimney hood above the hob. Doors and drawers closed.",
+  body=K_BODY, fronts=K_FRONTS,
+  placement="In the kitchen niche of a studio, wall to wall on a 1.80 m wall; the living area with a sofa edge is visible at the frame edge.",
+  mount=None, camera=CAM_KITCHEN.replace("it fills about 70–80% of the frame width", "it fills about 60% of the frame width"),
+  ratio="The run is 1.8 m long and 2.2 m high: a little taller than long. Base units 90 cm high to the worktop, wall cabinets 72 cm, 55 cm of backsplash between.",
+  anchors="a 2.05 m door frame on the side, the ceiling at 2.60 m and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK, ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "alb-total": ("Studio kitchenette: a toaster and a small jar of utensils on the worktop; pale sage square backsplash tiles. Worktop: light oak look. Room surfaces: walls painted warm white; natural oak laminate floor continuing into the living area.", "Soft daylight from the living-room window on the left.", "a mug next to the sink"),
+  }),
+ "bucatarie-frigider-300": dict(
+  kind="kitchen", room="Kitchen of a Romanian apartment (bucătărie).",
+  piece="Fitted kitchen on one wall, 300 cm long, 220 cm high. Left: a 60 cm tall column hiding the fridge behind two fronts (a tall lower door and a short top door). Then under the worktop, four 60 cm modules: 3 drawers; the sink cabinet with 2 doors; the integrated dishwasher; the built-in oven with the induction hob above. Wall cabinets with doors above, a stainless chimney hood above the hob. Everything closed.",
+  body=K_BODY, fronts=K_FRONTS,
+  placement="Along the full 3 m wall of a kitchen, the fridge column tight to the left wall; a dining table for four 1.2 m in front.",
+  mount=None, camera=CAM_KITCHEN,
+  ratio="The run is 3 m long and 2.2 m high, about 1.4 times longer than high; the fridge column rises to the same top line as the wall cabinets.",
+  anchors="the 2.05 m interior door on the right wall (the cabinet tops are 15 cm higher), the ceiling at 2.60 m and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK, ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "gri-casmir": ("Warm family kitchen: a wooden bread board, a stoneware jar and a small radio-free shelf of spices on the worktop; white zellige-look backsplash tiles. Worktop: natural oak look. Room surfaces: walls painted warm white; mid-brown oak laminate floor.", "Cloudy-afternoon daylight from a window on the right side wall.", "a tea towel on the oven handle"),
+   "alb-total": ("Bright modern kitchen: an espresso machine and a bowl of lemons on the worktop; light grey large-format backsplash. Worktop: white marble look. Room surfaces: walls painted pale greige so the white cabinets separate from the wall; light oak laminate floor.", "Soft overcast daylight from a window on the left side wall.", "a cutting board with a knife beside the sink"),
+  }),
+ "bucatarie-coloane-360": dict(
+  kind="kitchen", room="Large kitchen open to the dining area.",
+  piece="Fitted kitchen on one wall, 380 cm long, 230 cm high. Left two 60 cm tall columns: the fridge column (tall lower door, short top door) and the oven column (2 drawers below, a built-in oven and a microwave above it at eye level, a small door on top). Then under the worktop: 3 drawers (60 cm); the sink cabinet with 2 doors (80 cm); the integrated dishwasher (60 cm); the induction hob over a stack of drawers (60 cm). Wall cabinets with doors above, a stainless chimney hood over the hob. Everything closed.",
+  body=K_BODY, fronts=K_FRONTS,
+  placement="Along a 3.8 m wall of a kitchen open to the dining room; the two columns tight to the left wall; a dining table with chairs 1.3 m in front.",
+  mount=None, camera=CAM_KITCHEN,
+  ratio="The run is 3.8 m long and 2.3 m high, about 1.65 times longer than high; both columns rise to the same top line as the wall cabinets.",
+  anchors="the 2.05 m door to the hall on the right, the ceiling at 2.60–2.70 m and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK, ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "stejar-alb": ("Open kitchen-dining room: a fruit-free ceramic bowl, a kettle and an olive-oil bottle without label on the worktop; white rectangular metro backsplash. Worktop: white stone look. Room surfaces: walls painted warm white; light grey large floor tiles (clearly different from the oak body).", "Soft daylight from a large window on the right side wall.", "an apron hanging from the oven column handle"),
+   "alb-total": ("Calm modern kitchen-dining room: two stools at the dining table; a coffee machine on the worktop; pale grey backsplash. Worktop: dark concrete look. Room surfaces: walls painted pale greige; natural oak laminate floor.", "Overcast daylight from a window on the left side wall.", "a glass of water by the sink"),
+  }),
+ "bucatarie-l-270": dict(
+  kind="kitchen", room="Kitchen of a Romanian apartment (bucătărie).",
+  piece="L-shaped fitted kitchen, 220 cm high. Main wall 270 cm: a 110 cm corner unit in the corner on the left (one door plus a fixed blind panel), the sink cabinet with 2 doors (100 cm), the integrated dishwasher (60 cm). Left wall 180 cm from the corner: a stack of 3 drawers (60 cm) and the built-in oven with the induction hob above (60 cm). Wall cabinets with doors along both walls, a stainless chimney hood above the hob. The worktop runs continuously around the corner. Everything closed.",
+  body=K_BODY, fronts=K_FRONTS,
+  placement="Fitted in the corner of a kitchen: 2.70 m along the main wall and 1.80 m along the left wall; the window is on the right side wall; a round dining table stands in the open part of the room.",
+  mount=None, camera=CAM_KITCHEN_L,
+  ratio="Main wall 2.7 m and left wall 1.8 m (two thirds of the main wall), both 2.2 m high; the corner unit is wider than the other modules.",
+  anchors="the 2.05 m door to the hall (the cabinet tops are 15 cm higher), the ceiling at 2.60 m and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK + ["L shape: both walls visible, the worktop continuous around the corner"], ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "alb-casmir": ("Cosy apartment kitchen: a wooden chopping board and a jar of wooden spoons on the worktop; white square backsplash tiles. Worktop: light oak look. Room surfaces: walls painted warm white; mid-brown oak laminate floor.", "Soft overcast daylight from a window on the right side wall.", "a tea towel over the oven handle"),
+   "alb-stejar-natur": ("Bright kitchen of a new block: a kettle and a small herb pot on the worktop; pale grey backsplash tiles. Worktop: white stone look. Room surfaces: walls painted light warm grey; large light-grey floor tiles (clearly different from the oak fronts).", "Bright late-morning daylight from a window on the right side wall.", "a cookbook with a plain cover on the worktop"),
+  }),
+ "bucatarie-l-frigider-300": dict(
+  kind="kitchen", room="Kitchen of a Romanian apartment (bucătărie).",
+  piece="L-shaped fitted kitchen, 220 cm high. Main wall 300 cm: on the left a 60 cm tall fridge column (tall lower door, short top door), a 50 cm stack of 3 drawers, the sink cabinet with 2 doors (80 cm) and a 110 cm corner unit in the corner on the right. Right wall 240 cm from the corner: the integrated dishwasher, the built-in oven with the induction hob above and a stack of 3 drawers (60 cm each). Wall cabinets with doors on both walls, a stainless chimney hood above the hob. Continuous worktop around the corner. Everything closed.",
+  body=K_BODY, fronts=K_FRONTS,
+  placement="Fitted in the corner of a kitchen: 3 m along the main wall and 2.4 m along the right wall; a dining table for four in the open part of the room.",
+  mount=None, camera=CAM_KITCHEN_L,
+  ratio="Main wall 3 m and right wall 2.4 m, both 2.2 m high; the fridge column rises to the same top line as the wall cabinets.",
+  anchors="the 2.05 m door to the hall, the ceiling at 2.60 m and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK + ["L shape: both walls visible, the worktop continuous around the corner"], ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "bardolino-gri": ("Family kitchen: a bread board, a ceramic jug with utensils and a coffee maker on the worktop; white rectangular backsplash tiles. Worktop: white stone look. Room surfaces: walls painted warm white; light grey large floor tiles.", "Soft overcast daylight from a window on the left side wall.", "a tea towel on the dishwasher front"),
+  }),
+ "bucatarie-rafturi-240": dict(
+  kind="kitchen", room="Kitchen of a Romanian apartment (bucătărie).",
+  piece="Fitted kitchen on one wall, 240 cm long. Under the worktop four 60 cm modules: 3 drawers; the sink cabinet with 2 doors; the integrated dishwasher; the built-in oven with the induction hob above. Above: open shelves (2 levels) over the drawers and over the dishwasher, wall cabinets with doors over the sink, a stainless chimney hood over the hob. Doors and drawers closed.",
+  body=K_BODY + " and the open shelves", fronts=K_FRONTS,
+  placement="Along the full 2.40 m wall of a small kitchen; the window on the side wall; a small table in front.",
+  mount=None, camera=CAM_KITCHEN,
+  ratio="The run is 2.4 m long and 2.2 m high. Base units 90 cm high, open shelves and wall cabinets on the same top line.",
+  anchors="the 2.05 m door frame on the side, the ceiling at 2.60 m and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK + ["Open shelves exactly where the render has them, lightly filled (plates, glasses, two jars without labels)"], ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "salvie-stejar": ("Airy kitchen: plates, glasses and two jars without labels on the open shelves; a wooden chopping board on the worktop; white square zellige-look backsplash. Worktop: light oak look. Room surfaces: walls painted warm white; pale grey-beige laminate floor.", "Soft daylight from a window on the right side wall.", "a linen tea towel on the oven handle"),
+  }),
+ "bucatarie-ridicabile-300": dict(
+  kind="kitchen", room="Modern kitchen open to the living room.",
+  piece="Handle-less fitted kitchen on one wall, 300 cm long, 230 cm high. Left a 60 cm tall fridge column. Under the worktop four 60 cm modules: 3 drawers; the sink cabinet; the integrated dishwasher; the built-in oven with the induction hob above. Above them wall cabinets with lift-up fronts (one wide flap each) and a stainless chimney hood above the hob. All fronts completely flat, push-to-open, closed.",
+  body=K_BODY, fronts=K_FRONTS,
+  placement="Along a 3 m wall of a kitchen open to the living room; the fridge column tight to the left wall; a dining table 1.3 m in front.",
+  mount=None, camera=CAM_KITCHEN,
+  ratio="The run is 3 m long and 2.3 m high; each wall cabinet has one flat lift-up front, a little taller than wide, exactly as in the render.",
+  anchors="the 2.05 m door to the hall, the ceiling at 2.60–2.70 m and the sockets on the backsplash at 1.10 m",
+  checklist=K_CHECK + ["Completely flat fronts, no handles or grooves", "No visible LED glow (lights off)"], ourRefs=K_REFS, webRefs=[],
+  scenes={
+   "grafit-total": ("Modern open kitchen: a white ceramic vase with no flowers and an espresso machine on the worktop; the backsplash is a slab in the worktop's decor. Worktop: white marble look (so the graphite fronts contrast). Room surfaces: walls painted warm white; natural oak laminate floor.", "Soft overcast daylight from a large window on the left side wall.", "a bowl of green apples on the dining table"),
+   "alb-total": ("Calm minimalist kitchen: a single plant and a kettle on the worktop; pale grey large-format backsplash. Worktop: natural oak look. Room surfaces: walls painted pale greige so the white kitchen separates from the wall; light grey large floor tiles.", "Bright overcast daylight from a window on the right side wall.", "a cutting board leaning on the backsplash"),
+  }),
+})
+
 # ───────────────────────── existing products still to photograph ─────────────────────────
 KIND_OLD = {"comoda-mixta-180": "chest", "comoda-inalta-80": "chest", "comoda-nisa-140": "chest",
             "separator-biblioteca-120": "divider", "separator-sertare-160": "divider", "separator-usi-180": "divider",
@@ -383,6 +499,10 @@ def rule_lines(slug, kind, bath, handle, ratio, anchors, obj, idx, has_fronts=Tr
         L.append("Fronts: the doors and drawer fronts cover the entire front of the piece from the top edge down to the plinth (or underside) and from side to side. No frame, header, stile or rail is visible around or between them.")
     if kind in ("tall", "chest", "divider"):
         L.append("Base: the piece stands on a 10 cm high plinth set back 3 cm behind the fronts, visible along the whole bottom; no legs, no flush block.")
+    if kind == "kitchen":
+        L.append("Kitchen build: base units 90 cm high to the top of the 38 mm worktop, on a 15 cm plinth set back 5 cm in the body colour; 55 cm of backsplash between the worktop and the wall cabinets; every wall cabinet and tall column ends at the same top line, exactly as in the render. The worktop is one continuous slab in the named decor, 38 mm thick, flush with the front of the base units plus 2 cm overhang.")
+        L.append("Appliances: built in exactly where the render shows them and nowhere else: a stainless-steel inset sink with a single-lever tap; a black glass induction hob flush in the worktop above the oven; a built-in oven with a dark glass door; the dishwasher and the fridge hidden behind fronts in the kitchen colour. No freestanding fridge, no range cooker, no visible brand names or displays with text.")
+        L.append("Access: at least 1.10 m of clear floor in front of the kitchen; a dining table or chairs only beyond that; a window may be on the side wall but never behind the wall cabinets.")
     if kind == "tall":
         L.append("Access: a clear strip of floor at least 85 cm wide runs along the whole front; no furniture within 90 cm of the doors. The window and radiator are on another wall or at least 1 m from the cupboard's end. One side of the cupboard touches the side wall; nothing stands between the cupboard and that wall. The strip of wall between its top and the ceiling is clearly visible, exactly as stated.")
     elif kind == "chest":
@@ -409,6 +529,7 @@ def extra_checks(kind, handle, bath, mount):
     c = ["Proportion as stated in the prompt (ratio measured in the photo within 10% of the render)", "Scale anchors present and consistent: door 2.05 m, ceiling 2.60 m, socket 30 cm (bathroom: 85 cm fixture)"]
     if kind == "tv": c.append("TV 16:9 and the stated fraction of the unit's length; unit not stretched")
     if mount is not None: c.append(f"Mounting height: underside about {mount} cm above the floor and the stated gap to the item below")
+    if kind == "kitchen": c.append("Worktop 90 cm, 55 cm backsplash, one top line; built-in sink/hob/oven exactly where the render shows them; fridge and dishwasher behind fronts")
     if kind in ("tall", "chest", "divider"): c.append("10 cm recessed plinth along the whole bottom; fronts cover the whole front (no frame or header)")
     if kind == "tall": c.append("Clear floor in front, tight to a side wall, stated strip of wall below the ceiling")
     if kind == "chest": c.append("Only cabinet in the photo; no TV; at most one mirror/picture/shelf above; no dark panels")

@@ -150,7 +150,7 @@ test("mirror presets: one mirrored sliding door, a mirror on the middle column, 
 
 test("a few presets carry a badge", () => {
   const badges = LAYOUT_PRESETS.filter((p) => p.badge);
-  assert.ok(badges.length >= 3 && badges.length <= 6, `${badges.length} badges`);
+  assert.ok(badges.length >= 3 && badges.length <= 8, `${badges.length} badges`);
 });
 
 test("combos reference existing presets and palettes, across all categories", () => {

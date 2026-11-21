@@ -383,5 +383,53 @@
     "alb-stejar-natur",
     "gri-casmir",
     "salvie-stejar"
+  ],
+  "bucatarie-240": [
+    "alb-stejar-natur",
+    "alb-total",
+    "gri-casmir",
+    "salvie-stejar"
+  ],
+  "bucatarie-compacta-180": [
+    "alb-total",
+    "alb-stejar-natur",
+    "gri-casmir",
+    "stejar-alb"
+  ],
+  "bucatarie-frigider-300": [
+    "gri-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "stejar-casmir"
+  ],
+  "bucatarie-coloane-360": [
+    "stejar-alb",
+    "alb-total",
+    "gri-casmir",
+    "antracit-stejar"
+  ],
+  "bucatarie-l-270": [
+    "alb-casmir",
+    "alb-total",
+    "alb-stejar-natur",
+    "salvie-stejar"
+  ],
+  "bucatarie-l-frigider-300": [
+    "bardolino-gri",
+    "alb-total",
+    "gri-casmir",
+    "stejar-alb"
+  ],
+  "bucatarie-rafturi-240": [
+    "salvie-stejar",
+    "alb-total",
+    "stejar-alb",
+    "alb-stejar-natur"
+  ],
+  "bucatarie-ridicabile-300": [
+    "grafit-total",
+    "alb-total",
+    "gri-casmir",
+    "antracit-stejar"
   ]
 }
