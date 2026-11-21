@@ -23,7 +23,8 @@ import {
   upperOf,
   widthRange,
 } from "@/lib/atelier/kitchen";
-import type { AtelierColumn, AtelierConfig, KitchenLayout } from "@/lib/atelier/types";
+import type { AtelierCatalog, AtelierColumn, AtelierConfig, KitchenLayout } from "@/lib/atelier/types";
+import { DrawerRunners } from "./drawer-runners";
 import { ContentGlyph } from "./content-glyph";
 import type { Act } from "./session";
 import { Choice, Field, LengthControl, Section, Stepper, cm, plural } from "./ui";
@@ -349,7 +350,7 @@ function Wall({
   );
 }
 
-export function StepKitchen({ config, act, pick, onPick }: { config: AtelierConfig; act: Act; pick: KitchenPick; onPick: (pick: KitchenPick) => void }) {
+export function StepKitchen({ catalog, config, act, pick, onPick }: { catalog: AtelierCatalog; config: AtelierConfig; act: Act; pick: KitchenPick; onPick: (pick: KitchenPick) => void }) {
   const hasB = kitchenLayout(config) !== "LINIAR" && !!config.kitchen?.legB;
   const safe: KitchenPick = pick.leg === "B" && !hasB ? { leg: "A", index: 0 } : pick;
   const bath = isBath(config);
@@ -361,6 +362,7 @@ export function StepKitchen({ config, act, pick, onPick }: { config: AtelierConf
     <div className="atelier-stack">
       <Wall config={config} leg="A" act={act} pick={safe} onPick={onPick} />
       {hasB && <Wall config={config} leg="B" act={act} pick={safe} onPick={onPick} />}
+      <DrawerRunners catalog={catalog} config={config} act={act} />
       {hasUppers && (
         <Section title="Lumină" hint={bath ? "Bandă LED sub dulapul de sus, cu sursă și montaj." : "Bandă LED sub dulapurile de sus, cu sursă și montaj."}>
           <Choice

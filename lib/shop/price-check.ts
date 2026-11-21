@@ -1,6 +1,7 @@
 import { doorOpening, doorType, type DoorOpening } from "../atelier/door-types";
 import { HANDLE_INFO, currentHandle, handleUnavailable, hasHandledFronts } from "../atelier/handles";
 import { followUps } from "../atelier/house-rules";
+import { hasFrontDrawers, partialDrawersAvailable } from "../atelier/drawers";
 import { resolvePalettes } from "../atelier/palettes";
 import { presetAvailable } from "../atelier/presets";
 import { encodeShare } from "../atelier/share";
@@ -20,8 +21,8 @@ import { variantConfig } from "./server";
  * Not a full cartesian product (it would be tens of thousands of rows): the options change the price the
  * same way in every colour, so one colour shows their effect. About 50 products × ~5 colours + ~6 options
  * per product ≈ 500–700 rows.
- * Drawer runners are not an option: the configurator always builds Tandembox drawers (the CRM picks the
- * set from the front height), so there is no runner variant to list.
+ * Drawer runners: Blum TANDEM with a PAL box; full extension is the default, partial extension is listed as
+ * an option when the CRM catalog has partial runners.
  */
 
 export interface PriceCheckRow {
@@ -82,6 +83,9 @@ export function optionVariants(config: AtelierConfig, catalog: AtelierCatalog): 
         push(`usi:${type}`, type === "NONE" ? "Fără uși" : `Uși ${DOOR_LABEL[type]}`, apply(catalog, config, { type: "setDoors", doors }));
       }
     }
+  }
+  if (hasFrontDrawers(config) && partialDrawersAvailable(catalog) && config.drawerExtension !== "PARTIALA") {
+    push("sertare:PARTIALA", "Sertare cu extracție parțială", apply(catalog, config, { type: "setDrawerExtension", extension: "PARTIALA" }));
   }
   if (hasHandledFronts(config)) {
     const now = currentHandle(config);

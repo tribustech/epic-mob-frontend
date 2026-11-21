@@ -73,8 +73,11 @@ export interface AtelierConfig {
   doors: AtelierDoors;   // în afara DRESSING: { type: 'NONE' }; count doar la glisante
   bottom?: AtelierBottom;          // doar SEPARATOR: partea de jos (lipsă = deschis până jos)
   handle?: AtelierHandle;          // fronturile cu mâner (comodă, suspendat, dressing cu uși batante); lipsă = implicitul categoriei
+  /** glisierele sertarelor (Blum TANDEM): extracție completă (implicit) sau parțială */
+  drawerExtension?: DrawerExtension;
   kitchen?: AtelierKitchen;        // doar BUCATARIE: forma, al doilea perete, blatul, LED
 }
+export type DrawerExtension = 'COMPLETA' | 'PARTIALA';
 export interface AtelierIssue { code: string; message: string; column?: number }
 /** Electrocasnicele și chiuveta desenate în 3D (nu intră în preț). */
 export type ApplianceKind = 'CHIUVETA' | 'PLITA' | 'CUPTOR' | 'MICROUNDE' | 'FRIGIDER' | 'HOTA' | 'LAVOAR' | 'MASINA_SPALAT';
@@ -109,6 +112,8 @@ export interface AtelierCatalog {
   ral: { code: string; name: string; hex: string }[];
   /** tipurile de mâner care se pot cota acum */
   handles?: { types: { type: HandleKind; label: string }[] };
+  /** extracțiile de sertar pe care CRM-ul le poate cota (lipsă = doar completă) */
+  drawerExtensions?: DrawerExtension[];
   /** tipurile de oglindă și sticlă pentru uși */
   glass?: { mirrors: AtelierGlass[]; glasses: AtelierGlass[] };
   /** blaturile de bucătărie (cu grosimea și adâncimea maximă) */

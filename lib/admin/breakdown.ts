@@ -53,7 +53,7 @@ export interface BreakdownRequest {
 /** Hardware categories in plain words. */
 export const HARDWARE_CATEGORY: Record<string, string> = {
   BALAMA: "Balamale",
-  SERTAR: "Sertare (Tandembox)",
+  SERTAR: "Sertare (glisiere)",
   MANER: "Mânere",
   PICIOR: "Picioare",
   SINA_SUSPENDARE: "Prindere pe perete",

@@ -3,6 +3,7 @@ import { cleanHandle, hasHandledFronts } from "./handles";
 import { BARA_SERTARE_RANGE, BOTTOM_HEIGHT_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
   AtelierCatalog,
+  DrawerExtension,
   AtelierCategory,
   AtelierColumn,
   AtelierConfig,
@@ -54,6 +55,8 @@ export type AtelierAction =
   | { type: "setLegs"; legsMm: AtelierConfig["legsMm"] }
   | { type: "setDoors"; doors: AtelierConfig["doors"]; handle?: AtelierHandle }
   | { type: "setHandle"; handle: AtelierHandle }
+  /** the drawer runners: full (default) or partial extension */
+  | { type: "setDrawerExtension"; extension: DrawerExtension }
   /** the face of one door (sliding: the door; hinged: the column) */
   | { type: "setDoorFill"; index: number; fill: DoorFill }
   /** the face of every door at once, left to right (missing entries = panel) */
@@ -382,6 +385,12 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
       const handle = cleanHandle(action.handle) ?? state.handle;
       if (action.doors.type.startsWith("BATANTE") && handle) next.handle = handle;
       else delete next.handle;
+      return next;
+    }
+    case "setDrawerExtension": {
+      const next: AtelierConfig = { ...state };
+      if (action.extension === "PARTIALA") next.drawerExtension = "PARTIALA";
+      else delete next.drawerExtension;
       return next;
     }
     case "setHandle": {

@@ -583,10 +583,10 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                 )}
                 {step === "usi" && <StepDoors catalog={catalog} config={config} act={act} front={front} />}
                 {step === "interior" && isKitchen && (
-                  <StepKitchen config={config} act={act} pick={kitchenPick} onPick={onKitchenPick} />
+                  <StepKitchen catalog={catalog} config={config} act={act} pick={kitchenPick} onPick={onKitchenPick} />
                 )}
                 {step === "interior" && !isKitchen && (
-                  <StepInterior config={config} act={act} column={column} onColumn={pickColumn} onStep={goTo} />
+                  <StepInterior catalog={catalog} config={config} act={act} column={column} onColumn={pickColumn} onStep={goTo} />
                 )}
                 {step === "oferta" && (
                   <StepOffer

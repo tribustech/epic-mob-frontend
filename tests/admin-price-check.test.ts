@@ -78,3 +78,16 @@ test("check-link box finds the code in a pasted link", () => {
   assert.equal(shareCodeOf("  /configurator?x=1&c=zz  "), "zz");
   assert.equal(shareCodeOf("nimic aici"), null);
 });
+
+test("partial drawer extension: listed as an option and kept by the share code, only when the CRM offers it", () => {
+  const withPartial: AtelierCatalog = { ...catalog, drawerExtensions: ["COMPLETA", "PARTIALA"] };
+  const comoda = SHOP_PRODUCTS.find((p) => p.slug.startsWith("comoda-"))!;
+  const rows = priceCheckRows(withPartial, "2026-11-21").filter((r) => r.slug === comoda.slug);
+  const partial = rows.find((r) => r.variant === "sertare:PARTIALA");
+  assert.ok(partial, "no partial-extension row for a chest of drawers");
+  assert.equal(partial.config.drawerExtension, "PARTIALA");
+  assert.equal(decodeShare(partial.share, withPartial)?.drawerExtension, "PARTIALA");
+  // an older CRM (no partial runners): no such row, and a code asking for it falls back to full extension
+  assert.ok(!priceCheckRows(catalog, "2026-11-21").some((r) => r.variant === "sertare:PARTIALA"));
+  assert.equal(decodeShare(partial.share, catalog)?.drawerExtension, undefined);
+});
