@@ -237,6 +237,51 @@ const DRESSING: PresetInput[] = [
     columns: [col(900, "POLITE_BARA", { shelves: 3, doorsAcross: 2 })],
     doors: { type: "BATANTE" },
   },
+  {
+    id: "dressing-3-usi-150",
+    name: "Dulap cu 3 uși 1,5 m",
+    tagline: "Dulapul clasic de dormitor: polițe într-o parte, umerașe pe două uși.",
+    paletteId: "alb-total",
+    size: [1500, 2100, 550],
+    columns: [col(500, "POLITE"), col(500, "BARA"), col(500, "BARA")],
+    doors: { type: "BATANTE" },
+  },
+  {
+    id: "dressing-camara-90",
+    name: "Dulap de cămară 0,9 m",
+    tagline: "Polițe de sus până jos pentru provizii, cu uși pe două rânduri.",
+    paletteId: "alb-total",
+    size: [900, 2200, 500],
+    columns: [col(450, "POLITE", { doorRows: 2 }), col(450, "POLITE", { doorRows: 2 })],
+    doors: { type: "BATANTE" },
+  },
+  {
+    id: "dressing-serviciu-80",
+    name: "Dulap pentru aspirator și mături 0,8 m",
+    tagline: "O parte înaltă pentru aspirator și masa de călcat, una cu polițe pentru detergenți.",
+    paletteId: "alb-total",
+    size: [800, 2200, 450],
+    columns: [col(400, "BARA"), col(400, "POLITE")],
+    doors: { type: "BATANTE" },
+  },
+  {
+    id: "dressing-baie-60",
+    name: "Coloană de baie 0,6 m",
+    tagline: "Înaltă și puțin adâncă: prosoape sus, detergenți jos, în spatele a două uși.",
+    paletteId: "alb-total",
+    size: [600, 1900, 350],
+    columns: [col(600, "POLITE", { doorRows: 2 })],
+    doors: { type: "BATANTE" },
+  },
+  {
+    id: "dressing-birou-100",
+    name: "Dulap de birou pentru acte 1 m",
+    tagline: "Polițe pentru bibliorafturi și dosare, închise în spatele a două uși.",
+    paletteId: "alb-stejar-natur",
+    size: [1000, 2000, 400],
+    columns: [col(500, "POLITE"), col(500, "POLITE")],
+    doors: { type: "BATANTE" },
+  },
 ];
 
 const COMODA: PresetInput[] = [
@@ -313,6 +358,38 @@ const COMODA: PresetInput[] = [
     size: [1400, 800, 400],
     columns: [col(800, "SERTARE", { drawers: 3 }), col(600, "DESCHIS", { shelves: 2 })],
   },
+  {
+    id: "comoda-pantofar-80",
+    name: "Pantofar înalt și îngust 0,8 m",
+    tagline: "Doar 30 cm adâncime: cinci rânduri de încălțăminte pe un perete îngust de hol.",
+    paletteId: "alb-total",
+    size: [800, 1200, 300],
+    columns: [col(400, "USI", { shelves: 4 }), col(400, "USI", { shelves: 4 })],
+  },
+  {
+    id: "comoda-cafea-120",
+    name: "Bufet de cafea 1,2 m",
+    tagline: "Înalt cât blatul de bucătărie: espressorul deasupra, cănile și cafeaua dedesubt.",
+    paletteId: "alb-stejar-natur",
+    size: [1200, 900, 450],
+    columns: [col(600, "USI", { shelves: 1 }), col(600, "SERTARE", { drawers: 3 })],
+  },
+  {
+    id: "comoda-baie-80",
+    name: "Dulăpior de baie pe podea 0,8 m",
+    tagline: "Puțin adânc, lângă lavoar sau mașina de spălat: o ușă și trei sertare.",
+    paletteId: "alb-casmir",
+    size: [800, 850, 350],
+    columns: [col(400, "USI", { shelves: 2 }), col(400, "SERTARE", { drawers: 3 })],
+  },
+  {
+    id: "comoda-birou-90",
+    name: "Comodă de birou 0,9 m",
+    tagline: "La înălțimea biroului: sertare pentru acte și un dulăpior pentru imprimantă.",
+    paletteId: "alb-stejar-natur",
+    size: [900, 750, 450],
+    columns: [col(450, "SERTARE", { drawers: 3 }), col(450, "USI", { shelves: 1 })],
+  },
 ];
 
 const SEPARATOR: PresetInput[] = [
@@ -367,6 +444,23 @@ const SEPARATOR: PresetInput[] = [
     size: [900, 2200, 300],
     columns: [col(450, "DESCHIS", { shelves: 4 }), col(450, "DESCHIS", { shelves: 4 })],
     bottom: { type: "SERTARE", heightMm: 500, drawers: 1 },
+  },
+  {
+    id: "separator-cuburi-150",
+    name: "Bibliotecă cu 16 cuburi 1,5 m",
+    tagline: "Patru pe patru nișe egale, pentru cărți, cutii și coșuri: la perete sau între două zone.",
+    paletteId: "alb-total",
+    size: [1500, 1500, 400],
+    columns: [col(375, "DESCHIS", { shelves: 3 }), col(375, "DESCHIS", { shelves: 3 }), col(375, "DESCHIS", { shelves: 3 }), col(375, "DESCHIS", { shelves: 3 })],
+  },
+  {
+    id: "separator-copii-120",
+    name: "Bibliotecă joasă pentru copii 1,2 m",
+    tagline: "La înălțimea celor mici: polițe pentru cărți și sertare de jucării la bază.",
+    paletteId: "alb-total",
+    size: [1200, 1200, 350],
+    columns: [col(400, "DESCHIS", { shelves: 1 }), col(400, "DESCHIS", { shelves: 1 }), col(400, "DESCHIS", { shelves: 1 })],
+    bottom: { type: "SERTARE", heightMm: 400, drawers: 1 },
   },
 ];
 
@@ -435,6 +529,22 @@ const SUSPENDAT: PresetInput[] = [
     paletteId: "gri-casmir",
     size: [900, 900, 350],
     columns: [col(450, "USI", { shelves: 2 }), col(450, "USI", { shelves: 2 })],
+  },
+  {
+    id: "suspendat-bucatarie-180",
+    name: "Corp suspendat de bucătărie 1,8 m",
+    tagline: "Trei uși și polițe pentru veselă, deasupra blatului sau a colțului de cafea.",
+    paletteId: "alb-total",
+    size: [1800, 720, 320],
+    columns: [col(600, "USI", { shelves: 2 }), col(600, "USI", { shelves: 2 }), col(600, "USI", { shelves: 2 })],
+  },
+  {
+    id: "suspendat-baie-nisa-90",
+    name: "Dulăpior de baie cu nișă 0,9 m",
+    tagline: "O ușă pentru cosmetice și o nișă deschisă pentru prosoape.",
+    paletteId: "alb-total",
+    size: [900, 700, 250],
+    columns: [col(300, "DESCHIS", { shelves: 2 }), col(600, "USI", { shelves: 2 })],
   },
 ];
 

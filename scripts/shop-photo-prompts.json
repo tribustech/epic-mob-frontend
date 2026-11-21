@@ -1,0 +1,236 @@
+[
+  {
+    "slug": "dressing-clasic-240",
+    "render": "public/magazin/randari/dressing-clasic-240/alb-stejar-natur.webp",
+    "out": "public/magazin/foto/dressing-clasic-240.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dressing clasic 2,4 m, 240 × 260 × 60 cm, combinația de culori „Alb & stejar natur\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși glisante; 3 compartimente: 2 × bară de haine, polițe; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-hol-120",
+    "render": "public/magazin/randari/dressing-hol-120/casmir-alb.webp",
+    "out": "public/magazin/foto/dressing-hol-120.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap de hol 1,2 m, 120 × 240 × 45 cm, combinația de culori „Cașmir & alb\") așezat lângă perete, pe podea, într-un hol de intrare modern dintr-un apartament dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși batante; 2 compartimente: polițe + bară, polițe; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-dormitor-180",
+    "render": "public/magazin/randari/dressing-dormitor-180/alb-total.webp",
+    "out": "public/magazin/foto/dressing-dormitor-180.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap de dormitor 1,8 m, 180 × 260 × 60 cm, combinația de culori „Alb total\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși glisante; 2 compartimente: bară de haine, polițe; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-oglinda-240",
+    "render": "public/magazin/randari/dressing-oglinda-240/alb-casmir.webp",
+    "out": "public/magazin/foto/dressing-oglinda-240.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dressing cu oglindă 2,4 m, 240 × 260 × 60 cm, combinația de culori „Alb & cașmir\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși glisante cu oglindă; 3 compartimente: bară dublă (haine scurte), polițe, bară + sertare; 2 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-familie-300",
+    "render": "public/magazin/randari/dressing-familie-300/stejar-casmir.webp",
+    "out": "public/magazin/foto/dressing-familie-300.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dressing de familie 3 m, 300 × 260 × 60 cm, combinația de culori „Stejar & cașmir\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși glisante; 4 compartimente: bară de haine, polițe + bară, polițe, bară + sertare; 3 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-mare-360",
+    "render": "public/magazin/randari/dressing-mare-360/gri-casmir.webp",
+    "out": "public/magazin/foto/dressing-mare-360.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dressing pe tot peretele 3,6 m, 360 × 260 × 60 cm, combinația de culori „Gri cașmir\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși glisante; 4 compartimente: bară de haine, polițe, bară dublă (haine scurte), bară + sertare; 3 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-deschis-280",
+    "render": "public/magazin/randari/dressing-deschis-280/stejar-natur.webp",
+    "out": "public/magazin/foto/dressing-deschis-280.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dressing deschis 2,8 m, 280 × 240 × 50 cm, combinația de culori „Stejar natur\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Fără uși; 4 compartimente: bară de haine, polițe, bară + sertare, bară dublă (haine scurte); 3 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-sertare-200",
+    "render": "public/magazin/randari/dressing-sertare-200/antracit-stejar.webp",
+    "out": "public/magazin/foto/dressing-sertare-200.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap cu sertare 2 m, 200 × 250 × 60 cm, combinația de culori „Antracit & stejar\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși batante; 3 compartimente: 2 × polițe, bară + sertare; 3 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-copii-150",
+    "render": "public/magazin/randari/dressing-copii-150/denim-alb.webp",
+    "out": "public/magazin/foto/dressing-copii-150.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap pentru copii 1,5 m, 150 × 220 × 55 cm, combinația de culori „Albastru denim & alb\") așezat lângă perete, pe podea, într-o cameră de copil luminoasă și ordonată dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși batante; 2 compartimente: bară dublă (haine scurte), polițe; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-tavan-270",
+    "render": "public/magazin/randari/dressing-tavan-270/supermat-crem.webp",
+    "out": "public/magazin/foto/dressing-tavan-270.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap până în tavan 2,7 m, 270 × 280 × 60 cm, combinația de culori „Crem supermat\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși batante; 3 compartimente: bară de haine, polițe + bară, polițe; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-hol-oglinda-160",
+    "render": "public/magazin/randari/dressing-hol-oglinda-160/alb-casmir.webp",
+    "out": "public/magazin/foto/dressing-hol-oglinda-160.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap de hol cu oglindă 1,6 m, 160 × 240 × 45 cm, combinația de culori „Alb & cașmir\") așezat lângă perete, pe podea, într-un hol de intrare modern dintr-un apartament dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși batante cu oglindă; 2 compartimente: polițe + bară, polițe; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-oglinda-una-180",
+    "render": "public/magazin/randari/dressing-oglinda-una-180/alb-casmir.webp",
+    "out": "public/magazin/foto/dressing-oglinda-una-180.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap cu o ușă oglindă 1,8 m, 180 × 250 × 60 cm, combinația de culori „Alb & cașmir\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși glisante, una cu oglindă; 2 compartimente: bară de haine, polițe; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-oglinda-mijloc-240",
+    "render": "public/magazin/randari/dressing-oglinda-mijloc-240/alb-casmir.webp",
+    "out": "public/magazin/foto/dressing-oglinda-mijloc-240.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap cu oglindă la mijloc 2,4 m, 240 × 250 × 60 cm, combinația de culori „Alb & cașmir\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși batante, una cu oglindă; 3 compartimente: bară de haine, polițe, bară + sertare; 2 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-oglinzi-300",
+    "render": "public/magazin/randari/dressing-oglinzi-300/alb-casmir.webp",
+    "out": "public/magazin/foto/dressing-oglinzi-300.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dressing cu trei oglinzi 3 m, 300 × 260 × 60 cm, combinația de culori „Alb & cașmir\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși glisante cu oglindă; 4 compartimente: bară de haine, polițe, polițe + bară, bară dublă (haine scurte); Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-sticla-300",
+    "render": "public/magazin/randari/dressing-sticla-300/grafit-total.webp",
+    "out": "public/magazin/foto/dressing-sticla-300.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dressing cu sticlă 3 m, 300 × 260 × 65 cm, combinația de culori „Grafit total\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși glisante din sticlă; 4 compartimente: bară de haine, polițe, polițe + bară, bară dublă (haine scurte); Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "dressing-ingust-90",
+    "render": "public/magazin/randari/dressing-ingust-90/alb-total.webp",
+    "out": "public/magazin/foto/dressing-ingust-90.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap îngust 0,9 m, 90 × 240 × 55 cm, combinația de culori „Alb total\") așezat lângă perete, pe podea, într-un hol de intrare modern dintr-un apartament dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: Uși batante; 1 compartiment: polițe + bară; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "comoda-clasica-160",
+    "render": "public/magazin/randari/comoda-clasica-160/stejar-alb.webp",
+    "out": "public/magazin/foto/comoda-clasica-160.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Comodă cu 6 sertare 1,6 m, 160 × 80 × 45 cm, combinația de culori „Stejar & alb\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: 2 × sertare; 6 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "comoda-4-sertare-100",
+    "render": "public/magazin/randari/comoda-4-sertare-100/alb-total.webp",
+    "out": "public/magazin/foto/comoda-4-sertare-100.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Comodă cu 4 sertare 1 m, 100 × 95 × 45 cm, combinația de culori „Alb total\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 1 compartiment: sertare; 4 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "comoda-tv-200",
+    "render": "public/magazin/randari/comoda-tv-200/antracit-stejar.webp",
+    "out": "public/magazin/foto/comoda-tv-200.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Comodă TV 2 m, 200 × 50 × 40 cm, combinația de culori „Antracit & stejar\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 3 compartimente: 2 × sertare, deschis (polițe); 4 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "comoda-tv-240",
+    "render": "public/magazin/randari/comoda-tv-240/nuc-negru-mat.webp",
+    "out": "public/magazin/foto/comoda-tv-240.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Comodă TV 2,4 m, 240 × 50 × 45 cm, combinația de culori „Negru mat & nuc\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 3 compartimente: 2 × uși, sertare; 2 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "noptiera-50",
+    "render": "public/magazin/randari/noptiera-50/stejar-casmir.webp",
+    "out": "public/magazin/foto/noptiera-50.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Noptieră cu 2 sertare, 50 × 50 × 40 cm, combinația de culori „Stejar & cașmir\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 1 compartiment: sertare; 2 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "comoda-hol-120",
+    "render": "public/magazin/randari/comoda-hol-120/casmir-alb.webp",
+    "out": "public/magazin/foto/comoda-hol-120.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Pantofar de hol 1,2 m, 120 × 100 × 35 cm, combinația de culori „Cașmir & alb\") așezat lângă perete, pe podea, într-un hol de intrare modern dintr-un apartament dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: 2 × uși; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "comoda-mixta-180",
+    "render": "public/magazin/randari/comoda-mixta-180/nuc-crem.webp",
+    "out": "public/magazin/foto/comoda-mixta-180.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Bufet cu uși și sertare 1,8 m, 180 × 85 × 45 cm, combinația de culori „Nuc & crem\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 3 compartimente: 2 × uși, sertare; 4 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "comoda-inalta-80",
+    "render": "public/magazin/randari/comoda-inalta-80/gri-casmir.webp",
+    "out": "public/magazin/foto/comoda-inalta-80.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Comodă înaltă cu 5 sertare, 80 × 120 × 45 cm, combinația de culori „Gri cașmir\") așezat lângă perete, pe podea, într-un dormitor modern și luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 1 compartiment: sertare; 5 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "comoda-nisa-140",
+    "render": "public/magazin/randari/comoda-nisa-140/salvie-stejar.webp",
+    "out": "public/magazin/foto/comoda-nisa-140.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Comodă cu nișă 1,4 m, 140 × 80 × 40 cm, combinația de culori „Verde salvie & stejar deschis\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: sertare, deschis (polițe); 3 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "separator-biblioteca-120",
+    "render": "public/magazin/randari/separator-biblioteca-120/stejar-natur.webp",
+    "out": "public/magazin/foto/separator-biblioteca-120.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Bibliotecă separator 1,2 m, 120 × 200 × 35 cm, combinația de culori „Stejar natur\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 3 compartimente: 3 × deschis (polițe); Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "separator-sertare-160",
+    "render": "public/magazin/randari/separator-sertare-160/stejar-alb.webp",
+    "out": "public/magazin/foto/separator-sertare-160.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Bibliotecă cu sertare jos 1,6 m, 160 × 200 × 40 cm, combinația de culori „Stejar & alb\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: 2 × deschis (polițe); 4 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "separator-usi-180",
+    "render": "public/magazin/randari/separator-usi-180/alb-stejar-natur.webp",
+    "out": "public/magazin/foto/separator-usi-180.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Separator cu uși jos 1,8 m, 180 × 220 × 40 cm, combinația de culori „Alb & stejar natur\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 3 compartimente: 3 × deschis (polițe); Dulăpioare cu uși la bază; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "separator-inalt-240",
+    "render": "public/magazin/randari/separator-inalt-240/bardolino-gri.webp",
+    "out": "public/magazin/foto/separator-inalt-240.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Separator până în tavan 2,4 m, 240 × 260 × 35 cm, combinația de culori „Stejar bardolino & gri\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 4 compartimente: 4 × deschis (polițe); Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "separator-scund-200",
+    "render": "public/magazin/randari/separator-scund-200/antracit-stejar.webp",
+    "out": "public/magazin/foto/separator-scund-200.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Separator scund 2 m, 200 × 120 × 35 cm, combinația de culori „Antracit & stejar\") așezat lângă perete, pe podea, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 4 compartimente: 4 × deschis (polițe); Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "separator-ingust-90",
+    "render": "public/magazin/randari/separator-ingust-90/salvie-stejar.webp",
+    "out": "public/magazin/foto/separator-ingust-90.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Coloană separator 0,9 m, 90 × 220 × 30 cm, combinația de culori „Verde salvie & stejar deschis\") așezat lângă perete, pe podea, într-un hol de intrare modern dintr-un apartament dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: 2 × deschis (polițe); 2 sertare pe glisiere Blum Tandem cu închidere lină; Pe picioare de 10 cm. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "suspendat-clasic-120",
+    "render": "public/magazin/randari/suspendat-clasic-120/alb-total.webp",
+    "out": "public/magazin/foto/suspendat-clasic-120.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Corp suspendat 1,2 m, 120 × 60 × 35 cm, combinația de culori „Alb total\") prins pe perete, la înălțimea potrivită, într-un hol de intrare modern dintr-un apartament dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: 2 × uși; Se prinde de perete, fără picioare. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "suspendat-tv-180",
+    "render": "public/magazin/randari/suspendat-tv-180/stejar-negru.webp",
+    "out": "public/magazin/foto/suspendat-tv-180.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Corp TV suspendat 1,8 m, 180 × 35 × 40 cm, combinația de culori „Stejar halifax & negru\") prins pe perete, la înălțimea potrivită, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: 2 × ușă aventos; Se prinde de perete, fără picioare. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "suspendat-tv-240",
+    "render": "public/magazin/randari/suspendat-tv-240/nuc-negru-mat.webp",
+    "out": "public/magazin/foto/suspendat-tv-240.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Corp TV suspendat 2,4 m, 240 × 35 × 40 cm, combinația de culori „Negru mat & nuc\") prins pe perete, la înălțimea potrivită, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 3 compartimente: 2 × ușă aventos, deschis (polițe); Se prinde de perete, fără picioare. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "suspendat-baie-60",
+    "render": "public/magazin/randari/suspendat-baie-60/alb-casmir.webp",
+    "out": "public/magazin/foto/suspendat-baie-60.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulăpior de baie 0,6 m, 60 × 70 × 25 cm, combinația de culori „Alb & cașmir\") prins pe perete, la înălțimea potrivită, într-o baie modernă, cu faianță deschisă dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 1 compartiment: uși; Se prinde de perete, fără picioare. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "suspendat-aventos-180",
+    "render": "public/magazin/randari/suspendat-aventos-180/supermat-alb.webp",
+    "out": "public/magazin/foto/suspendat-aventos-180.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Corpuri cu uși Aventos 1,8 m, 180 × 40 × 35 cm, combinația de culori „Alb supermat\") prins pe perete, la înălțimea potrivită, într-un birou de acasă luminos dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: 2 × ușă aventos; Se prinde de perete, fără picioare. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "suspendat-etajera-150",
+    "render": "public/magazin/randari/suspendat-etajera-150/stejar-natur.webp",
+    "out": "public/magazin/foto/suspendat-etajera-150.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Etajeră suspendată 1,5 m, 150 × 35 × 25 cm, combinația de culori „Stejar natur\") prins pe perete, la înălțimea potrivită, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 3 compartimente: 3 × deschis (polițe); Se prinde de perete, fără picioare. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "suspendat-mixt-200",
+    "render": "public/magazin/randari/suspendat-mixt-200/casmir-alb.webp",
+    "out": "public/magazin/foto/suspendat-mixt-200.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Corp suspendat cu nișă 2 m, 200 × 60 × 35 cm, combinația de culori „Cașmir & alb\") prins pe perete, la înălțimea potrivită, într-un living modern și cald dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 3 compartimente: 2 × uși, deschis (polițe); Se prinde de perete, fără picioare. Produsul ocupă cam 60% din cadru și se vede întreg."
+  },
+  {
+    "slug": "suspendat-hol-90",
+    "render": "public/magazin/randari/suspendat-hol-90/gri-casmir.webp",
+    "out": "public/magazin/foto/suspendat-hol-90.webp",
+    "prompt": "Fotografie realistă de catalog de mobilă, cadru 4:3, lumină naturală moale, fără text, fără logo-uri, fără oameni. Produsul din imaginea de referință (Dulap suspendat de hol 0,9 m, 90 × 90 × 35 cm, combinația de culori „Gri cașmir\") prins pe perete, la înălțimea potrivită, într-un hol de intrare modern dintr-un apartament dintr-un apartament din România, decorat sobru și elegant. Mobila trebuie să fie identică cu referința: aceleași proporții, același număr de uși, sertare și compartimente, aceleași culori și texturi, aceleași mânere. Detalii: 2 compartimente: 2 × uși; Se prinde de perete, fără picioare. Produsul ocupă cam 60% din cadru și se vede întreg."
+  }
+]
