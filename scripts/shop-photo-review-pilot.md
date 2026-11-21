@@ -642,3 +642,14 @@ Mount heights: nothing hangs too high. The one height problem is a top edge push
 1. 50 variants reviewed; 48 are accepted (7 of them after one redo) and 2 need a redo: suspendat-bucatarie-180/alb-total and suspendat-hol-90/alb-stejar-natur. comoda-cafea-120/alb-total, held in batch 9, is cleared now that the render was corrected to door left, drawers right, knobs.
 2. Fronts, counts, handles and colours matched the renders throughout; the recurring defect was scale (pieces 15–30% too large against the door), fixed best by relation lines ("one third of the door height", "top surface visible from above").
 3. Andrew's original complaints are addressed: no wall unit hangs too high (they tend to hang 10–25 cm low), no dark chests, nightstands and chests are at believable sizes, and every piece stands in a room where it belongs.
+
+---
+
+# Batch 13 (v3) (2 redos)
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| suspendat-bucatarie-180 / alb-total (redo) | ACCEPT | 9 | Cabinet now ~80 cm high against the door; top ~12 cm above the door frame, clear wall under the ceiling; underside ~138 cm, ~50 cm above the counter; shorter than the counter |
+| suspendat-hol-90 / alb-stejar-natur (redo) | ACCEPT | 8.5 | Underside ~123 cm, ~23 cm above the switch and ~83 cm above the bench seat (brief 140); hooks in the gap; lamp off. Minor: thin white slivers on both sides, the right one with a clipped top corner (A15), and the hooks sit low (~110 cm) |
+
+With these two, all 50 v3 variants are accepted.

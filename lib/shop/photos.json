@@ -224,7 +224,8 @@
     "casmir-alb"
   ],
   "suspendat-hol-90": [
-    "gri-casmir"
+    "gri-casmir",
+    "alb-stejar-natur"
   ],
   "comoda-baie-80": [
     "alb-casmir",
@@ -275,6 +276,7 @@
     "stejar-alb"
   ],
   "suspendat-bucatarie-180": [
+    "alb-total",
     "alb-stejar-natur"
   ]
 }
