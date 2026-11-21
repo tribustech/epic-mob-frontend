@@ -5612,6 +5612,12 @@ body:has(.atelier-page) .site-header {
   font-size: 0.84rem;
 }
 
+/* what your hand does must be read whole: three lines, never cut */
+.atelier-handle .atelier-card__sub {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
 .atelier-finish {
   margin-top: 0.85rem;
   border-top: 1px solid var(--at-line);
@@ -5927,39 +5933,58 @@ body:has(.atelier-page) .site-header {
   font-size: 0.8rem;
 }
 
-.atelier-handle[data-locked] {
-  box-shadow: none;
+/* a handle that needs painted doors says so in a small tag; the card stays an ordinary choice */
+.atelier-handle__tag {
+  display: inline-block;
+  margin-top: 0.3rem;
+  border-radius: 999px;
+  background: #f1ece4;
+  padding: 0.08rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #6b6257;
 }
 
-.atelier-handle[data-locked] .atelier-handle__art {
-  opacity: 0.5;
-}
-
-.atelier-handle[data-locked] .atelier-card__name {
-  color: var(--at-muted);
-}
-
-.atelier-handle[data-locked][data-open] {
-  border-color: #cfc8bb;
-}
-
-.atelier-handlehelp {
-  display: grid;
-  justify-items: start;
+/* what the configurator did for the chosen handle (or what stands in its way), with one button */
+.atelier-handlenote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 0.5rem;
   margin-top: 0.7rem;
   border-radius: 0.8rem;
   background: #fdf3e7;
-  padding: 0.75rem 0.8rem;
-  font-size: 0.84rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.82rem;
   line-height: 1.4;
   color: #4d3a1f;
 }
 
-.atelier-handlehelp .atelier-chip {
+.atelier-handlenote > svg {
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+  color: var(--at-accent-dark);
+}
+
+.atelier-handlenote > p {
+  min-width: 0;
+  flex: 1;
+}
+
+.atelier-handlenote .atelier-chip {
   min-height: 2.75rem;
+  flex-basis: 100%;
   border-color: var(--at-accent);
+  background: #fff;
   font-weight: 700;
+}
+
+@media (min-width: 30rem) {
+  .atelier-handlenote .atelier-chip {
+    flex-basis: auto;
+    margin-left: 1.45rem;
+  }
 }
 
 .atelier-nohandles {
@@ -6153,5 +6178,262 @@ a.atelier-share__btn--wa {
 
   .atelier-undone {
     bottom: 3.4rem;
+  }
+}
+
+/* ── atelier round 3: colours by part (doors / body / worktop), swatch families, combinations drawn on the furniture ── */
+.atelier-parts {
+  position: sticky;
+  top: var(--at-parts-top, 0px);
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 -1rem;
+  background: #fff;
+  padding: 0.35rem 1rem 0.55rem;
+}
+
+.atelier-parts[data-count="1"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.atelier-parts[data-count="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.atelier-parts.is-stuck {
+  box-shadow: 0 6px 10px -8px rgba(40, 30, 15, 0.28);
+}
+
+.atelier-part {
+  display: flex;
+  min-width: 0;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--at-line);
+  border-radius: 0.85rem;
+  background: #fff;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.atelier-part:hover {
+  border-color: #cfc8bb;
+}
+
+.atelier-part[aria-selected="true"] {
+  border-color: var(--at-accent);
+  background: #fdf3e7;
+  box-shadow: inset 0 0 0 1px var(--at-accent);
+}
+
+.atelier-part__dot {
+  width: 2.1rem;
+  height: 2.1rem;
+  flex-shrink: 0;
+  border-radius: 0.55rem;
+  background-color: #e9e4dc;
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+
+.atelier-part__text {
+  display: block;
+  min-width: 0;
+}
+
+.atelier-part__label {
+  display: block;
+  overflow: hidden;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--at-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atelier-part[aria-selected="true"] .atelier-part__label {
+  color: var(--at-accent-dark);
+}
+
+.atelier-part__name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--at-ink);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* three parts (kitchens, bathrooms): the name of the part on its own line, the colour under it */
+.atelier-parts[data-count="3"] .atelier-part {
+  position: relative;
+  align-items: flex-end;
+  gap: 0.35rem;
+  padding: 1.45rem 0.45rem 0.4rem;
+}
+
+.atelier-parts[data-count="3"] .atelier-part__dot {
+  width: 1.5rem;
+  height: 1.5rem;
+  align-self: center;
+  border-radius: 0.4rem;
+}
+
+.atelier-parts[data-count="3"] .atelier-part__label {
+  position: absolute;
+  left: 0.5rem;
+  right: 0.3rem;
+  top: 0.35rem;
+}
+
+.atelier-parts[data-count="3"] .atelier-part__text {
+  align-self: center;
+}
+
+.atelier-parts[data-count="3"] .atelier-part__name {
+  font-size: 0.74rem;
+}
+
+/* ready-made combinations: a strip of small cards, each one this furniture in those two colours */
+.atelier-combos {
+  margin-bottom: 0.35rem;
+}
+
+.atelier-combos__row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  margin: 0.45rem -1rem 0;
+  padding: 0.15rem 1rem 0.5rem;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 1rem;
+  scrollbar-width: none;
+}
+
+.atelier-combos__row::-webkit-scrollbar {
+  display: none;
+}
+
+.atelier-combo {
+  width: 6.6rem;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+.atelier-combo__art {
+  position: relative;
+  display: block;
+  height: 4.1rem;
+  background: linear-gradient(180deg, #f6f3ee 0%, #efebe4 100%);
+  padding: 0.2rem 0.2rem 0;
+}
+
+.atelier-combo__name {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 2.6rem;
+  padding: 0.35rem 0.45rem 0.4rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.atelier-colors {
+  margin-top: 0.45rem;
+}
+
+.atelier-colors__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.atelier-colors__title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.atelier-colors__head .atelier-textbtn {
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  margin-top: -0.5rem;
+}
+
+.atelier-colors__details {
+  margin-top: 0.4rem;
+  border-radius: var(--at-radius);
+  background: var(--at-panel);
+  padding: 0.7rem;
+}
+
+.atelier-family {
+  margin-top: 1.05rem;
+}
+
+.atelier-family__head {
+  margin-bottom: 0.5rem;
+}
+
+.atelier-family__title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--at-ink);
+}
+
+.atelier-family__more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem 1.25rem;
+  margin-top: 0.3rem;
+}
+
+.atelier-family__more .atelier-textbtn {
+  min-height: 2.75rem;
+}
+
+/* four swatches per row on every screen: two rows show a family at a glance */
+.atelier-tiles.atelier-tiles--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.atelier-tiles--four .atelier-tile__label {
+  font-size: 0.72rem;
+}
+
+@media (min-width: 1024px) and (min-height: 560px) {
+  .atelier-parts {
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+  }
+
+  .atelier-combos__row {
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+    scroll-padding-inline: 1.25rem;
+    scrollbar-width: thin;
+    scrollbar-color: #d9d3c8 transparent;
+  }
+
+  .atelier-combo {
+    width: 7.4rem;
   }
 }

@@ -249,7 +249,7 @@ export function StepModel({
       </section>
 
       <p className="atelier-hint">
-        Bucătărie sau altceva?{" "}
+        Vrei altceva decât ce vezi aici?{" "}
         <Link href="/cere-oferta" className="atelier-link">
           Cere o ofertă personalizată
         </Link>

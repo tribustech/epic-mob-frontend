@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { Info, Undo2 } from "lucide-react";
 import { doorFills } from "@/lib/atelier/door-types";
 import {
   DEFAULT_HANDLE_FINISH,
@@ -10,9 +11,10 @@ import {
   HANDLE_INFO,
   HANDLE_KINDS,
   currentHandle,
+  frontsNoun,
   handleBlockers,
   handleHasFinish,
-  handleUnavailable,
+  needsPaintedFronts,
 } from "@/lib/atelier/handles";
 import { paintedFrontsLike } from "@/lib/atelier/palettes";
 import type { AtelierAction } from "@/lib/atelier/state";
@@ -21,73 +23,72 @@ import type { MaterialLook } from "./material-look";
 import type { Act } from "./session";
 import { RadioGroup, Section, SelectedMark } from "./ui";
 
+/** „mânerul îngropat", „muchia oblică", „șina ascunsă": the name inside a sentence. */
+const THE_NAME: Partial<Record<HandleKind, string>> = { INGROPAT: "mânerul îngropat", PROFIL_J: "muchia oblică" };
+
 /**
- * The handle of every front (doors and drawers), picked from photos: one tap on a card. Types with a
- * visible piece of metal also get a colour. A type these fronts cannot take says why when tapped and
- * offers the way there in one tap. The exact model is settled at measuring.
+ * The handle of every front (doors and drawers), picked from photos: one tap on a card, always. A handle
+ * that is cut into the door itself needs painted doors: picking it switches them to paint in the nearest
+ * colour, in the same step, and a small note says so with an undo. Only a mirror / glass door stops it,
+ * and then the note offers to take the mirror off. The exact model is settled at measuring.
  */
 export function HandlePicker({
   catalog,
   config,
   act,
   front,
+  onUndo,
 }: {
   catalog: AtelierCatalog;
   config: AtelierConfig;
   act: Act;
-  /** the look of the fronts now: painted fronts offered for a handle start from the nearest paint colour */
+  /** the look of the fronts now: painted fronts made for a handle start from the nearest paint colour */
   front: MaterialLook;
+  /** takes back the last change (the note's „Anulează") */
+  onUndo?: () => void;
 }) {
   const offered = new Set((catalog.handles?.types ?? []).map((t) => t.type));
   const types = HANDLE_KINDS.filter((t) => offered.has(t));
   const current = currentHandle(config);
   const finish = config.handle?.finish ?? DEFAULT_HANDLE_FINISH;
-  /** the unavailable card the client tapped: its explanation is open */
-  const [asked, setAsked] = useState<HandleKind | null>(null);
-  const blocked = asked && asked !== current && handleUnavailable(config, asked) ? asked : null;
+  const noun = frontsNoun(config);
+  const notPainted = config.fronts.kind !== "MDF_VOPSIT";
 
-  const explain = (type: HandleKind) => {
+  /** the handle that mirror / glass doors stand in the way of: its one-line note is open */
+  const [asked, setAsked] = useState<HandleKind | null>(null);
+  const stopped = asked && asked !== current && handleBlockers(config, asked).glazed ? asked : null;
+  /** painted fronts are not offered by the workshop right now */
+  const [noPaint, setNoPaint] = useState<HandleKind | null>(null);
+  /** we switched the fronts to paint for this handle; `after` is the configuration that change produced */
+  const [auto, setAuto] = useState<{ type: HandleKind; ralCode: string | undefined; after: AtelierConfig | null } | null>(null);
+  if (auto && auto.after === null && config.handle?.type === auto.type && config.fronts.kind === "MDF_VOPSIT" && config.fronts.ralCode === auto.ralCode)
+    setAuto({ ...auto, after: config });
+  // the note lives until the next change (or its own undo)
+  const switched = auto && auto.after === config ? auto.type : null;
+
+  const pick = (type: HandleKind, removeGlazing = false) => {
     const { paint, glazed } = handleBlockers(config, type);
-    const name = HANDLE_INFO[type].name;
+    if (glazed && !removeGlazing) {
+      setAsked(stopped === type ? null : type);
+      return;
+    }
     const painted = paint ? paintedFrontsLike(catalog, front.color) : null;
-    const actions: AtelierAction[] = [];
+    if (paint && !painted) {
+      setNoPaint(type);
+      return;
+    }
+    // one change, one undo: the handle, and whatever it needs
+    const actions: AtelierAction[] = [{ type: "setHandle", handle: { type } }];
     if (glazed) actions.push({ type: "setDoorFills", fills: doorFills(config).map(() => "PANOU" as const) });
     if (painted) actions.push({ type: "setFronts", fronts: painted });
-    actions.push({ type: "setHandle", handle: { type } });
-    const possible = !paint || !!painted;
-    const text =
-      paint && glazed
-        ? `${name} se taie în front: merge doar cu fronturi vopsite și fără oglindă sau sticlă pe uși.`
-        : paint
-          ? `${name} se taie în front: merge doar cu fronturi vopsite.`
-          : `${name} se taie în front: nu merge pe uși cu oglindă sau sticlă.`;
-    const button = paint && glazed ? "Fronturi vopsite, fără oglindă" : paint ? "Schimbă pe fronturi vopsite" : "Scoate oglinda de pe uși";
-    return (
-      <div className="atelier-handlehelp" role="status">
-        <p>{text}</p>
-        {possible ? (
-          <>
-            <button
-              type="button"
-              className="atelier-chip"
-              onClick={() => {
-                act(actions);
-                setAsked(null);
-              }}
-            >
-              {button}
-            </button>
-            {paint && <p className="atelier-hint">Păstrăm o culoare apropiată de cea de acum; o poți schimba la pasul „Culori”. Prețul se recalculează.</p>}
-          </>
-        ) : (
-          <p className="atelier-hint">Fronturile vopsite nu sunt disponibile acum în configurator. Scrie-ne și găsim o soluție.</p>
-        )}
-      </div>
-    );
+    act(actions);
+    setAsked(null);
+    setNoPaint(null);
+    setAuto(painted ? { type, ralCode: painted.ralCode, after: null } : null);
   };
 
   return (
-    <Section title="Mânere" anchor="manere" hint="Cum deschizi ușile și sertarele. Atinge o poză.">
+    <Section title="Mânere" anchor="manere" hint="Cum deschizi ușile și sertarele. Atinge o poză și vezi mânerul pe mobilă.">
       {types.length === 0 ? (
         <p className="atelier-issue atelier-issue--error">Mânerele nu s-au încărcat. Reîncarcă pagina.</p>
       ) : (
@@ -96,40 +97,71 @@ export function HandlePicker({
             {types.map((type) => {
               const info = HANDLE_INFO[type];
               const selected = type === current;
-              // cut into the front itself: only on painted fronts, never over a mirror
-              const why = selected ? null : handleUnavailable(config, type);
+              // cut into the door itself: an honest tag, never a disabled card
+              const tag = needsPaintedFronts(type) && notPainted ? `doar la ${noun.plain} vopsite` : null;
               return (
                 <button
                   key={type}
                   type="button"
                   role="radio"
                   aria-checked={selected}
-                  aria-label={`${info.name} — ${(why ?? info.benefit).toLowerCase()}`}
-                  data-locked={why ? true : undefined}
-                  data-open={why && blocked === type ? true : undefined}
+                  aria-label={`${info.name} — ${info.benefit}${tag ? ` (${tag})` : ""}`}
                   className="atelier-card atelier-handle"
-                  onClick={() => {
-                    if (selected) return;
-                    if (why) setAsked(blocked === type ? null : type);
-                    else {
-                      setAsked(null);
-                      act({ type: "setHandle", handle: { type } });
-                    }
-                  }}
+                  onClick={() => !selected && pick(type)}
                 >
                   <span className="atelier-handle__art">
                     <Image src={info.image} alt="" width={300} height={200} sizes="(min-width: 1024px) 180px, 46vw" />
                     {selected && <SelectedMark className="absolute right-1.5 top-1.5" />}
                   </span>
                   <span className="atelier-handle__text">
-                    <span className="atelier-card__name">{info.name}</span>
-                    <span className="atelier-card__sub">{why ?? info.benefit}</span>
+                    <span className="atelier-card__name">
+                      {info.name}
+                      {info.trade && <span className="ml-1 text-[11px] font-normal opacity-60">({info.trade})</span>}
+                    </span>
+                    <span className="atelier-card__sub">{info.benefit}</span>
+                    {tag && <span className="atelier-handle__tag">{tag}</span>}
                   </span>
                 </button>
               );
             })}
           </RadioGroup>
-          {blocked && explain(blocked)}
+
+          {switched && (
+            <div className="atelier-handlenote" role="status">
+              <Info size={15} aria-hidden="true" />
+              <p>
+                Am trecut {noun.the} pe vopsit, într-o nuanță apropiată, ca să se poată face {THE_NAME[switched] ?? "mânerul"}. Culoarea o poți
+                schimba la „Culori”.
+              </p>
+              {onUndo && (
+                <button type="button" className="atelier-chip atelier-chip--sm" onClick={onUndo}>
+                  <Undo2 size={14} aria-hidden="true" />
+                  Anulează
+                </button>
+              )}
+            </div>
+          )}
+          {stopped && (
+            <div className="atelier-handlenote" role="status">
+              <Info size={15} aria-hidden="true" />
+              <p>
+                {HANDLE_INFO[stopped].name} se taie în ușă, așa că nu merge pe uși cu oglindă sau sticlă.
+                {handleBlockers(config, stopped).paint ? " Fără oglindă, trecem ușile pe vopsit, într-o nuanță apropiată." : ""}
+              </p>
+              <button type="button" className="atelier-chip atelier-chip--sm" onClick={() => pick(stopped, true)}>
+                Scoate oglinda de pe uși
+              </button>
+            </div>
+          )}
+          {noPaint && !switched && noPaint !== current && (
+            <div className="atelier-handlenote" role="status">
+              <Info size={15} aria-hidden="true" />
+              <p>
+                {HANDLE_INFO[noPaint].name} se face doar la {noun.plain} vopsite, iar acestea nu sunt disponibile acum în configurator. Scrie-ne în
+                cerere și găsim o soluție.
+              </p>
+            </div>
+          )}
 
           {current && handleHasFinish(current) && (
             <div className="atelier-finish">

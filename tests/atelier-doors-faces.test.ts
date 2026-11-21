@@ -211,7 +211,7 @@ test("the handle on the fronts: default per category, default colour, none witho
   assert.equal(effectiveHandle(defaultConfig(catalog, "SEPARATOR")), null);
   assert.equal(handleText({ type: "APLICAT", finish: "INOX" }), "Mâner bară, inox");
   assert.equal(handleText({ type: "PUSH", finish: null }), "Fără mâner (apeși și se deschide)");
-  assert.equal(handleText({ type: "PROFIL_J", finish: null }), "Muchie frezată");
+  assert.equal(handleText({ type: "PROFIL_J", finish: null }), "Muchie oblică");
   // a session saved before the colours existed still reads: { type } only
   const old = { ...hinged(), handle: { type: "APLICAT" as const } };
   assert.deepEqual(effectiveHandle(old), { type: "APLICAT", finish: "NEGRU" });
@@ -227,8 +227,8 @@ test("the handle on the fronts: default per category, default colour, none witho
 test("handles cut into the front: painted fronts only, never over a mirror; an invalid one goes back to the usual handle", () => {
   const painted: AtelierCatalog = { ...catalog, fronts: { ...catalog.fronts, MDF_VOPSIT: [{ id: "drept", name: "Drept" }] }, ral: [{ code: "RAL 9010", name: "Alb", hex: "#ffffff" }] };
   const pal = hinged();
-  assert.equal(handleUnavailable(pal, "INGROPAT"), "Doar la fronturi vopsite");
-  assert.equal(handleUnavailable(pal, "PROFIL_J"), "Doar la fronturi vopsite");
+  assert.equal(handleUnavailable(pal, "INGROPAT"), "Doar la uși vopsite");
+  assert.equal(handleUnavailable(pal, "PROFIL_J"), "Doar la uși vopsite");
   for (const type of ["APLICAT", "BUTON", "GOLA", "PUSH"] as const) assert.equal(handleUnavailable(pal, type), null);
   const vopsit = atelierReducer(pal, { type: "setFronts", fronts: { kind: "MDF_VOPSIT", modelId: "drept", ralCode: "RAL 9010" } });
   assert.equal(handleUnavailable(vopsit, "INGROPAT"), null);

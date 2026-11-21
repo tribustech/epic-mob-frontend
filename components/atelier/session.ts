@@ -8,7 +8,7 @@ import { atelierReducer, defaultConfig, type AtelierAction } from "@/lib/atelier
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 
 /** The screens of the configurator, in order; the ids are also the funnel's `step` values and the URL hashes. */
-export const STEP_IDS = ["model", "culori", "dimensiuni", "usi", "interior", "oferta"] as const;
+export const STEP_IDS = ["model", "dimensiuni", "usi", "culori", "interior", "oferta"] as const;
 export type StepId = (typeof STEP_IDS)[number];
 
 /**
