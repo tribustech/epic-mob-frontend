@@ -35,7 +35,8 @@
     "gri-casmir"
   ],
   "suspendat-tv-180": [
-    "alb-total"
+    "alb-total",
+    "stejar-natur"
   ],
   "dressing-deschis-280": [
     "stejar-natur",
@@ -200,10 +201,23 @@
   "separator-ingust-90": [
     "salvie-stejar"
   ],
+  "suspendat-clasic-120": [
+    "alb-total",
+    "stejar-natur"
+  ],
+  "suspendat-tv-240": [
+    "alb-total",
+    "nuc-crem"
+  ],
+  "suspendat-baie-60": [
+    "alb-casmir",
+    "alb-stejar-natur"
+  ],
   "suspendat-hol-90": [
     "gri-casmir"
   ],
   "comoda-baie-80": [
+    "alb-casmir",
     "gri-casmir"
   ],
   "comoda-birou-90": [
@@ -211,6 +225,7 @@
     "alb-total"
   ],
   "comoda-cafea-120": [
+    "alb-stejar-natur",
     "alb-total"
   ],
   "comoda-pantofar-80": [
@@ -236,6 +251,10 @@
   "dressing-serviciu-80": [
     "alb-total",
     "gri-casmir"
+  ],
+  "separator-copii-120": [
+    "alb-total",
+    "stejar-alb"
   ],
   "separator-cuburi-150": [
     "alb-total"

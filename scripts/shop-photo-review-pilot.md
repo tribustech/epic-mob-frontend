@@ -565,3 +565,41 @@ Separators: each either divides two zones with the room visible through it (bibl
 - separator-inalt-240 remaining colours: `The ceiling is visible above the unit along its whole length, with a 5–10 cm gap.`
 - separator-usi-180 and other shelving: `Only 4 of the 12 compartments hold anything; the other 8 are empty.` Stating the count works better than "one third".
 - A14: extend to floor lamps (`all lamps switched off`).
+
+---
+
+# Batch 11 (v3) (12 photos)
+
+Reviewed: `/tmp/claude-0/batch11/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Heights were measured against sockets (30 cm), switches (105 cm), washing machines (85 cm) and desks (75 cm); ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-baie-80 / alb-casmir (redo) | ACCEPT | 9 | Now ~1.4 × the washing machine's width, slightly taller than wide; no hook; towels and basket |
+| comoda-cafea-120 / alb-stejar-natur (redo) | ACCEPT | 9 | Door left, 3 drawers right, black knobs placed as in the new render |
+| separator-copii-120 / alb-total | ACCEPT (borderline) | 8.5 | 3 × 2 open compartments, 3 drawers, gold knobs; reads ~135–140 cm high (top ~30 cm above the switch instead of 15); drawers a little lower than in the render |
+| separator-copii-120 / stejar-alb | ACCEPT | 8.5 | Oak body, white drawers; divides door side from desk; sun patches on the floor |
+| separator-cuburi-150 / stejar-natur | REJECT (borderline) | 8 | 4 × 4 and the divider placement are right, but the top is above eye level and almost level with the door top: it reads as a ~1.9 m bookcase, not a 1.5 m one. The door itself is undersized (~1.8 m by the switch) |
+| suspendat-baie-60 / alb-casmir | ACCEPT | 8.5 | 1 door, steel knob low on the opening side; beside the mirror, above the washing machine; underside ~110–115 cm (brief 135 above a machine), top ~185 |
+| suspendat-baie-60 / alb-stejar-natur | ACCEPT | 9 | Above the WC cistern panel; underside ~115–120 cm, top ~190–200 |
+| suspendat-clasic-120 / alb-total | ACCEPT | 9 | Above the desk; underside ~130 cm (brief 140), top ~190, level with the door frame; desk lamp off |
+| suspendat-clasic-120 / stejar-natur | ACCEPT | 9 | Above washer + dryer under a worktop, same width; underside ~130 cm, ~40 cm above the worktop |
+| suspendat-tv-180 / stejar-natur | ACCEPT | 9 | Front 5.1 : 1 as real; TV ~130 cm, 22 cm above the unit, centre ~115 cm; underside ~20 cm (brief 30) |
+| suspendat-tv-240 / alb-total | ACCEPT | 8.5 | Flap, niche, flap with black channels under the flaps as in the render; underside ~30 cm; TV ~150 cm, 19 cm above |
+| suspendat-tv-240 / nuc-crem | ACCEPT | 8.5 | Walnut body, cream flaps; underside ~20 cm; TV ~160 cm (65" is 145), two thirds of the unit |
+
+Mount heights: no wall unit hangs too high. All seven are at or 10–20 cm below the brief; tops stay at or under door-frame height, TV centres at 1.10–1.20 m.
+Lamps: the only lamp (desk lamp, suspendat-clasic alb-total) is off. Shelf fill: copii 2 of 6, cuburi 7 of 16, as briefed.
+
+## Reject
+
+### separator-cuburi-150 / stejar-natur
+- Prompt additions:
+  - `The top of the bookcase is below the camera: its top surface is visible from above, with the mug standing on it.`
+  - `The room door behind is 2.05 m: the door rises 55 cm (more than one cube row and a half) above the top of the bookcase.`
+  - `The top of the bookcase is 45 cm above the light switch.`
+
+## New general rules
+
+- Low pieces (up to 1.5 m): `The top surface of the piece is visible from above` (camera at 1.4 m). It fixes height drift better than a number.
+- Floating TV units: `The gap between the floor and the underside is almost as tall as the unit itself (30 cm against 35 cm).` Two of three read ~20 cm.
+- Wall units above something: keep the relation line `50 cm of free wall between the worktop / machine and the underside`; current results give 25–40 cm.
