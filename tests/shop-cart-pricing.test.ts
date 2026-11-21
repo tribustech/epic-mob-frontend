@@ -77,7 +77,7 @@ test("order contact check: same rules in the form and the route", () => {
   assert.deepEqual(checkContact({ name: "Ana Pop", phone: "0722 123 456", city: "Cluj" }), {});
   const bad = checkContact({ name: "A", phone: "123456", city: "C" });
   assert.deepEqual(Object.keys(bad).sort(), ["city", "name", "phone"]);
-  assert.match(bad.phone!, /prea scurt/);
+  assert.match(bad.phone!, /începe cu 07/);
   assert.match(checkContact({ name: "Ana", phone: "", city: "Iași" }).phone!, /Scrie numărul/);
 });
 

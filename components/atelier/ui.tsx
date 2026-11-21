@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Check, Minus, Plus } from "lucide-react";
+import { parseCm } from "@/lib/atelier/length";
 
 const priceFormat = new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 0 });
 
@@ -15,17 +16,8 @@ export function cm(mm: number): string {
   return (Number.isInteger(v) ? String(v) : v.toFixed(1)).replace(".", ",");
 }
 
-/** „240 cm" typed by a client → millimetres (null when it is not a number). */
-export function parseCm(text: string): number | null {
-  // „240", „240,5", „240 cm", „2,4 m", „2400 mm" — centimetres by default; a bare number under 10
-  // („2.4", „3") can only be metres: no furniture here is under 10 cm
-  const match = /^([0-9]+(?:[.,][0-9]*)?|[.,][0-9]+)\s*(cm|mm|m)?\.?$/i.exec(text.trim());
-  if (!match) return null;
-  const v = Number(match[1].replace(",", "."));
-  if (!Number.isFinite(v)) return null;
-  const unit = (match[2] ?? (v > 0 && v < 10 ? "m" : "cm")).toLowerCase();
-  return Math.round(unit === "m" ? v * 1000 : unit === "mm" ? v : v * 10);
-}
+// „240", „2,4 m", „5" (= 5 cm): the rule and its tests live in lib/atelier/length.ts
+export { parseCm };
 
 /**
  * A message from the price service, as the client reads it: millimetres become centimetres

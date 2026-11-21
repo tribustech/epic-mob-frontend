@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { legalEntity } from "@/lib/business-data";
-import { ADVANCE_PERCENT, ANPC_SAL_URL, EU_SOL_URL, WARRANTY_YEARS } from "@/lib/legal";
+import { ADVANCE_PERCENT, ANPC_SAL_URL, WARRANTY_YEARS } from "@/lib/legal";
 import { baseOpenGraph } from "@/lib/seo";
 import { DELIVERY_TEXT } from "@/lib/shop/products";
 import { contactDetails } from "@/lib/site-data";
@@ -46,7 +46,7 @@ export default function TermsPage() {
           plătești ceva, lucrăm cu avans și factură, iar pentru ce montăm ai
           garanție {WARRANTY_YEARS} ani.
         </p>
-        <p className="mt-4 text-sm text-espresso/50">
+        <p className="mt-4 text-sm text-espresso/75">
           Ultima actualizare: {LAST_UPDATED}
         </p>
       </section>
@@ -197,10 +197,6 @@ export default function TermsPage() {
               Naționale pentru Protecția Consumatorilor prin{" "}
               <a href={ANPC_SAL_URL} target="_blank" rel="noreferrer" className={linkClass}>
                 Soluționarea alternativă a litigiilor (ANPC SAL)
-              </a>{" "}
-              sau platformei europene de{" "}
-              <a href={EU_SOL_URL} target="_blank" rel="noreferrer" className={linkClass}>
-                Soluționare online a litigiilor (SOL)
               </a>
               . Se aplică legea română.
             </p>

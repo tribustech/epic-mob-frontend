@@ -211,7 +211,8 @@ export function ShopBrowser({ items }: { items: ShopItem[] }) {
       <Option active={!f.categorie} count={countWith({ categorie: null })} onClick={() => update({ categorie: null })}>
         Toate
       </Option>
-      {SHOP_CATEGORIES.map((c) => (
+      {/* a kind of furniture with no product right now (e.g. the CRM does not price kitchens yet) is not offered */}
+      {SHOP_CATEGORIES.filter((c) => f.categorie === c.id || items.some((i) => i.category === c.id)).map((c) => (
         <Option key={c.id} active={f.categorie === c.id} count={countWith({ categorie: c.id })} onClick={() => update({ categorie: f.categorie === c.id ? null : c.id })}>
           {c.label}
         </Option>

@@ -35,7 +35,7 @@ export function MaterialCard({ material }: { material: Material }) {
           ))}
         </span>
 
-        <span className="material-card__more" style={{ color: material.accent }}>
+        <span className="material-card__more">
           Vezi detalii
           <ArrowRight size={16} strokeWidth={2} />
         </span>

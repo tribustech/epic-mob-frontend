@@ -56,10 +56,17 @@ export default function RootLayout({
       <body className="min-h-full bg-bg text-navy antialiased">
         <JsonLd data={buildBusinessSchema()} />
         <JsonLd data={buildWebSiteSchema()} />
-        <SiteHeader />
-        <div className="relative">{children}</div>
-        <SiteFooter />
+        {/* Keyboard order: skip link first, then the cookie choice (while it is
+            shown), then the header. */}
+        <a href="#continut" className="skip-link">
+          Sari la conținut
+        </a>
         <CookieBanner />
+        <SiteHeader />
+        <div id="continut" tabIndex={-1} className="relative outline-none">
+          {children}
+        </div>
+        <SiteFooter />
         <MetaPixel />
         <AttributionCapture />
         <Analytics />

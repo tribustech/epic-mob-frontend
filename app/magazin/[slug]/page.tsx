@@ -8,7 +8,7 @@ import { ProductView } from "@/components/shop/product-view";
 import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/lib/business-data";
 import { BRAND, baseOpenGraph } from "@/lib/seo";
-import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, pictureOf, productBySlug, productFacts } from "@/lib/shop/products";
+import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, colourCountText, pictureOf, productBySlug, productFacts } from "@/lib/shop/products";
 import { getShopItems, getShopProduct } from "@/lib/shop/server";
 
 export const revalidate = 600;
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const product = productBySlug(slug);
   if (!product) return {};
   const title = `${product.preset.name} | Magazin ${BRAND}`;
-  const description = `${product.preset.tagline} În ${product.paletteIds.length} combinații de culori, cu montaj inclus și garanție 5 ani.`;
+  const description = `${product.preset.tagline} ${colourCountText(product.paletteIds.length)}, cu montaj inclus și garanție 5 ani.`;
   return {
     title: { absolute: title },
     description,

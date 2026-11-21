@@ -848,3 +848,20 @@ export function presetAvailable(preset: LayoutPreset, catalog: Pick<AtelierCatal
   if (preset.category === "BUCATARIE" || preset.category === "BAIE") return (catalog.worktops?.length ?? 0) > 0;
   return !preset.shape.doors.fills || !!catalog.glass;
 }
+
+/**
+ * Card names for a list of models: „Comodă cu 6 sertare 1,6 m" → „Comodă cu 6 sertare" (the size has its own
+ * badge), except where two models would then read the same („Comodă TV 2 m" and „Comodă TV 2,4 m" keep the size).
+ */
+export function cardNames(names: readonly string[]): string[] {
+  const bare = names.map((name) => name.replace(/\s+\d+(?:,\d+)?\s?m$/u, ""));
+  return names.map((name, i) => (bare.filter((b) => b === bare[i]).length > 1 ? name : bare[i]));
+}
+
+/**
+ * A category chip is offered only when at least one of its models can be priced by this CRM (presetAvailable):
+ * a CRM without worktops cannot price kitchens or bathrooms, so those chips would lead nowhere.
+ */
+export function categoryAvailable(category: LayoutPreset["category"], catalog: Pick<AtelierCatalog, "glass" | "worktops">): boolean {
+  return presetsFor(category).some((p) => presetAvailable(p, catalog));
+}

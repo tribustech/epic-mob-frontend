@@ -546,5 +546,12 @@ function bathFacts(preset: LayoutPreset): string[] {
   return facts;
 }
 
+/** „Într-o singură combinație de culori" / „În 2 combinații de culori" / „În 20 de combinații de culori". */
+export function colourCountText(n: number): string {
+  if (n <= 1) return "Într-o singură combinație de culori";
+  const mod = n % 100;
+  return `În ${n} ${n >= 20 && (mod === 0 || mod >= 20) ? "de " : ""}combinații de culori`;
+}
+
 /** Shop delivery promise. Honest and the same everywhere. */
 export const DELIVERY_TEXT = "Livrare și montaj în 4–6 săptămâni";

@@ -6,6 +6,8 @@ import type { AtelierConfig, AtelierContact } from "@/lib/atelier/types";
 import { isPostmarkConfigured, sendPostmarkEmail } from "@/lib/postmark";
 import { MAX_LINES, MAX_QTY } from "@/lib/shop/cart-limits";
 import { checkContact } from "@/lib/shop/contact-check";
+import { productBySlug } from "@/lib/shop/products";
+import { orderReference } from "@/lib/shop/reference";
 import { getShopCatalog, priceShopLine } from "@/lib/shop/server";
 
 /**
@@ -64,9 +66,6 @@ export async function POST(request: Request) {
   // honeypot
   if (typeof body.website === "string" && body.website.trim() !== "") return NextResponse.json({ ok: true });
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
-  if (rateLimited(ip)) return NextResponse.json({ error: "Prea multe comenzi într-un timp scurt. Încearcă din nou puțin mai târziu." }, { status: 429 });
-
   const c = body.contact ?? {};
   const contact: AtelierContact = { name: text(c.name), phone: text(c.phone), city: text(c.city) };
   const notes = text(c.notes).slice(0, 400);
@@ -86,10 +85,14 @@ export async function POST(request: Request) {
 
   const lines: Line[] = [];
   const changed: { slug: string; paletteId: string; available: boolean; name: string; colour: string; price: number | null; finalPrice: number | null; offerPercent: number; offerLabel: string | null }[] = [];
+  const gone: { slug: string; paletteId: string; name: string }[] = [];
   for (const item of raw as Record<string, unknown>[]) {
     const priced = await priceShopLine(text(item?.slug), text(item?.paletteId), catalog, palettes);
     if (!priced) {
-      return NextResponse.json({ error: "Un produs din coș nu mai este disponibil. Scoate-l și încearcă din nou." }, { status: 400 });
+      const product = productBySlug(text(item?.slug));
+      const colour = palettes.find((p) => p.id === text(item?.paletteId))?.name;
+      gone.push({ slug: text(item?.slug), paletteId: text(item?.paletteId), name: product ? `${product.preset.name}${colour ? ` (${colour})` : ""}` : "" });
+      continue;
     }
     const qty = Math.min(MAX_QTY, Math.max(1, Math.round(Number(item.qty) || 1)));
     // `price` absent = an older basket page: no check (the lead still carries today's price)
@@ -102,12 +105,25 @@ export async function POST(request: Request) {
     }
     lines.push({ slug: priced.slug, paletteId: priced.paletteId, name: priced.name, colour: priced.colour, qty, config, price, final: finalPrice, offerLabel, percent: offerPercent, shown });
   }
+  if (gone.length > 0) {
+    // the basket marks these lines (by slug + colour), so the client knows which one to take out
+    const names = gone.map((g) => g.name).filter(Boolean);
+    const error =
+      names.length === 0
+        ? `${gone.length === 1 ? "Un produs din coș nu mai este disponibil" : "Unele produse din coș nu mai sunt disponibile"}. Scoate-${gone.length === 1 ? "l" : "le"} și trimite din nou.`
+        : `${names.join(", ")} ${gone.length === 1 ? "nu mai este disponibil" : "nu mai sunt disponibile"}. Scoate-${gone.length === 1 ? "l" : "le"} din coș și trimite din nou.`;
+    return NextResponse.json({ error, gone: gone.map(({ slug, paletteId }) => ({ slug, paletteId })) }, { status: 409 });
+  }
   if (changed.length > 0) {
     return NextResponse.json(
       { error: "Prețul unor produse s-a schimbat între timp. Verifică noul total și trimite din nou comanda.", priceChanged: true, lines: changed },
       { status: 409 },
     );
   }
+
+  // only orders that are really sent count toward the anti-spam limit (a fixed mistake is not a new order)
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+  if (rateLimited(ip)) return NextResponse.json({ error: "Prea multe comenzi într-un timp scurt. Încearcă din nou puțin mai târziu." }, { status: 429 });
 
   /** the price of one piece as the client saw it: today's price, or (CRM down) what the basket showed */
   const unit = (l: Line) => l.final ?? l.shown;
@@ -176,8 +192,9 @@ export async function POST(request: Request) {
     )
     .join("");
   const missing = lines.filter((_, i) => !results[i]);
+  const reference = orderReference(results.map((r) => r?.quoteId));
   const html = `<div style="font-family:Arial,sans-serif;color:#2b1d14;max-width:680px">
-<h2>Comandă nouă din Magazin</h2>
+<h2>Comandă nouă din Magazin · ${esc(reference)}</h2>
 <p><strong>${esc(contact.name)}</strong> · ${esc(contact.phone)} · ${esc(contact.city)}</p>
 ${notes ? `<p>Observații: ${esc(notes)}</p>` : ""}
 <table cellpadding="6" border="1" style="border-collapse:collapse">${rows}</table>
@@ -189,7 +206,7 @@ ${missing.length ? `<pre style="background:#f5f5f5;padding:12px;white-space:pre-
   const to = process.env.ATELIER_LEAD_EMAIL;
   if (to && isPostmarkConfigured()) {
     try {
-      await sendPostmarkEmail({ to, subject: `Comandă Magazin — ${contact.name}`, html });
+      await sendPostmarkEmail({ to, subject: `Comandă Magazin ${reference} — ${contact.name}`, html });
       emailed = true;
     } catch (error) {
       console.error("Shop order email failed", error);
@@ -200,5 +217,5 @@ ${missing.length ? `<pre style="background:#f5f5f5;padding:12px;white-space:pre-
   // some lines did not reach the CRM and no email carries them: the client must tell us by phone
   const partial = emailed ? [] : missing.map((l) => `${l.name} (${l.colour}), ${l.qty} buc.`);
   if (partial.length) console.error("Shop order: lines not saved anywhere", JSON.stringify({ contact, partial }));
-  return NextResponse.json({ ok: true, total, ...(partial.length ? { partial } : {}) });
+  return NextResponse.json({ ok: true, total, reference, ...(partial.length ? { partial } : {}) });
 }

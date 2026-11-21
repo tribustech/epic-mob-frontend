@@ -2,9 +2,12 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/business-data";
 import { allPortfolioProjects } from "@/lib/portfolio-data";
 import { materialSlugs } from "@/lib/materials-data";
-import { SHOP_PRODUCTS } from "@/lib/shop/products";
+import { availableProductSlugs } from "@/lib/shop/server";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// the shop part follows the CRM catalog (a kitchen page opens only once the CRM prices kitchens)
+export const revalidate = 600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -36,8 +39,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  const shopRoutes: MetadataRoute.Sitemap = SHOP_PRODUCTS.map((p) => ({
-    url: `${SITE_URL}/magazin/${p.slug}`,
+  // only the product pages that open (the product page shows 404 for the others); none while the CRM is
+  // unreachable, since the pages cannot be built then either
+  const shopRoutes: MetadataRoute.Sitemap = ((await availableProductSlugs()) ?? []).map((slug) => ({
+    url: `${SITE_URL}/magazin/${slug}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.7,

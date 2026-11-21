@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { faqItems } from "../lib/faq-data.ts";
-import { ADVANCE_PERCENT, ANPC_SAL_URL, EU_SOL_URL, WARRANTY_YEARS } from "../lib/legal.ts";
+import * as legal from "../lib/legal.ts";
+import { ADVANCE_PERCENT, ANPC_SAL_URL, WARRANTY_YEARS } from "../lib/legal.ts";
 import { baseOpenGraph } from "../lib/seo.ts";
 import { DELIVERY_TEXT } from "../lib/shop/products.ts";
 
@@ -23,7 +24,8 @@ test("FAQ copy uses comma-below diacritics, never cedilla ş ţ", () => {
 test("legal constants and shared Open Graph defaults", () => {
   assert.equal(ADVANCE_PERCENT, 50);
   assert.ok(ANPC_SAL_URL.startsWith("https://anpc.ro/"));
-  assert.ok(EU_SOL_URL.startsWith("https://ec.europa.eu/"));
+  // the EU ODR (SOL) platform closed on 20 July 2025: nothing may link to it
+  assert.ok(!("EU_SOL_URL" in legal));
   assert.equal(baseOpenGraph.siteName, "Epic Mob");
   assert.equal(baseOpenGraph.locale, "ro_RO");
   assert.equal(baseOpenGraph.images[0].url, "/opengraph-image");

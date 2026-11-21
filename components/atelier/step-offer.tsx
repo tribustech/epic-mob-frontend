@@ -11,6 +11,7 @@ import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 import { glazingOf } from "./glass-look";
 import { swatchStyle, worktopLook, type MaterialLook } from "./material-look";
 import { LAYOUT_LABELS, MODULE_LABELS, isBath, kitchenLayout, upperOf } from "@/lib/atelier/kitchen";
+import { compartmentsText, drawerRunnersText } from "@/lib/atelier/offer-summary";
 import { MiniPreview } from "./mini-preview";
 import { LeadSent, RequestForm, leadSentFor, type LeadStatus } from "./request-form";
 import { shapeKey, shapeOf, type LeadContact, type StepId } from "./session";
@@ -137,6 +138,7 @@ export function StepOffer({
     .filter(Boolean);
   const mirrors = bath ? config.columns.filter((c) => upperOf(c, true) === "OGLINDA").length : 0;
   const sent = leadSentFor(status, config);
+  const runners = drawerRunnersText(config, catalog);
 
   return (
     <div className="atelier-stack">
@@ -202,8 +204,13 @@ export function StepOffer({
               </Row>
             ) : (
               <Row label={dressing ? "Interior" : "Compartimente"} step="interior" anchor={bottom && !dressing ? "jos" : "coloane"} onStep={onStep}>
-                {plural(config.columns.length, dressing ? "coloană" : "compartiment", dressing ? "coloane" : "compartimente")}
+                {compartmentsText(config)}
                 {bottom ? ` · ${bottom}` : ""}
+              </Row>
+            )}
+            {runners && (
+              <Row label="Sertare" step="interior" anchor="sertare" onStep={onStep}>
+                {runners}
               </Row>
             )}
             {doors && (

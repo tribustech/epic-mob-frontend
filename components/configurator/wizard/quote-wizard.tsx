@@ -263,7 +263,7 @@ export function QuoteWizard() {
             >
               <SingleGrid options={plansOptions} value={answers.plansStatus} onPick={(id) => dispatch({ type: "set", key: "plansStatus", value: id })} />
               <div className="mt-8">
-                <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/45">
+                <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/75">
                   Încarcă fișiere (opțional)
                 </p>
                 <UploadDropzone files={answers.files} onChange={(files) => dispatch({ type: "setFiles", value: files })} />
@@ -343,7 +343,7 @@ function MultiGrid({ options, values, onToggle }: { options: AnswerOption[]; val
 function OptionGroup({ label, options, values, onToggle, single }: { label: string; options: AnswerOption[]; values: string[]; onToggle: (id: string) => void; single?: boolean }) {
   return (
     <div>
-      <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/45">{label}</p>
+      <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/75">{label}</p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {options.map((option) => (
           <AnswerCard key={option.id} option={option} selected={values.includes(option.id)} soft={softIds.has(option.id)} multi={!single} onSelect={onToggle} />
@@ -367,7 +367,7 @@ function ContinueButton({ onClick }: { onClick: () => void }) {
 function Field({ label, value, onChange, type = "text", placeholder, error }: { label: string; value: string; onChange: (value: string) => void; type?: string; placeholder?: string; error?: string }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium uppercase tracking-wide text-espresso/45">{label}</span>
+      <span className="text-sm font-medium uppercase tracking-wide text-espresso/75">{label}</span>
       <input
         type={type}
         value={value}
@@ -427,7 +427,7 @@ function ContactStep({ answers, dispatch, onContinue }: { answers: QuoteAnswers;
         </div>
       </div>
       <div className="mt-8">
-        <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/45">Cum preferi să te contactăm?</p>
+        <p className="mb-3 text-sm font-medium uppercase tracking-wide text-espresso/75">Cum preferi să te contactăm?</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {contactPreferenceOptions.map((option) => (
             <AnswerCard key={option.id} option={option} selected={c.preference === option.id} onSelect={(id) => dispatch({ type: "setContact", key: "preference", value: id as ContactPreference })} />
@@ -450,7 +450,7 @@ function SuccessScreen({ result, name }: { result: SubmitResult; name: string })
       <h2 className="display-font mt-4 text-[clamp(2rem,4.5vw,3.2rem)] leading-[1.08] text-espresso">
         Mulțumim{name ? `, ${name}` : ""}!
       </h2>
-      <p className="mx-auto mt-5 max-w-lg text-lg leading-8 text-espresso/60">
+      <p className="mx-auto mt-5 max-w-lg text-lg leading-8 text-espresso/75">
         {result.emailed
           ? "Ți-am trimis rezumatul pe email și echipa noastră revine în cel mai scurt timp."
           : "Am primit cererea ta și revenim în cel mai scurt timp."}

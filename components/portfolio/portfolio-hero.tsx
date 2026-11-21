@@ -27,7 +27,7 @@ export function PortfolioHero() {
               <dt className="display-font text-[clamp(2.25rem,4vw,3rem)] leading-none text-espresso">
                 {stat.num}
               </dt>
-              <dd className="mt-3 whitespace-pre-line text-xs uppercase tracking-[0.2em] text-espresso/45">
+              <dd className="mt-3 whitespace-pre-line text-xs uppercase tracking-[0.2em] text-espresso/75">
                 {stat.label}
               </dd>
             </div>

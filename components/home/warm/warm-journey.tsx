@@ -207,7 +207,8 @@ export function WarmJourney() {
           const r = el.getBoundingClientRect();
           const t = Math.min(1, Math.abs(r.left + r.width / 2 - center) / half);
           el.style.transform = `scale(${(1 - 0.14 * t).toFixed(3)})`;
-          el.style.opacity = (1 - 0.55 * t).toFixed(3);
+          // side cards only dim slightly, so their text stays readable (≥ 4.5:1)
+          el.style.opacity = (1 - 0.1 * t).toFixed(3);
         }
       }
 
@@ -237,14 +238,37 @@ export function WarmJourney() {
       return max > 0 ? strip.scrollLeft / max : 0;
     };
 
-    build();
-    render(progress());
+    // The ruler is ~400 SVG ticks: build it only when the section comes near
+    // the viewport, so it costs nothing while the page loads (it sits far
+    // below the fold).
+    const strip = stripRef.current;
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      build();
+      render(progress());
+    };
+    let nearIo: IntersectionObserver | null = null;
+    if (strip && "IntersectionObserver" in window) {
+      nearIo = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            start();
+            nearIo?.disconnect();
+          }
+        },
+        { rootMargin: "400px 0px" },
+      );
+      nearIo.observe(strip);
+    } else {
+      start();
+    }
 
     // Ruler + card focus follow the strip's scroll (swipe, wheel, drag, snap).
-    const strip = stripRef.current;
     let ticking = false;
     const onScroll = () => {
-      if (ticking) return;
+      if (!started || ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         render(progress());
@@ -419,6 +443,7 @@ export function WarmJourney() {
 
     let raf = 0;
     const onResize = () => {
+      if (!started) return;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         build();
@@ -439,6 +464,7 @@ export function WarmJourney() {
       track?.removeEventListener("pointerdown", markEngaged);
       window.removeEventListener("resize", onResize);
       io?.disconnect();
+      nearIo?.disconnect();
       clearTimeout(hintTimer);
       cancelAnimationFrame(raf);
       cancelAnimationFrame(scrubRaf);
@@ -502,7 +528,14 @@ export function WarmJourney() {
           >
             <ChevronRight strokeWidth={1.75} aria-hidden="true" />
           </button>
-          <div ref={stripRef} className="warm-journey__cards">
+          {/* Focusable so keyboard users can scroll it with the arrow keys. */}
+          <div
+            ref={stripRef}
+            className="warm-journey__cards"
+            tabIndex={0}
+            role="region"
+            aria-label="Etapele proiectului (derulează orizontal)"
+          >
             {milestones.map((m, i) => (
               <article
                 key={m.num}

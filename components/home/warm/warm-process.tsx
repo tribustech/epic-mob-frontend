@@ -28,7 +28,7 @@ export function WarmProcess() {
               <h3 className="mt-4 text-xl font-semibold text-espresso">
                 {step.title}
               </h3>
-              <p className="mt-2 max-w-xs text-base leading-7 text-espresso/60">
+              <p className="mt-2 max-w-xs text-base leading-7 text-espresso/75">
                 {step.description}
               </p>
             </li>

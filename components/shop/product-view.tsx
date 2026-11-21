@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Box, Check, ChevronRight, Image as ImageIcon, PencilRuler, ShoppingBag, Truck } from "lucide-react";
 import { effectiveHandle } from "@/lib/atelier/handles";
 import type { AtelierConfig, AtelierScene } from "@/lib/atelier/types";
-import { addToCart, cartCount, useCart } from "@/lib/shop/cart";
+import { MAX_QTY, addToCart, cartCount, cartSizeText, useCart, type AddResult } from "@/lib/shop/cart";
 import { DELIVERY_TEXT } from "@/lib/shop/products";
 import type { ShopItem } from "@/lib/shop/server";
 import { trackPixel } from "@/lib/meta-pixel";
@@ -40,7 +40,7 @@ export function ProductView({
   );
   const [view, setView] = useState<"poza" | "3d">("poza");
   const [doorsOpen, setDoorsOpen] = useState(false);
-  const [added, setAdded] = useState<"idle" | "added" | "full">("idle");
+  const [added, setAdded] = useState<"idle" | AddResult>("idle");
   const [buyInView, setBuyInView] = useState(true);
   const buyRef = useRef<HTMLDivElement>(null);
   const cart = useCart();
@@ -89,7 +89,7 @@ export function ProductView({
 
   const add = () => {
     const onOffer = !!item.offer && variant.price != null && variant.finalPrice != null && variant.finalPrice < variant.price;
-    const ok = addToCart({
+    const result = addToCart({
       slug: item.slug,
       paletteId: variant.paletteId,
       name: item.name,
@@ -99,8 +99,8 @@ export function ProductView({
       offerPercent: onOffer ? item.offer!.percent : 0,
       offerLabel: onOffer ? item.offer!.label : null,
     });
-    setAdded(ok ? "added" : "full");
-    if (ok) trackPixel("AddToCart", { content_name: item.name, value: variant.finalPrice ?? 0, currency: "RON" });
+    setAdded(result);
+    if (result === "added") trackPixel("AddToCart", { content_name: item.name, value: variant.finalPrice ?? 0, currency: "RON" });
   };
 
   const show3d = view === "3d" && !!scene && !!config;
@@ -194,6 +194,13 @@ export function ProductView({
           <p className="shop-buy__status" aria-live="polite">
             {added === "full" ? (
               <span className="shop-buy__error">Coșul e plin. Trimite comanda sau scoate un produs din coș.</span>
+            ) : added === "max" ? (
+              <>
+                <span className="shop-buy__error">Ai deja numărul maxim ({MAX_QTY} bucăți) în coș. Pentru mai multe, scrie-ne în observațiile comenzii.</span>
+                <Link href="/magazin/cos" className="shop-buy__tocart">
+                  Vezi coșul <ArrowRight size={15} aria-hidden="true" />
+                </Link>
+              </>
             ) : inCart > 0 ? (
               <>
                 <span className="shop-buy__incart">
@@ -240,14 +247,14 @@ export function ProductView({
           <span className="shop-sticky__colour">{variant.name}</span>
         </div>
         {cartTotal > 0 && (
-          <Link href="/magazin/cos" className="shop-sticky__cart" aria-label={`Vezi coșul: ${cartTotal} ${cartTotal === 1 ? "produs" : "produse"}`}>
+          <Link href="/magazin/cos" className="shop-sticky__cart" aria-label={`Vezi coșul: ${cartSizeText(cart.length, cartTotal)}`}>
             <ShoppingBag size={20} aria-hidden="true" />
             <span>{cartTotal}</span>
           </Link>
         )}
         <button type="button" className={`btn-warm btn-warm--primary shop-sticky__add ${done ? "is-done" : ""}`} onClick={add}>
           {addIcon}
-          {done ? "Adăugat" : "Adaugă în coș"}
+          {done ? "Adăugat" : added === "max" ? `Ai deja ${MAX_QTY} în coș` : added === "full" ? "Coșul e plin" : "Adaugă în coș"}
         </button>
       </div>
       <AdminPricePanel config={config} offerPercent={item.offer?.percent ?? null} />

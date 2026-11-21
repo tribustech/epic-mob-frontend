@@ -674,3 +674,37 @@ Reviewed: `/tmp/claude-0/batch14/<slug>/<colour>.webp` against the current rende
 ## Accepted
 
 comoda-tv-200/alb-total (a soundbar is on top, against A4; not worth a redo), dressing-copii-150/alb-total, dressing-copii-150/denim-alb (top-right corner of the front slightly rounded), dressing-mare-360/alb-stejar-natur (no lamps), dressing-oglinda-glisanta-200/alb-casmir (reflection matches bed and window), dressing-oglinda-mijloc-240/alb-casmir, dressing-oglinda-mijloc-240/alb-stejar-natur, dressing-sertare-200/alb-stejar-natur, dressing-sertare-200/antracit-stejar, dressing-tavan-270/stejar-natur, dressing-tavan-270/supermat-crem, separator-sertare-160/gri-casmir (lamp gone; sun patches on the wall).
+
+---
+
+# Batch 15
+
+Ten new models/variants (briefs from `shop-art-direction-v3.json`, renders from `public/magazin/randari`). The six old rejects in the folder were skipped. All cm figures are pixel estimates, +-10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-oglinda-glisanta-200/alb-stejar-natur | ACCEPT | 8/10 | 2 sliding mirror doors in thin oak frame, white body and plinth, no handles: matches render. About 240 cm against the 205 cm door, top close under the ceiling. Mirrors show only this room (bed, window with curtain, a framed print); bed and window exist in the room. |
+| dressing-3-usi-oglinda-150/alb-casmir | ACCEPT | 8/10 | 3 doors, middle mirror with the narrow white strip carrying the handle, three black bar handles placed as in the render. About 220 cm, top roughly 15 cm above the door frame. Mirror reflects the bed with the folded blanket that is in the foreground. Cashmere is a little greyer than the render, acceptable. |
+| dressing-3-usi-oglinda-150/alb-total | ACCEPT | 8/10 | Same geometry, correct handles and strip. Child's room, mirror reflects the blue bed that is in the foreground. Sketchbook on the desk has a drawing, no lettering. |
+| dressing-cuier-100/alb-total | ACCEPT | 7.5/10 | Open stand, left rail + mid shelf, right 5 niches: matches render. Tight to the side wall, next to the entrance door, top about 15 cm under the door-frame top (brief 5 cm, within tolerance). Coats hang a bit short (about 70 cm) and one shelf looks slightly thicker than the others; minor. |
+| dressing-cuier-100/stejar-natur | ACCEPT | 8/10 | Same structure, 5 niches right, rail left. About 195 cm by the socket. Coats, cap, bag, two pairs of shoes; umbrella is allowed in a hall. Mid shelf on the left sits a little lower than the render (57% vs 47% from the top), acceptable. |
+| comoda-tv-160/alb-stejar-natur | ACCEPT | 7.5/10 | 2 oak drawers left, open niche with one shelf right, steel GOLA channels, plinth: matches render. Living room, faces the sofa, console + two boxes in the niche, only cabinet in the photo. Unit reads about 56 cm high / 175 cm wide, some 10% large against a correct 50-inch TV; at the limit but believable. |
+| comoda-tv-160/alb-total | REJECT | 5/10 | Geometry of the piece is right, but (1) the room is a bedroom: a bed corner is in the foreground, brief says living room wall facing a sofa; (2) scale: the unit top reaches about three quarters of the door-handle height, so it reads about 70 cm high and 230 cm wide, and the TV reads as a 75-inch; (3) niche holds books instead of console + two boxes. |
+| noptiera-deschisa-45/alb-total | ACCEPT | 8/10 | Open, one shelf, 2 niches, back panel, recessed plinth: matches render. Top roughly level with the mattress (5-8 cm above), about 60 cm by socket/switch. Lamp off, book on top, books and box in the niches. |
+| noptiera-deschisa-45/stejar-natur | ACCEPT | 8/10 | Same structure in oak, about 56 cm. Top about 9 cm above a low mattress, acceptable. Lamp off. Basket in the lower niche instead of a second book, harmless. Socket sits a little high (about 35 cm). |
+| suspendat-pat-240/alb-total | ACCEPT | 8/10 | 4 equal handle-less doors, about 6:1. Centred over the bed, overhangs it roughly 40 cm each side. Underside about 145 cm, top about 190 cm, clearly under the door-frame top, about 48 cm above the headboard, about 65 cm of wall above. Both lamps off, no ceiling lamp. Far door is 78% of the near one (A9 limit is 80%), not disturbing. |
+
+## Rejects
+
+**comoda-tv-160/alb-total**
+- Put it in a living room. Show a sofa in the foreground. No bed in the photo.
+- The unit is low: its top is 50 cm from the floor, level with the sofa seat cushion top plus 5 cm, and at less than half the height of the door handle (105 cm).
+- The unit is 160 cm wide: exactly twice the width of the door leaf (80 cm).
+- The TV is a 50-inch: 111 cm wide, it covers 70% of the unit width, not more. Its lower edge is 15 cm above the unit top.
+- The wall socket is 30 cm from the floor, below the unit top.
+- In the open niche: one flat black console on the shelf and two plain fabric boxes below. No books.
+
+## Patterns
+
+- No new general rule needed. 9 of 10 pass; the open pieces (cuier, open nightstand) and the mirror wardrobes came out right the first time.
+- The only failure repeats two old ones together: TV unit drifting into a bedroom, and the piece plus TV scaled up together so that only the door and socket give it away. For low TV units, always state the top height as a relation to the door handle ("less than half the handle height").

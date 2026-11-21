@@ -4,8 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
 import { legalEntity } from "@/lib/business-data";
-import { ANPC_SAL_URL, EU_SOL_URL } from "@/lib/legal";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  TikTokIcon,
+} from "@/components/icons/social-icons";
+import { ANPC_SAL_URL } from "@/lib/legal";
 import { contactDetails, navigation } from "@/lib/site-data";
+import { socialLinks, type SocialKind } from "@/lib/social-links";
+
+const socialIcons: Record<SocialKind, typeof InstagramIcon> = {
+  instagram: InstagramIcon,
+  tiktok: TikTokIcon,
+  facebook: FacebookIcon,
+};
 
 export function SiteFooter() {
   const pathname = usePathname();
@@ -21,6 +33,8 @@ export function SiteFooter() {
 }
 
 function WarmFooter({ hasMobileBar }: { hasMobileBar: boolean }) {
+  // Only the profiles listed in the structured data (business.sameAs).
+  const socials = socialLinks();
   return (
     <footer className={`warm-footer${hasMobileBar ? " pb-24 lg:pb-0" : ""}`}>
       <div className="warm-footer__accent" />
@@ -28,35 +42,55 @@ function WarmFooter({ hasMobileBar }: { hasMobileBar: boolean }) {
       <div className="section-shell grid gap-10 py-14 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
         <div>
           <p className="display-font text-4xl text-espresso">Epic Mob</p>
-          <p className="mt-4 max-w-md text-sm leading-7 text-espresso/60">
+          <p className="mt-4 max-w-md text-sm leading-7 text-espresso/75">
             Mobilier la comandă pentru interioare în care detaliul contează,
             cu consultanță, design și execuție asumată prin contract și factură.
           </p>
+          {socials.length > 0 ? (
+            <ul className="mt-6 flex gap-3" aria-label="Epic Mob pe rețele sociale">
+              {socials.map(({ kind, label, href }) => {
+                const Icon = socialIcons[kind];
+                return (
+                  <li key={kind}>
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="warm-footer__social"
+                      aria-label={`Epic Mob pe ${label}`}
+                    >
+                      <Icon size={18} />
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
         </div>
         <div>
           <p className="warm-footer__eyebrow">Navigare</p>
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-1">
             {navigation.map((item) => (
-              <Link key={item.href} href={item.href} className="block text-sm">
+              <Link key={item.href} href={item.href} className="warm-footer__link">
                 {item.label}
               </Link>
             ))}
-            <Link href="/intrebari-frecvente" className="block text-sm">
+            <Link href="/intrebari-frecvente" className="warm-footer__link">
               Întrebări frecvente
             </Link>
           </div>
         </div>
         <div>
           <p className="warm-footer__eyebrow">Contact</p>
-          <div className="mt-4 space-y-3 text-sm">
-            <a className="block" href={`tel:${contactDetails.phone}`}>
+          <div className="mt-4 space-y-1">
+            <a className="warm-footer__link" href={`tel:${contactDetails.phone}`}>
               {contactDetails.phone}
             </a>
-            <a className="block" href={`mailto:${contactDetails.email}`}>
+            <a className="warm-footer__link" href={`mailto:${contactDetails.email}`}>
               {contactDetails.email}
             </a>
             <a
-              className="block"
+              className="warm-footer__link"
               href={contactDetails.whatsapp}
               target="_blank"
               rel="noreferrer"
@@ -67,7 +101,7 @@ function WarmFooter({ hasMobileBar }: { hasMobileBar: boolean }) {
         </div>
       </div>
 
-      <div className="section-shell warm-footer__divider flex flex-col items-center gap-3 py-6 text-center text-xs text-espresso/45 sm:flex-row sm:justify-between sm:text-left">
+      <div className="section-shell warm-footer__divider flex flex-col items-center gap-3 py-6 text-center text-xs text-espresso/75 sm:flex-row sm:justify-between sm:text-left">
         <div className="space-y-1">
           <p>
             &copy; {new Date().getFullYear()} Epic Mob. Toate drepturile rezervate.
@@ -87,9 +121,6 @@ function WarmFooter({ hasMobileBar }: { hasMobileBar: boolean }) {
           <CookieSettingsButton className="hover:text-espresso" />
           <a href={ANPC_SAL_URL} target="_blank" rel="noreferrer" className="hover:text-espresso">
             ANPC – SAL
-          </a>
-          <a href={EU_SOL_URL} target="_blank" rel="noreferrer" className="hover:text-espresso">
-            SOL – litigii online
           </a>
         </div>
       </div>

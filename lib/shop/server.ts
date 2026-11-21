@@ -106,9 +106,8 @@ async function buildItem(
   palettes: ResolvedPalette[],
   { allPrices }: { allPrices: boolean },
 ): Promise<ShopItem | null> {
-  if (!presetAvailable(product.preset, catalog)) return null;
+  if (!productAvailable(product, catalog, palettes)) return null;
   const chosen = palettesOf(product, palettes);
-  if (chosen.length === 0) return null;
   const offer = offerFor(product.slug, product.category);
   const variants = await mapLimit(chosen, 4, async (palette, ): Promise<ShopVariant> => {
     const config = variantConfig(product, palette, catalog);
@@ -136,6 +135,22 @@ async function buildItem(
     offer,
     variants,
   };
+}
+
+/**
+ * Whether a product page can be shown with this catalog: the same check buildItem makes before pricing
+ * (the CRM can build the model, and at least one of its colours exists). Used by the sitemap.
+ */
+export function productAvailable(product: ShopProduct, catalog: AtelierCatalog, palettes: ResolvedPalette[]): boolean {
+  return presetAvailable(product.preset, catalog) && palettesOf(product, palettes).length > 0;
+}
+
+/** Slugs of the product pages that open now; null when the CRM catalog cannot be read. */
+export async function availableProductSlugs(): Promise<string[] | null> {
+  const catalog = await getShopCatalog();
+  if (!catalog) return null;
+  const palettes = resolvePalettes(catalog);
+  return SHOP_PRODUCTS.filter((p) => productAvailable(p, catalog, palettes)).map((p) => p.slug);
 }
 
 /** Every product with its colours; only the default colour is priced (list pages). */

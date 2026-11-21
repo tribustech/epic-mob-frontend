@@ -86,14 +86,14 @@ export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: Su
       <h2 className="display-font mt-4 text-[clamp(1.9rem,4vw,3rem)] leading-[1.08] text-espresso">
         Hai să verificăm împreună.
       </h2>
-      <p className="mt-4 max-w-xl text-lg leading-8 text-espresso/60">
+      <p className="mt-4 max-w-xl text-lg leading-8 text-espresso/75">
         Poți edita orice răspuns înainte de a trimite. Îți trimitem rezumatul și pe email.
       </p>
 
       <dl className="mt-9 divide-y divide-espresso/10 overflow-hidden rounded-2xl border border-espresso/10 bg-cream">
         {rows.map((row, index) => (
           <div key={`${row.label}-${index}`} className="flex items-center gap-4 p-4 sm:px-6">
-            <dt className="w-32 shrink-0 text-sm font-medium uppercase tracking-wide text-espresso/45">
+            <dt className="w-32 shrink-0 text-sm font-medium uppercase tracking-wide text-espresso/75">
               {row.label}
             </dt>
             <dd className="min-w-0 flex-1 text-espresso">{row.value}</dd>
@@ -101,7 +101,7 @@ export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: Su
               type="button"
               onClick={() => onEdit(row.step)}
               aria-label={`Editează ${row.label}`}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-espresso/40 transition hover:bg-sand hover:text-terracotta"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-espresso/60 transition hover:bg-sand hover:text-terracotta"
             >
               <Pencil size={15} />
             </button>
@@ -117,7 +117,7 @@ export function SummaryStep({ answers, onEdit, onSubmit, submitting, error }: Su
       <div className="h-24" aria-hidden />
       <WizardFooterBar>
         <div className="flex items-center justify-end gap-4 sm:justify-between">
-          <p className="hidden text-sm text-espresso/55 sm:block">
+          <p className="hidden text-sm text-espresso/75 sm:block">
             Fără obligații. Răspundem în cel mai scurt timp.
           </p>
           <button

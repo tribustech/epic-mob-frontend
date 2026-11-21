@@ -110,18 +110,33 @@ export function cartCount(lines: CartLine[]): number {
   return lines.reduce((n, l) => n + l.qty, 0);
 }
 
-/** Adds one piece (same product + colour = one more on the same line). false when the basket is full. */
-export function addToCart(line: Omit<CartLine, "qty">): boolean {
-  const lines = [...read()];
+/** The basket heading: „3 produse" / „2 produse, 3 bucăți" (lines are products, quantities are pieces). */
+export function cartSizeText(lineCount: number, pieces: number): string {
+  const products = lineCount === 1 ? "1 produs" : `${lineCount} produse`;
+  return pieces > lineCount ? `${products}, ${pieces} bucăți` : products;
+}
+
+/** What „Adaugă în coș" did: one more piece, nothing (the line already has MAX_QTY pieces), or nothing (the basket is full). */
+export type AddResult = "added" | "max" | "full";
+
+/** The basket after adding one piece (same product + colour = one more on the same line); pure, for tests. */
+export function addLine(lines: CartLine[], line: Omit<CartLine, "qty">): { lines: CartLine[]; result: AddResult } {
   const i = lines.findIndex((l) => l.slug === line.slug && l.paletteId === line.paletteId);
   if (i >= 0) {
-    lines[i] = { ...lines[i], ...line, qty: Math.min(MAX_QTY, lines[i].qty + 1) };
-  } else {
-    if (lines.length >= MAX_LINES) return false;
-    lines.push({ ...line, qty: 1 });
+    if (lines[i].qty >= MAX_QTY) return { lines, result: "max" };
+    const next = [...lines];
+    next[i] = { ...lines[i], ...line, qty: lines[i].qty + 1 };
+    return { lines: next, result: "added" };
   }
-  write(lines);
-  return true;
+  if (lines.length >= MAX_LINES) return { lines, result: "full" };
+  return { lines: [...lines, { ...line, qty: 1 }], result: "added" };
+}
+
+/** Adds one piece to the stored basket. */
+export function addToCart(line: Omit<CartLine, "qty">): AddResult {
+  const { lines, result } = addLine(read(), line);
+  if (result === "added") write(lines);
+  return result;
 }
 
 export function setQty(slug: string, paletteId: string, qty: number) {

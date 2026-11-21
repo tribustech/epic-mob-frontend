@@ -1,7 +1,7 @@
 import { doorOpening, doorType, type DoorOpening } from "../atelier/door-types";
 import { HANDLE_INFO, currentHandle, handleUnavailable, hasHandledFronts } from "../atelier/handles";
 import { followUps } from "../atelier/house-rules";
-import { hasFrontDrawers, partialDrawersAvailable } from "../atelier/drawers";
+import { hasDrawers, partialDrawersAvailable } from "../atelier/drawers";
 import { resolvePalettes } from "../atelier/palettes";
 import { presetAvailable } from "../atelier/presets";
 import { encodeShare } from "../atelier/share";
@@ -84,7 +84,7 @@ export function optionVariants(config: AtelierConfig, catalog: AtelierCatalog): 
       }
     }
   }
-  if (hasFrontDrawers(config) && partialDrawersAvailable(catalog) && config.drawerExtension !== "PARTIALA") {
+  if (hasDrawers(config) && partialDrawersAvailable(catalog) && config.drawerExtension !== "PARTIALA") {
     push("sertare:PARTIALA", "Sertare cu extracție parțială", apply(catalog, config, { type: "setDrawerExtension", extension: "PARTIALA" }));
   }
   if (hasHandledFronts(config)) {

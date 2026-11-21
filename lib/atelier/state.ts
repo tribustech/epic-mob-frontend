@@ -1,5 +1,5 @@
 import { doorFills, doorOpening, isDoorFill, normalizeDoors } from "./door-types";
-import { hasFrontDrawers } from "./drawers";
+import { hasDrawers } from "./drawers";
 import { cleanHandle, hasHandledFronts } from "./handles";
 import { BARA_SERTARE_RANGE, BOTTOM_HEIGHT_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
@@ -227,12 +227,12 @@ function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
 
 /**
  * Every change leaves the doors in their canonical form (see normalizeDoors), and the drawer runner choice
- * only on furniture with front drawers (the choice is hidden elsewhere, so a stale one could not be undone).
+ * only on furniture with drawers (the choice is hidden elsewhere, so a stale one could not be undone).
  */
 export function atelierReducer(state: AtelierConfig, action: AtelierAction): AtelierConfig {
   let next = reduce(state, action);
   if (next === state) return state;
-  if (next.drawerExtension && !hasFrontDrawers(next)) {
+  if (next.drawerExtension && !hasDrawers(next)) {
     next = { ...next };
     delete next.drawerExtension;
   }

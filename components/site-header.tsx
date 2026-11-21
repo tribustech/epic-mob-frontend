@@ -1,9 +1,10 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { HeaderCart } from "@/components/shop/header-cart";
+import { trapTabKey } from "@/lib/focus-trap";
 import {
   contactDetails,
   headerCta,
@@ -11,7 +12,8 @@ import {
   navigation,
 } from "@/lib/site-data";
 
-const menuEase = [0.22, 1, 0.36, 1] as const;
+// How long the menu's closing animation runs (matches .site-menu--closing).
+const MENU_CLOSE_MS = 320;
 
 function BrandWordmark() {
   return (
@@ -24,28 +26,38 @@ function BrandWordmark() {
   );
 }
 
+// The header ships on every page, so it stays light: the menu animates with
+// CSS (globals.css, "Site header and menu") instead of an animation library.
 export function SiteHeader() {
   const pathname = usePathname();
-  // Warm palette applies to the homepage, the portfolio (list + case study),
-  // the contact page, the FAQ, the privacy policy and the Atelier 3D configurator.
-  const isWarm =
-    pathname === "/" ||
-    pathname.startsWith("/portfolio") ||
-    pathname.startsWith("/materiale") ||
-    pathname === "/configurator" ||
-    pathname.startsWith("/magazin") ||
-    pathname === "/contact" ||
-    pathname === "/politica-confidentialitate" ||
-    pathname === "/termeni-si-conditii" ||
-    pathname === "/intrebari-frecvente";
-  const reduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
+  // true while the menu plays its closing animation (still on screen)
+  const [closing, setClosing] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const closeMenu = () => setMenuOpen(false);
-  const toggleMenu = () => setMenuOpen((open) => !open);
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setClosing(true);
+  };
+  const toggleMenu = () => {
+    if (menuOpen) closeMenu();
+    else {
+      setClosing(false);
+      setMenuOpen(true);
+    }
+  };
 
+  useEffect(() => {
+    if (!closing) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const id = window.setTimeout(() => setClosing(false), reduce ? 0 : MENU_CLOSE_MS);
+    return () => clearTimeout(id);
+  }, [closing]);
+
+  // Modal menu: focus moves in, Tab stays inside, Escape closes, and focus
+  // returns to the MENIU button when it closes.
   useEffect(() => {
     if (!menuOpen) {
       return;
@@ -58,8 +70,12 @@ export function SiteHeader() {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.preventDefault();
         setMenuOpen(false);
+        setClosing(true);
+        return;
       }
+      if (menuRef.current) trapTabKey(menuRef.current, event);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -71,28 +87,14 @@ export function SiteHeader() {
     };
   }, [menuOpen]);
 
-  const transition = reduceMotion
-    ? { duration: 0 }
-    : { duration: 0.65, ease: menuEase };
-
-  const itemTransition = reduceMotion
-    ? { duration: 0 }
-    : { duration: 0.55, ease: menuEase };
+  const menuVisible = menuOpen || closing;
 
   return (
     <>
-      <header className={`site-header ${isWarm ? "site-header--warm" : ""}`}>
+      {/* One warm header on every page, the 404 and /cere-oferta included. */}
+      <header className="site-header site-header--warm">
         <Link href="/" className="site-header__logo" aria-label="Epic Mob, pagina principală">
-          {isWarm ? (
-            <BrandWordmark />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src="/portfolio/epicmob-logo-transparent.png"
-              alt="Epic Mob"
-              className="site-header__logo-image"
-            />
-          )}
+          <BrandWordmark />
         </Link>
 
         <div className="site-header__right">
@@ -119,6 +121,9 @@ export function SiteHeader() {
             {headerCta.label}
           </Link>
 
+          {/* the basket, on phones and desktop, once something is in it */}
+          <HeaderCart />
+
           <button
             ref={triggerRef}
             type="button"
@@ -137,155 +142,111 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <AnimatePresence>
-        {menuOpen ? (
-          <motion.div
-            id="site-menu"
-            className={`site-menu ${isWarm ? "site-menu--warm" : ""}`}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Meniu principal"
-            initial={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}
-            animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
-            exit={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}
-            transition={transition}
-          >
-            <div className="site-menu__top">
-              <Link
-                href="/"
-                className="site-menu__logo"
-                aria-label="Epic Mob, pagina principală"
-                onClick={closeMenu}
-              >
-                {isWarm ? (
-                  <BrandWordmark />
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src="/portfolio/epicmob-logo-transparent.png"
-                    alt="Epic Mob"
-                    className="site-menu__logo-image"
-                  />
-                )}
-              </Link>
+      {menuVisible ? (
+        <div
+          ref={menuRef}
+          id="site-menu"
+          className={`site-menu site-menu--warm${closing ? " site-menu--closing" : ""}`}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Meniu principal"
+        >
+          <div className="site-menu__top">
+            <Link
+              href="/"
+              className="site-menu__logo"
+              aria-label="Epic Mob, pagina principală"
+              onClick={closeMenu}
+            >
+              <BrandWordmark />
+            </Link>
 
-              <button
-                ref={closeRef}
-                type="button"
-                className="site-menu__close"
-                onClick={closeMenu}
-                aria-label="Închide meniul"
-              >
-                ÎNCHIDE
-              </button>
-            </div>
+            <button
+              ref={closeRef}
+              type="button"
+              className="site-menu__close"
+              onClick={closeMenu}
+              aria-label="Închide meniul"
+            >
+              ÎNCHIDE
+            </button>
+          </div>
 
-            <div className="site-menu__content">
-              <motion.nav
-                className="site-menu__primary"
-                aria-label="Navigație meniu"
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-                variants={{
-                  hidden: {},
-                  show: {
-                    transition: {
-                      staggerChildren: reduceMotion ? 0 : 0.08,
-                      delayChildren: reduceMotion ? 0 : 0.16,
-                    },
-                  },
-                }}
-              >
-                {navigation.map((item, index) => {
-                  const active = pathname === item.href;
+          <div className="site-menu__content">
+            <nav className="site-menu__primary" aria-label="Navigație meniu">
+              {navigation.map((item, index) => {
+                const active = pathname === item.href;
 
-                  return (
-                    <motion.div
-                      key={item.href}
-                      variants={{
-                        hidden: { opacity: 0, y: reduceMotion ? 0 : 32 },
-                        show: { opacity: 1, y: 0 },
-                      }}
-                      transition={itemTransition}
-                    >
-                      <Link
-                        href={item.href}
-                        className={`site-menu__primary-link ${
-                          active ? "site-menu__primary-link--active" : ""
-                        }`}
-                        aria-current={active ? "page" : undefined}
-                        onClick={closeMenu}
-                      >
-                        <span>{String(index + 1).padStart(2, "0")}</span>
-                        {item.label}
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-
-                <motion.div
-                  variants={{
-                    hidden: { opacity: 0, y: reduceMotion ? 0 : 32 },
-                    show: { opacity: 1, y: 0 },
-                  }}
-                  transition={itemTransition}
-                >
-                  <Link
-                    href={headerCta.href}
-                    className="site-menu__primary-link site-menu__primary-link--cta"
-                    onClick={closeMenu}
+                return (
+                  <div
+                    key={item.href}
+                    className="site-menu__item"
+                    style={{ "--i": index } as CSSProperties}
                   >
-                    <span>05</span>
-                    {headerCta.label}
-                  </Link>
-                </motion.div>
-              </motion.nav>
-
-              <motion.div
-                className="site-menu__lower"
-                initial={{ opacity: 0, y: reduceMotion ? 0 : 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: reduceMotion ? 0 : 24 }}
-                transition={
-                  reduceMotion
-                    ? { duration: 0 }
-                    : { duration: 0.5, delay: 0.38, ease: menuEase }
-                }
-              >
-                <div className="site-menu__panel">
-                  <p className="site-menu__eyebrow">Contact</p>
-                  <a href={`tel:${contactDetails.phone}`}>
-                    {contactDetails.phone}
-                  </a>
-                  <a href={`mailto:${contactDetails.email}`}>
-                    {contactDetails.email}
-                  </a>
-                </div>
-
-                <div className="site-menu__panel">
-                  <p className="site-menu__eyebrow">Acțiuni rapide</p>
-                  <div className="site-menu__secondary-links">
-                    {menuSecondaryLinks.map((item) => (
-                      <Link key={item.href} href={item.href} onClick={closeMenu}>
-                        {item.label}
-                      </Link>
-                    ))}
+                    <Link
+                      href={item.href}
+                      className={`site-menu__primary-link ${
+                        active ? "site-menu__primary-link--active" : ""
+                      }`}
+                      aria-current={active ? "page" : undefined}
+                      onClick={closeMenu}
+                    >
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      {item.label}
+                    </Link>
                   </div>
-                </div>
+                );
+              })}
 
-                <div className="site-menu__panel site-menu__panel--note">
-                  <p className="site-menu__eyebrow">Epic Mob Atelier</p>
-                  <p>
-                    Mobilier premium la comandă, consultanță și execuție
-                    cap-coadă pentru proiecte rezidențiale.
-                  </p>
+              <div
+                className="site-menu__item"
+                style={{ "--i": navigation.length } as CSSProperties}
+              >
+                <Link
+                  href={headerCta.href}
+                  className="site-menu__primary-link site-menu__primary-link--cta"
+                  onClick={closeMenu}
+                >
+                  {/* numbered after the pages above, so no number repeats */}
+                  <span>{String(navigation.length + 1).padStart(2, "0")}</span>
+                  {headerCta.label}
+                </Link>
+              </div>
+            </nav>
+
+            <div className="site-menu__lower">
+              <div className="site-menu__panel">
+                <p className="site-menu__eyebrow">Contact</p>
+                <a href={`tel:${contactDetails.phone}`}>
+                  {contactDetails.phone}
+                </a>
+                <a href={`mailto:${contactDetails.email}`}>
+                  {contactDetails.email}
+                </a>
+              </div>
+
+              <div className="site-menu__panel">
+                <p className="site-menu__eyebrow">Acțiuni rapide</p>
+                <div className="site-menu__secondary-links">
+                  {menuSecondaryLinks.map((item) => (
+                    <Link key={item.href} href={item.href} onClick={closeMenu}>
+                      {item.label}
+                    </Link>
+                  ))}
                 </div>
-              </motion.div>
+              </div>
+
+              <div className="site-menu__panel site-menu__panel--note">
+                <p className="site-menu__eyebrow">Epic Mob Atelier</p>
+                <p>
+                  Mobilier premium la comandă, consultanță și execuție
+                  cap-coadă pentru proiecte rezidențiale.
+                </p>
+              </div>
             </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
