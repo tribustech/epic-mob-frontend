@@ -454,3 +454,84 @@ The single rotating object (A10) now repeats in new forms. Across batches 5–7:
 - `Coats and bags hang only in an entrance hall, never in a living room or bedroom.`
 - `No fruit bowl in a bedroom or hall.`
 - Extend the A10 list and pick by product index so the same object is not used twice within one product: `a folded blanket | a pair of sneakers | a tote bag (hall only) | a book on the bed | a plant on the floor | a laundry basket | reading glasses | a mug | a toy | an umbrella (hall only)`.
+
+---
+
+# Batch 8 (v3) (11 photos)
+
+Reviewed: `/tmp/claude-0/batch8/<slug>/<paletteId>.webp` against the renders and the v3 prompts in `scripts/shop-art-direction-v3.json` (rules A1–A14, M1–M4, C1–C5). Measurements are pixel estimates, ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-mixta-180 / nuc-crem | REJECT (borderline) | 8.5 | Sideboard is right (door + 4 drawers + door, gold bars, walnut body); a coat hangs on a hook in the dining room (A10) and there are four props, not one |
+| dressing-3-usi-150 / alb-stejar-natur | REJECT | 7.5 | 3 doors and handles right, but the front is 0.80 wide-to-high against 0.71 (reads ~170 cm wide), and the white side panel is an impossible chamfered sliver ~10 cm deep on the side facing away from the camera |
+| dressing-3-usi-150 / alb-total | ACCEPT | 9 | 3 equal doors, steel bars as in the render, ratio 0.71; about 5 cm above the door frame once depth is allowed for |
+| dressing-baie-60 / alb-stejar-natur | ACCEPT | 8.5 | 2 stacked doors, joint at mid-height, handles at the joint on the right; bathroom with basin and washing machine; reads ~170–175 cm high |
+| dressing-baie-60 / alb-total | ACCEPT | 8.5 | 2 stacked doors, handles at the joint; beside the washing machine, towel radiator; lower door slightly taller than the upper |
+| dressing-birou-100 / alb-stejar-natur | ACCEPT | 9 | 2 doors, steel knobs, twice as tall as wide, in the corner; desk, laptop, lamp off |
+| dressing-birou-100 / stejar-natur | ACCEPT | 8.5 | All oak; top just below the door frame; the monitor has a tiny logo on its bezel (A5), illegible at site size |
+| dressing-camara-90 / alb-stejar-natur | ACCEPT | 9 | 2 × 2 doors, joint at mid-height, 4 black bars at the joint; beside a free-standing fridge, kitchen tiles |
+| dressing-camara-90 / alb-total | ACCEPT | 8.5 | 2 × 2 doors, handles right; upper doors ~10% taller than lower (render: equal); green kitchen units and kettle at the frame edge |
+| dressing-serviciu-80 / alb-total | ACCEPT | 8.5 | 2 doors, no handles; hall with entrance door, hooks, umbrella; reads ~10% wide |
+| dressing-serviciu-80 / gri-casmir | ACCEPT | 9 | 2 doors, no handles, greige; hall corner beside the kitchen doorway |
+
+Door counts: both dressing-camara-90 photos have exactly 4 doors in 2 rows and both dressing-baie-60 photos exactly 2 stacked doors, with joints and handles where the renders have them. Rooms fit the pieces in all 11.
+
+## Rejects
+
+### dressing-3-usi-150 / alb-stejar-natur
+- Prompt additions:
+  - `The wardrobe is clearly taller than wide: 1.4 times taller than wide. Each door is four times taller than wide (50 cm × 200 cm).`
+  - `The wardrobe is a 55 cm deep box. Only the side nearer to the camera is visible, as a plain white rectangle 55 cm deep with square corners; the far side is hidden.`
+  - `Camera on the side of the room away from the corner the wardrobe stands in.`
+
+### comoda-mixta-180 / nuc-crem
+- Prompt additions:
+  - `No coat, no wall hook, no bag anywhere in the room.`
+  - `On the sideboard only a lamp (switched off) and one stack of plates; nothing else.`
+
+## New general rule
+
+- A15: `The piece is a solid box with its real depth: the side nearer the camera is visible as a plain rectangle of the stated depth with square corners; the far side is never visible; no chamfered or angled side panels.`
+- Tighten A10 in the wording sent to the model: name the forbidden items positively per room (`No coat or wall hook in this living room / bedroom / office.`) instead of the general rule; the general form was ignored again.
+
+---
+
+# Batch 9 (v3) (10 photos)
+
+Reviewed: `/tmp/claude-0/batch9/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Measurements are pixel estimates, ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-baie-80 / alb-casmir | REJECT (borderline) | 8.5 | Door + 3 drawers, steel channels, white body: right. But it reads ~100 cm wide (1.08 wide-to-high against 0.94; 1.8 × the washing machine's width instead of 1.33) and as deep as the machine |
+| comoda-baie-80 / gri-casmir | ACCEPT | 9 | Matches render; bathroom with tub, washing machine, towels and basket on top; ratio 0.97 |
+| comoda-cafea-120 / alb-stejar-natur | REJECT | 8.5 | Mirrored against the catalogue: drawers left, door right (preset: door left, drawers right). Knobs, colours and room are right |
+| comoda-cafea-120 / alb-total | HOLD (ACCEPT once the render is fixed) | 8.5 | Matches the catalogue preset (door left, 3 drawers right, black knobs) but not the render on disk, which is wrong |
+| comoda-inalta-80 / alb-stejar-natur | ACCEPT | 8.5 | 5 oak drawers, steel bars, white body; top ~15 cm above the door handle; reads slightly wide |
+| comoda-inalta-80 / gri-casmir | ACCEPT | 8.5 | 5 drawers, steel bars, greige; beside the room door |
+| comoda-mixta-180 / salvie-stejar | ACCEPT | 8.5 | Door + 4 drawers + door, gold bars, sage on light oak; a lit candle lantern on top |
+| comoda-nisa-140 / salvie-stejar | ACCEPT | 8.5 | 3 drawers left, niche with 2 shelves right, black bars; sofa arm close to the right end |
+| comoda-pantofar-80 / alb-stejar-natur | ACCEPT | 9 | 2 doors, no handles; slim (~30 cm) beside the entrance door; hooks, key bowl, mat |
+| comoda-pantofar-80 / alb-total | ACCEPT | 8.5 | 2 doors, no handles; slim; round mirror reflects wall and ceiling correctly; reads ~5% wide |
+
+C1–C5: every chest is the only cabinet in its photo, tops relate correctly to door handles, all colours are light. A15: all sides are plain rectangles of believable depth.
+
+## Rejects
+
+### comoda-cafea-120: the render on disk is wrong
+`public/magazin/randari/comoda-cafea-120/*.webp` shows 3 drawers on the LEFT, a door on the RIGHT and black Gola channels. The catalogue (`lib/atelier/presets.ts`: USI 600 + SERTARE 600; `lib/shop/products.ts`: BUTON NEGRU) and the v3 prompt say door left, drawers right, black knobs. The render looks like the comoda-birou-90 configuration. Re-render before publishing either photo.
+- alb-total: matches the catalogue. Accept once the render is regenerated and agrees.
+- alb-stejar-natur: mirrored against the catalogue (probably copied from the wrong render). Regenerate with the corrected render and add:
+  - `The door is on the LEFT half, the three drawers are on the RIGHT half.`
+  - `One small black knob on the door, near its right edge at the top; one centred on each drawer.`
+
+### comoda-baie-80 / alb-casmir
+- Prompt additions:
+  - `The cabinet is only one third wider than the washing machine beside it (80 cm against 60 cm) and slightly taller than wide.`
+  - `The cabinet is shallower than the washing machine: its front is set back 20 cm behind the machine's front.`
+  - `No wall hook.`
+
+## New general rule
+
+- A16 (process, not prompt): before generating, check each render's section order (left/right) and handle type against the catalogue preset and the prompt; do not generate while they disagree. comoda-cafea-120 is the second stale render after suspendat-tv-180.
+- For any piece standing beside a washing machine: `State its width as a multiple of the 60 cm machine and say that its front is set back behind the machine's front.`
