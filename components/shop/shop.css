@@ -190,6 +190,9 @@
   grid-auto-columns: 70%;
   gap: 0.9rem;
   overflow-x: auto;
+  /* overflow-x: auto alone makes the row a vertical scroller too (a hover shadow overflows by 2 px):
+     a trackpad then latches onto the row and the page stops scrolling */
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
@@ -375,6 +378,9 @@
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
+  /* overflow-x: auto alone makes the row a vertical scroller too (a hover shadow overflows by 2 px):
+     a trackpad then latches onto the row and the page stops scrolling */
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
   margin-inline: calc(-1 * var(--shop-gutter));
