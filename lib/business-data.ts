@@ -5,7 +5,7 @@
 
 import { contactDetails } from "@/lib/site-data";
 
-export const SITE_URL = "https://epicmob.ro";
+export const SITE_URL = "https://www.epicmob.ro"; // the domain that answers (epicmob.ro redirects here)
 
 // Company registration details, shown on the privacy policy (data controller).
 // The registered office is a legal address only — not published in schema,

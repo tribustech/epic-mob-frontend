@@ -33,5 +33,21 @@ export async function withAllPrices(items: ShopItem[]): Promise<ShopItem[]> {
     }
   };
   await Promise.all(Array.from({ length: Math.min(AT_ONCE, jobs.length) }, worker));
-  return out;
+  return hideUnpriced(out);
+}
+
+const hasPrice = (item: ShopItem) => item.variants.some((v) => v.finalPrice != null);
+
+/**
+ * A model the CRM refuses to price (a missing fitting, a slide too long for its depth) is a dead end in a
+ * list: no price, no basket. Drop it, but only while the CRM prices the others, so an outage does not
+ * empty the shop (the cards then fall back to „Vezi prețul în Atelierul 3D").
+ */
+function hideUnpriced(items: ShopItem[]): ShopItem[] {
+  if (!items.some(hasPrice)) return items;
+  const kept = items.filter(hasPrice);
+  if (kept.length < items.length) {
+    console.warn("Shop: hidden without a price", items.filter((i) => !hasPrice(i)).map((i) => i.slug).join(", "));
+  }
+  return kept;
 }
