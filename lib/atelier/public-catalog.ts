@@ -32,6 +32,10 @@ export function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
     handles: {
       types: (catalog.handles?.types ?? []).filter((t) => t && isHandleKind(t.type)).map((t) => ({ type: t.type, label: String(t.label ?? "") })),
     },
+    // drawer runner extensions the CRM can price (absent on an older CRM = full extension only)
+    ...(Array.isArray(catalog.drawerExtensions)
+      ? { drawerExtensions: catalog.drawerExtensions.filter((e) => e === "COMPLETA" || e === "PARTIALA") }
+      : {}),
     // absent on an older CRM: the configurator then keeps the one-face-for-all-doors choice
     // kitchen worktops: how they look and how deep they can be cut, never a price
     ...(Array.isArray(catalog.worktops)

@@ -18,11 +18,11 @@ export class CrmRejectedError extends Error {
   }
 }
 
-type CrmPath = "/api/atelier/catalog" | "/api/atelier/price" | "/api/atelier/lead" | "/api/atelier/event";
+type CrmPath = "/api/atelier/catalog" | "/api/atelier/price" | "/api/atelier/lead" | "/api/atelier/event" | "/api/atelier/breakdown";
 
 export async function crmFetch<T>(
   path: CrmPath,
-  init: { method?: "GET" | "POST"; body?: unknown; timeoutMs?: number; revalidate?: number } = {},
+  init: { method?: "GET" | "POST"; body?: unknown; timeoutMs?: number; revalidate?: number; headers?: Record<string, string> } = {},
 ): Promise<T> {
   const base = process.env.CRM_API_URL;
   const key = process.env.ATELIER_API_KEY;
@@ -34,6 +34,7 @@ export async function crmFetch<T>(
     res = await fetch(`${base.replace(/\/+$/, "")}${path}`, {
       method,
       headers: {
+        ...init.headers,
         "x-atelier-key": key,
         ...(method === "POST" ? { "content-type": "application/json" } : {}),
       },

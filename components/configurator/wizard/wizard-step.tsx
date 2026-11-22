@@ -19,7 +19,7 @@ export function WizardStep({ eyebrow, question, description, children, footer }:
         {question}
       </h2>
       {description ? (
-        <p className="mt-4 max-w-xl text-lg leading-8 text-espresso/60">{description}</p>
+        <p className="mt-4 max-w-xl text-lg leading-8 text-espresso/75">{description}</p>
       ) : null}
 
       <div className="mt-9">{children}</div>

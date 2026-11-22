@@ -143,7 +143,7 @@ export function UploadDropzone({ files, onChange }: UploadDropzoneProps) {
       >
         <UploadCloud size={28} className="text-terracotta" strokeWidth={1.8} />
         <p className="mt-3 font-semibold text-espresso">Trage fișierele aici</p>
-        <p className="mt-1 text-sm text-espresso/55">Poze, planuri, randări — orice ne ajută.</p>
+        <p className="mt-1 text-sm text-espresso/75">Poze, planuri, randări — orice ne ajută.</p>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -177,9 +177,9 @@ export function UploadDropzone({ files, onChange }: UploadDropzoneProps) {
                 ) : item.status === "error" ? (
                   <AlertCircle size={20} className="text-terracotta-deep" />
                 ) : item.isImage ? (
-                  <ImageIcon size={20} className="text-espresso/50" />
+                  <ImageIcon size={20} className="text-espresso/75" />
                 ) : (
-                  <FileText size={20} className="text-espresso/50" />
+                  <FileText size={20} className="text-espresso/75" />
                 )}
               </span>
 
@@ -195,7 +195,7 @@ export function UploadDropzone({ files, onChange }: UploadDropzoneProps) {
                     />
                   </div>
                 ) : (
-                  <p className="text-xs text-espresso/50">{formatSize(item.size)} · încărcat</p>
+                  <p className="text-xs text-espresso/75">{formatSize(item.size)} · încărcat</p>
                 )}
               </div>
 
@@ -203,7 +203,7 @@ export function UploadDropzone({ files, onChange }: UploadDropzoneProps) {
                 type="button"
                 onClick={() => removeItem(item.id)}
                 aria-label="Șterge fișierul"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-espresso/50 transition hover:bg-espresso/5 hover:text-espresso"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-espresso/75 transition hover:bg-espresso/5 hover:text-espresso"
               >
                 <X size={16} />
               </button>

@@ -1,8 +1,10 @@
 import { doorFills, doorOpening, isDoorFill, normalizeDoors } from "./door-types";
+import { hasDrawers } from "./drawers";
 import { cleanHandle, hasHandledFronts } from "./handles";
 import { BARA_SERTARE_RANGE, BOTTOM_HEIGHT_RANGE, CATEGORY_RULES, POLITE_BARA_SHELVES, SERTARE_RANGE, SHELF_CONTENTS, categoryRules } from "./categories";
 import type {
   AtelierCatalog,
+  DrawerExtension,
   AtelierCategory,
   AtelierColumn,
   AtelierConfig,
@@ -54,6 +56,8 @@ export type AtelierAction =
   | { type: "setLegs"; legsMm: AtelierConfig["legsMm"] }
   | { type: "setDoors"; doors: AtelierConfig["doors"]; handle?: AtelierHandle }
   | { type: "setHandle"; handle: AtelierHandle }
+  /** the drawer runners: full (default) or partial extension */
+  | { type: "setDrawerExtension"; extension: DrawerExtension }
   /** the face of one door (sliding: the door; hinged: the column) */
   | { type: "setDoorFill"; index: number; fill: DoorFill }
   /** the face of every door at once, left to right (missing entries = panel) */
@@ -221,10 +225,17 @@ function resize(state: AtelierConfig, widthMm: number): AtelierConfig {
   return { ...state, widthMm, columns: withWidths(cols, fitted) };
 }
 
-/** Every change leaves the doors in their canonical form (see normalizeDoors). */
+/**
+ * Every change leaves the doors in their canonical form (see normalizeDoors), and the drawer runner choice
+ * only on furniture with drawers (the choice is hidden elsewhere, so a stale one could not be undone).
+ */
 export function atelierReducer(state: AtelierConfig, action: AtelierAction): AtelierConfig {
-  const next = reduce(state, action);
+  let next = reduce(state, action);
   if (next === state) return state;
+  if (next.drawerExtension && !hasDrawers(next)) {
+    next = { ...next };
+    delete next.drawerExtension;
+  }
   const doors = normalizeDoors(next);
   return doors === next.doors ? next : { ...next, doors };
 }
@@ -242,6 +253,7 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
       const next: AtelierConfig = { ...state, ...categoryDefaults(action.category) };
       delete next.handle;
       delete next.bottom;
+      delete next.drawerExtension;
       // the worktop and LED stay when coming back to a kitchen in the same visit
       if (!isKitchen(action)) delete next.kitchen;
       else if (state.kitchen?.worktopId) next.kitchen = { ...next.kitchen!, worktopId: state.kitchen.worktopId };
@@ -382,6 +394,12 @@ function reduce(state: AtelierConfig, action: AtelierAction): AtelierConfig {
       const handle = cleanHandle(action.handle) ?? state.handle;
       if (action.doors.type.startsWith("BATANTE") && handle) next.handle = handle;
       else delete next.handle;
+      return next;
+    }
+    case "setDrawerExtension": {
+      const next: AtelierConfig = { ...state };
+      if (action.extension === "PARTIALA") next.drawerExtension = "PARTIALA";
+      else delete next.drawerExtension;
       return next;
     }
     case "setHandle": {

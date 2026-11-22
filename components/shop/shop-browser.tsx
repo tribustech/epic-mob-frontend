@@ -4,7 +4,20 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Check, PencilRuler, SearchX, SlidersHorizontal, X } from "lucide-react";
 import { MOOD_LABELS, type PaletteMood } from "@/lib/atelier/palettes";
-import { ROOM_LABELS, SHOP_CATEGORIES, type ShopCategory, type ShopRoom } from "@/lib/shop/products";
+import {
+  ROOM_LABELS,
+  SHOP_CATEGORIES,
+  SHOP_PRODUCTS,
+  SHOP_TYPES,
+  SHOP_WIDTHS,
+  typeOf,
+  widthOf,
+  withMirror,
+  type ShopCategory,
+  type ShopRoom,
+  type ShopType,
+  type ShopWidth,
+} from "@/lib/shop/products";
 import type { ShopItem } from "@/lib/shop/server";
 import { ProductCard, moodOf } from "./product-card";
 
@@ -13,13 +26,21 @@ const SORT_LABELS: Record<Sort, string> = { recomandat: "Recomandate", "pret-asc
 
 interface Filters {
   categorie: ShopCategory | null;
+  tip: ShopType | null;
   camera: ShopRoom | null;
+  latime: ShopWidth | null;
   culoare: PaletteMood | null;
+  oglinda: boolean;
   oferte: boolean;
   sort: Sort;
 }
 
-const NONE: Filters = { categorie: null, camera: null, culoare: null, oferte: false, sort: "recomandat" };
+const NONE: Filters = { categorie: null, tip: null, camera: null, latime: null, culoare: null, oglinda: false, oferte: false, sort: "recomandat" };
+/** the filters besides the category (one count on the „Filtre" button, one „Șterge filtrele" in the sheet) */
+const NO_EXTRA: Partial<Filters> = { tip: null, camera: null, latime: null, culoare: null, oglinda: false, oferte: false };
+
+/** what the cards do not carry: kind of piece, width band, mirror */
+const META = new Map(SHOP_PRODUCTS.map((p) => [p.slug, { tip: typeOf(p.slug), latime: widthOf(p.preset), oglinda: withMirror(p.preset) }]));
 const ROOMS = Object.keys(ROOM_LABELS) as ShopRoom[];
 const MOODS = Object.keys(MOOD_LABELS) as PaletteMood[];
 /** the event the „Toate ofertele" links on the same page use to set a filter without a reload */
@@ -31,10 +52,15 @@ function fromUrl(search: string): Filters {
   const room = q.get("camera");
   const mood = q.get("culoare")?.toUpperCase();
   const sort = q.get("ordine");
+  const tip = q.get("tip");
+  const latime = q.get("latime");
   return {
     categorie: SHOP_CATEGORIES.some((c) => c.id === cat) ? (cat as ShopCategory) : null,
+    tip: SHOP_TYPES.some((t) => t.id === tip) ? (tip as ShopType) : null,
     camera: room && room in ROOM_LABELS ? (room as ShopRoom) : null,
+    latime: SHOP_WIDTHS.some((w) => w.id === latime) ? (latime as ShopWidth) : null,
     culoare: mood && mood in MOOD_LABELS ? (mood as PaletteMood) : null,
+    oglinda: q.get("oglinda") === "1",
     oferte: q.get("oferte") === "1",
     sort: sort && sort in SORT_LABELS ? (sort as Sort) : "recomandat",
   };
@@ -43,8 +69,11 @@ function fromUrl(search: string): Filters {
 function toUrl(f: Filters): string {
   const q = new URLSearchParams();
   if (f.categorie) q.set("categorie", f.categorie);
+  if (f.tip) q.set("tip", f.tip);
   if (f.camera) q.set("camera", f.camera);
+  if (f.latime) q.set("latime", f.latime);
   if (f.culoare) q.set("culoare", f.culoare.toLowerCase());
+  if (f.oglinda) q.set("oglinda", "1");
   if (f.oferte) q.set("oferte", "1");
   if (f.sort !== "recomandat") q.set("ordine", f.sort);
   const s = q.toString();
@@ -53,7 +82,10 @@ function toUrl(f: Filters): string {
 
 const matches = (item: ShopItem, f: Filters) =>
   (!f.categorie || item.category === f.categorie) &&
+  (!f.tip || META.get(item.slug)?.tip === f.tip) &&
   (!f.camera || item.rooms.includes(f.camera)) &&
+  (!f.latime || META.get(item.slug)?.latime === f.latime) &&
+  (!f.oglinda || !!META.get(item.slug)?.oglinda) &&
   (!f.oferte || !!item.offer) &&
   (!f.culoare || item.variants.some((v) => moodOf(v) === f.culoare));
 
@@ -160,14 +192,18 @@ export function ShopBrowser({ items }: { items: ShopItem[] }) {
 
   const offers = items.filter((i) => i.offer).length;
   const category = SHOP_CATEGORIES.find((c) => c.id === f.categorie);
-  const extraCount = Number(!!f.camera) + Number(!!f.culoare) + Number(f.oferte);
+  const mirrors = items.filter((i) => META.get(i.slug)?.oglinda).length;
+  const extraCount = Number(!!f.tip) + Number(!!f.camera) + Number(!!f.latime) + Number(!!f.culoare) + Number(f.oglinda) + Number(f.oferte);
   const anyFilter = !!f.categorie || extraCount > 0;
-  const clear = () => update({ categorie: null, camera: null, culoare: null, oferte: false });
+  const clear = () => update({ categorie: null, ...NO_EXTRA });
 
   const active: { key: string; label: string; off: Partial<Filters> }[] = [];
   if (category) active.push({ key: "cat", label: category.label, off: { categorie: null } });
+  if (f.tip) active.push({ key: "tip", label: SHOP_TYPES.find((t) => t.id === f.tip)!.label, off: { tip: null } });
   if (f.camera) active.push({ key: "cam", label: ROOM_LABELS[f.camera], off: { camera: null } });
+  if (f.latime) active.push({ key: "lat", label: `Lățime: ${SHOP_WIDTHS.find((w) => w.id === f.latime)!.label.toLowerCase()}`, off: { latime: null } });
   if (f.culoare) active.push({ key: "cul", label: `Culori: ${MOOD_LABELS[f.culoare].toLowerCase()}`, off: { culoare: null } });
+  if (f.oglinda) active.push({ key: "ogl", label: "Cu oglindă", off: { oglinda: false } });
   if (f.oferte) active.push({ key: "of", label: "La ofertă", off: { oferte: false } });
 
   const categoryOptions = (
@@ -175,7 +211,8 @@ export function ShopBrowser({ items }: { items: ShopItem[] }) {
       <Option active={!f.categorie} count={countWith({ categorie: null })} onClick={() => update({ categorie: null })}>
         Toate
       </Option>
-      {SHOP_CATEGORIES.map((c) => (
+      {/* a kind of furniture with no product right now (e.g. the CRM does not price kitchens yet) is not offered */}
+      {SHOP_CATEGORIES.filter((c) => f.categorie === c.id || items.some((i) => i.category === c.id)).map((c) => (
         <Option key={c.id} active={f.categorie === c.id} count={countWith({ categorie: c.id })} onClick={() => update({ categorie: f.categorie === c.id ? null : c.id })}>
           {c.label}
         </Option>
@@ -183,15 +220,35 @@ export function ShopBrowser({ items }: { items: ShopItem[] }) {
     </>
   );
 
-  /** room, colour family and offers: the same groups in the desktop column and in the phone sheet */
+  /** kind of piece, room, width, colour family, mirror and offers: the same groups in the desktop column and in the phone sheet */
   const groups = (idPrefix: string) => (
     <>
+      <fieldset className="shop-fgroup">
+        <legend>Cauți ceva anume?</legend>
+        <div className="shop-fgroup__opts">
+          {SHOP_TYPES.map((t) => (
+            <Option key={t.id} active={f.tip === t.id} count={countWith({ tip: t.id })} onClick={() => update({ tip: f.tip === t.id ? null : t.id })}>
+              {t.label}
+            </Option>
+          ))}
+        </div>
+      </fieldset>
       <fieldset className="shop-fgroup">
         <legend>Pentru ce cameră?</legend>
         <div className="shop-fgroup__opts">
           {ROOMS.map((r) => (
             <Option key={r} active={f.camera === r} count={countWith({ camera: r })} onClick={() => update({ camera: f.camera === r ? null : r })}>
               {ROOM_LABELS[r]}
+            </Option>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="shop-fgroup">
+        <legend>Ce lățime are locul?</legend>
+        <div className="shop-fgroup__opts">
+          {SHOP_WIDTHS.map((w) => (
+            <Option key={w.id} active={f.latime === w.id} count={countWith({ latime: w.id })} onClick={() => update({ latime: f.latime === w.id ? null : w.id })}>
+              {w.label}
             </Option>
           ))}
         </div>
@@ -207,6 +264,19 @@ export function ShopBrowser({ items }: { items: ShopItem[] }) {
           ))}
         </div>
       </fieldset>
+      {mirrors > 0 && (
+        <div className="shop-fgroup">
+          <button type="button" role="switch" aria-checked={f.oglinda} id={`${idPrefix}-oglinda`} className="shop-switch" onClick={() => update({ oglinda: !f.oglinda })}>
+            <span className="shop-switch__text">
+              <strong>Cu oglindă</strong>
+              <span>{plural(countWith({ oglinda: true }))} cu uși sau dulap cu oglindă</span>
+            </span>
+            <span className="shop-switch__track" aria-hidden="true">
+              <span />
+            </span>
+          </button>
+        </div>
+      )}
       {offers > 0 && (
         <div className="shop-fgroup">
           <button type="button" role="switch" aria-checked={f.oferte} id={`${idPrefix}-oferte`} className="shop-switch" onClick={() => update({ oferte: !f.oferte })}>
@@ -337,7 +407,7 @@ export function ShopBrowser({ items }: { items: ShopItem[] }) {
           </header>
           <div className="shop-sheet__body">{sheetOpen && groups("sheet")}</div>
           <footer className="shop-sheet__foot">
-            <button type="button" className="shop-clear" onClick={() => update({ camera: null, culoare: null, oferte: false })} disabled={extraCount === 0}>
+            <button type="button" className="shop-clear" onClick={() => update(NO_EXTRA)} disabled={extraCount === 0}>
               Șterge filtrele
             </button>
             <button

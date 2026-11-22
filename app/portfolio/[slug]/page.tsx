@@ -124,7 +124,7 @@ export default async function PortfolioCaseStudyPage({
           <dl className="grid grid-cols-2 gap-x-6 gap-y-8 self-start border-t border-[var(--line)] pt-8 lg:grid-cols-1">
             {project.specs.map((spec) => (
               <div key={spec.label}>
-                <dt className="text-xs uppercase tracking-[0.2em] text-espresso/45">
+                <dt className="text-xs uppercase tracking-[0.2em] text-espresso/75">
                   {spec.label}
                 </dt>
                 <dd className="mt-1.5 text-base font-semibold text-espresso">
@@ -187,7 +187,7 @@ export default async function PortfolioCaseStudyPage({
             className="warm-link group inline-flex items-center gap-3 text-right"
           >
             <span>
-              <span className="block text-xs uppercase tracking-[0.2em] text-espresso/45">
+              <span className="block text-xs uppercase tracking-[0.2em] text-espresso/75">
                 Următorul proiect
               </span>
               <span

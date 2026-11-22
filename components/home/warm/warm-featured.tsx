@@ -36,7 +36,7 @@ export function WarmFeatured() {
           <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-[var(--line)] pt-6 sm:grid-cols-4">
             {project.specs.map((spec) => (
               <div key={spec.label}>
-                <dt className="text-xs uppercase tracking-[0.2em] text-espresso/45">
+                <dt className="text-xs uppercase tracking-[0.2em] text-espresso/75">
                   {spec.label}
                 </dt>
                 <dd className="mt-1.5 text-sm font-semibold text-espresso">

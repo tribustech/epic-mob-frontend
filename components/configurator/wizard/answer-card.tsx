@@ -37,7 +37,7 @@ export function AnswerCard({ option, selected, onSelect, multi, soft }: AnswerCa
       <span className="min-w-0 flex-1">
         <span className="block font-semibold leading-tight text-espresso">{option.label}</span>
         {option.hint ? (
-          <span className="mt-1 block text-sm leading-snug text-espresso/55">{option.hint}</span>
+          <span className="mt-1 block text-sm leading-snug text-espresso/75">{option.hint}</span>
         ) : null}
       </span>
       {multi ? (

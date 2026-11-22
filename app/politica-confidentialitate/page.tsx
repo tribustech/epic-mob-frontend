@@ -2,16 +2,22 @@ import type { Metadata } from "next";
 import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
 import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { legalEntity } from "@/lib/business-data";
+import { baseOpenGraph } from "@/lib/seo";
 import { contactDetails } from "@/lib/site-data";
 
 export const metadata: Metadata = {
   title: "Politica de confidențialitate și cookies",
   description:
-    "Cum colectează, folosește și protejează Epic Mob datele tale personale: cereri de ofertă, formularul de contact, fotografii încărcate și cookies.",
+    "Cum colectează, folosește și protejează Epic Mob datele tale personale: cereri de ofertă, comenzi din Magazin, formularul de contact, fotografii încărcate și cookies.",
   alternates: { canonical: "/politica-confidentialitate" },
+  openGraph: {
+    ...baseOpenGraph,
+    title: "Politica de confidențialitate și cookies | Epic Mob",
+    url: "/politica-confidentialitate",
+  },
 };
 
-const LAST_UPDATED = "16 octombrie 2026";
+const LAST_UPDATED = "21 noiembrie 2026";
 
 const breadcrumbSchema = buildBreadcrumbSchema([
   { name: "Acasă", path: "/" },
@@ -22,15 +28,23 @@ const breadcrumbSchema = buildBreadcrumbSchema([
 const processors = [
   {
     name: "Vercel Inc.",
-    role: "găzduirea site-ului, statistici anonime de trafic și stocarea fotografiilor încărcate în configurator",
+    role: "găzduirea site-ului și a sistemului nostru intern de evidență a clienților (CRM), în care ținem cererile și comenzile, statistici anonime de trafic și stocarea fotografiilor încărcate în configurator",
   },
   {
     name: "Postmark (ActiveCampaign LLC)",
-    role: "trimiterea emailurilor cu cererea de ofertă, către noi și (dacă ne-ai dat adresa) către tine",
+    role: "trimiterea emailurilor cu cererea de ofertă sau comanda, către noi și (dacă ne-ai dat adresa) către tine",
+  },
+  {
+    name: "Railway Corporation",
+    role: "baza de date a CRM-ului nostru, în care păstrăm cererile și comenzile",
   },
   {
     name: "Google LLC",
-    role: "Google Sheets — registrul intern în care păstrăm cererile de ofertă",
+    role: "Google Sheets — registrul intern în care se salvează răspunsurile din formularul Cere ofertă",
+  },
+  {
+    name: "Telegram",
+    role: "mesajul intern prin care echipa noastră află că a sosit o cerere sau o comandă nouă",
   },
   {
     name: "Meta Platforms Ireland Ltd.",
@@ -100,7 +114,7 @@ export default function PrivacyPolicyPage() {
       </section>
 
       <article className="section-shell pb-24">
-        <div className="mx-auto max-w-3xl space-y-12 text-base leading-8 text-espresso/75 [&_h2]:font-[family-name:var(--font-display)][&_h2]:mb-4 [&_h2]:text-3xl [&_h2]:leading-tight [&_h2]:text-espresso [&_li]:pl-1 [&_strong]:text-espresso [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5">
+        <div className="mx-auto max-w-3xl space-y-12 text-base leading-8 text-espresso/75 [&_h2]:font-[family-name:var(--font-display)] [&_h2]:mb-4 [&_h2]:text-3xl [&_h2]:leading-tight [&_h2]:text-espresso [&_li]:pl-1 [&_strong]:text-espresso [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5">
           <section>
             <h2>1. Cine suntem</h2>
             <p>
@@ -131,6 +145,17 @@ export default function PrivacyPolicyPage() {
                 fotografiile sau schițele pe care le încarci. Răspunsurile se
                 salvează pe măsură ce completezi pașii, deci păstrăm și
                 cererile începute, dar netrimise.
+              </li>
+              <li>
+                <strong>Cererea din Atelierul 3D:</strong> nume, telefon,
+                orașul, observațiile tale și configurația aleasă (model,
+                dimensiuni, culori).
+              </li>
+              <li>
+                <strong>Comanda din Magazin:</strong> nume, telefon, orașul,
+                observațiile tale și produsele alese (model, culori, preț).
+                Le folosim ca să te sunăm, să programăm măsurătorile și să
+                livrăm și montăm comanda.
               </li>
               <li>
                 <strong>Formularul de contact:</strong> nume, telefon, email și
@@ -222,7 +247,7 @@ export default function PrivacyPolicyPage() {
             <h2>5. Cât timp le păstrăm</h2>
             <ul>
               <li>
-                <strong>Cererile de ofertă și mesajele</strong> care nu devin
+                <strong>Cererile de ofertă, comenzile și mesajele</strong> care nu devin
                 contract, inclusiv cererile începute și netrimise, se păstrează{" "}
                 <strong>12 luni</strong>, apoi se șterg.
               </li>

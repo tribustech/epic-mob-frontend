@@ -169,7 +169,7 @@ export default async function MaterialArticlePage({
           </div>
 
           <aside className="self-start rounded-[1.5rem] border border-[var(--line)] bg-cream p-7 shadow-[var(--shadow-warm)]">
-            <p className="text-xs uppercase tracking-[0.2em] text-espresso/45">
+            <p className="text-xs uppercase tracking-[0.2em] text-espresso/75">
               Potrivit pentru
             </p>
             <ul className="mt-5 flex flex-col gap-4">
@@ -199,7 +199,7 @@ export default async function MaterialArticlePage({
             className="warm-link group inline-flex items-center gap-3 text-right"
           >
             <span>
-              <span className="block text-xs uppercase tracking-[0.2em] text-espresso/45">
+              <span className="block text-xs uppercase tracking-[0.2em] text-espresso/75">
                 Următorul material
               </span>
               <span className="display-font text-xl text-espresso">

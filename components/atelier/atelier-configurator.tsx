@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { AlertTriangle, ArrowLeft, ArrowRight, Info, Loader2, Undo2, X } from "lucide-react";
@@ -37,6 +38,7 @@ import { StepModel } from "./step-model";
 import { StepOffer } from "./step-offer";
 import { StepSize } from "./step-size";
 import { formatLei, issueMessage, plural } from "./ui";
+import { AdminPricePanel } from "@/components/admin/admin-price-panel";
 
 // three.js needs the browser (WebGL); keep it out of SSR and out of the initial bundle.
 const Viewer3D = dynamic(() => import("./viewer-3d"), {
@@ -237,11 +239,16 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
   const errors = result?.errors ?? [];
   const warnings = useMemo(() => result?.warnings ?? [], [result]);
   const hasErrors = errors.length > 0;
-  // No price from the service: an outage, or an answer with neither a price nor an explanation.
+  // No price from the service. An outage (503, network) is `down`: retrying helps. An answer with neither a
+  // price nor an explanation (the CRM refused this configuration, e.g. 400 „Invalid body") is `refused`:
+  // asking again gives the same answer, so it says so instead of offering „Reîncearcă".
   // Never keep showing the last price then — it may belong to another configuration.
-  const down = unavailable || (!loading && result != null && !hasErrors && result.sellPrice == null);
+  const refused = !unavailable && !loading && result != null && !hasErrors && result.sellPrice == null;
+  const down = unavailable || refused;
   const price = hasErrors || down ? null : result?.sellPrice ?? null;
-  const priceNote = down
+  const priceNote = refused
+    ? "Nu se poate calcula online"
+    : down
     ? "Preț indisponibil momentan"
     : hasErrors
       ? "Are nevoie de o ajustare"
@@ -591,10 +598,10 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                 )}
                 {step === "usi" && <StepDoors catalog={catalog} config={config} act={act} front={front} onUndo={undo} />}
                 {step === "interior" && isKitchen && (
-                  <StepKitchen config={config} act={act} pick={kitchenPick} onPick={onKitchenPick} />
+                  <StepKitchen catalog={catalog} config={config} act={act} pick={kitchenPick} onPick={onKitchenPick} />
                 )}
                 {step === "interior" && !isKitchen && (
-                  <StepInterior config={config} act={act} column={column} onColumn={pickColumn} onStep={goTo} />
+                  <StepInterior catalog={catalog} config={config} act={act} column={column} onColumn={pickColumn} onStep={goTo} />
                 )}
                 {step === "oferta" && (
                   <StepOffer
@@ -607,7 +614,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                     price={price}
                     priceNote={priceNote}
                     notes={notes}
-                    blocked={hasErrors}
+                    blocked={hasErrors || refused}
                     unavailable={down}
                     contact={contact}
                     onContact={setContact}
@@ -622,6 +629,18 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
           </div>
 
           <footer className="atelier-foot">
+            {refused && (
+              <div className="atelier-issue atelier-issue--error" role="alert">
+                <AlertTriangle size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p>Prețul acestei configurații nu se poate calcula online. Alege alt model sau cere-ne o ofertă personalizată.</p>
+                  <Link href="/cere-oferta" className="atelier-textbtn mt-1">
+                    Cere o ofertă personalizată
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+            )}
             {hasErrors && (
               <div className="atelier-issue atelier-issue--error" role="alert">
                 <AlertTriangle size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
@@ -695,7 +714,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
                 ) : (
                   <span className={`atelier-price__note ${hasErrors ? "is-error" : ""}`}>
                     {priceNote}
-                    {down && !loading && (
+                    {down && !refused && !loading && (
                       <button type="button" className="atelier-inlinebtn atelier-price__retry" onClick={retry}>
                         Reîncearcă
                       </button>
@@ -739,6 +758,7 @@ export function AtelierConfigurator({ catalog }: { catalog: AtelierCatalog }) {
           </footer>
         </div>
       </div>
+      <AdminPricePanel config={config} />
     </MotionConfig>
   );
 }

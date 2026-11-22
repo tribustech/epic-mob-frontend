@@ -454,3 +454,329 @@ The single rotating object (A10) now repeats in new forms. Across batches 5–7:
 - `Coats and bags hang only in an entrance hall, never in a living room or bedroom.`
 - `No fruit bowl in a bedroom or hall.`
 - Extend the A10 list and pick by product index so the same object is not used twice within one product: `a folded blanket | a pair of sneakers | a tote bag (hall only) | a book on the bed | a plant on the floor | a laundry basket | reading glasses | a mug | a toy | an umbrella (hall only)`.
+
+---
+
+# Batch 8 (v3) (11 photos)
+
+Reviewed: `/tmp/claude-0/batch8/<slug>/<paletteId>.webp` against the renders and the v3 prompts in `scripts/shop-art-direction-v3.json` (rules A1–A14, M1–M4, C1–C5). Measurements are pixel estimates, ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-mixta-180 / nuc-crem | REJECT (borderline) | 8.5 | Sideboard is right (door + 4 drawers + door, gold bars, walnut body); a coat hangs on a hook in the dining room (A10) and there are four props, not one |
+| dressing-3-usi-150 / alb-stejar-natur | REJECT | 7.5 | 3 doors and handles right, but the front is 0.80 wide-to-high against 0.71 (reads ~170 cm wide), and the white side panel is an impossible chamfered sliver ~10 cm deep on the side facing away from the camera |
+| dressing-3-usi-150 / alb-total | ACCEPT | 9 | 3 equal doors, steel bars as in the render, ratio 0.71; about 5 cm above the door frame once depth is allowed for |
+| dressing-baie-60 / alb-stejar-natur | ACCEPT | 8.5 | 2 stacked doors, joint at mid-height, handles at the joint on the right; bathroom with basin and washing machine; reads ~170–175 cm high |
+| dressing-baie-60 / alb-total | ACCEPT | 8.5 | 2 stacked doors, handles at the joint; beside the washing machine, towel radiator; lower door slightly taller than the upper |
+| dressing-birou-100 / alb-stejar-natur | ACCEPT | 9 | 2 doors, steel knobs, twice as tall as wide, in the corner; desk, laptop, lamp off |
+| dressing-birou-100 / stejar-natur | ACCEPT | 8.5 | All oak; top just below the door frame; the monitor has a tiny logo on its bezel (A5), illegible at site size |
+| dressing-camara-90 / alb-stejar-natur | ACCEPT | 9 | 2 × 2 doors, joint at mid-height, 4 black bars at the joint; beside a free-standing fridge, kitchen tiles |
+| dressing-camara-90 / alb-total | ACCEPT | 8.5 | 2 × 2 doors, handles right; upper doors ~10% taller than lower (render: equal); green kitchen units and kettle at the frame edge |
+| dressing-serviciu-80 / alb-total | ACCEPT | 8.5 | 2 doors, no handles; hall with entrance door, hooks, umbrella; reads ~10% wide |
+| dressing-serviciu-80 / gri-casmir | ACCEPT | 9 | 2 doors, no handles, greige; hall corner beside the kitchen doorway |
+
+Door counts: both dressing-camara-90 photos have exactly 4 doors in 2 rows and both dressing-baie-60 photos exactly 2 stacked doors, with joints and handles where the renders have them. Rooms fit the pieces in all 11.
+
+## Rejects
+
+### dressing-3-usi-150 / alb-stejar-natur
+- Prompt additions:
+  - `The wardrobe is clearly taller than wide: 1.4 times taller than wide. Each door is four times taller than wide (50 cm × 200 cm).`
+  - `The wardrobe is a 55 cm deep box. Only the side nearer to the camera is visible, as a plain white rectangle 55 cm deep with square corners; the far side is hidden.`
+  - `Camera on the side of the room away from the corner the wardrobe stands in.`
+
+### comoda-mixta-180 / nuc-crem
+- Prompt additions:
+  - `No coat, no wall hook, no bag anywhere in the room.`
+  - `On the sideboard only a lamp (switched off) and one stack of plates; nothing else.`
+
+## New general rule
+
+- A15: `The piece is a solid box with its real depth: the side nearer the camera is visible as a plain rectangle of the stated depth with square corners; the far side is never visible; no chamfered or angled side panels.`
+- Tighten A10 in the wording sent to the model: name the forbidden items positively per room (`No coat or wall hook in this living room / bedroom / office.`) instead of the general rule; the general form was ignored again.
+
+---
+
+# Batch 9 (v3) (10 photos)
+
+Reviewed: `/tmp/claude-0/batch9/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Measurements are pixel estimates, ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-baie-80 / alb-casmir | REJECT (borderline) | 8.5 | Door + 3 drawers, steel channels, white body: right. But it reads ~100 cm wide (1.08 wide-to-high against 0.94; 1.8 × the washing machine's width instead of 1.33) and as deep as the machine |
+| comoda-baie-80 / gri-casmir | ACCEPT | 9 | Matches render; bathroom with tub, washing machine, towels and basket on top; ratio 0.97 |
+| comoda-cafea-120 / alb-stejar-natur | REJECT | 8.5 | Mirrored against the catalogue: drawers left, door right (preset: door left, drawers right). Knobs, colours and room are right |
+| comoda-cafea-120 / alb-total | HOLD (ACCEPT once the render is fixed) | 8.5 | Matches the catalogue preset (door left, 3 drawers right, black knobs) but not the render on disk, which is wrong |
+| comoda-inalta-80 / alb-stejar-natur | ACCEPT | 8.5 | 5 oak drawers, steel bars, white body; top ~15 cm above the door handle; reads slightly wide |
+| comoda-inalta-80 / gri-casmir | ACCEPT | 8.5 | 5 drawers, steel bars, greige; beside the room door |
+| comoda-mixta-180 / salvie-stejar | ACCEPT | 8.5 | Door + 4 drawers + door, gold bars, sage on light oak; a lit candle lantern on top |
+| comoda-nisa-140 / salvie-stejar | ACCEPT | 8.5 | 3 drawers left, niche with 2 shelves right, black bars; sofa arm close to the right end |
+| comoda-pantofar-80 / alb-stejar-natur | ACCEPT | 9 | 2 doors, no handles; slim (~30 cm) beside the entrance door; hooks, key bowl, mat |
+| comoda-pantofar-80 / alb-total | ACCEPT | 8.5 | 2 doors, no handles; slim; round mirror reflects wall and ceiling correctly; reads ~5% wide |
+
+C1–C5: every chest is the only cabinet in its photo, tops relate correctly to door handles, all colours are light. A15: all sides are plain rectangles of believable depth.
+
+## Rejects
+
+### comoda-cafea-120: the render on disk is wrong
+`public/magazin/randari/comoda-cafea-120/*.webp` shows 3 drawers on the LEFT, a door on the RIGHT and black Gola channels. The catalogue (`lib/atelier/presets.ts`: USI 600 + SERTARE 600; `lib/shop/products.ts`: BUTON NEGRU) and the v3 prompt say door left, drawers right, black knobs. The render looks like the comoda-birou-90 configuration. Re-render before publishing either photo.
+- alb-total: matches the catalogue. Accept once the render is regenerated and agrees.
+- alb-stejar-natur: mirrored against the catalogue (probably copied from the wrong render). Regenerate with the corrected render and add:
+  - `The door is on the LEFT half, the three drawers are on the RIGHT half.`
+  - `One small black knob on the door, near its right edge at the top; one centred on each drawer.`
+
+### comoda-baie-80 / alb-casmir
+- Prompt additions:
+  - `The cabinet is only one third wider than the washing machine beside it (80 cm against 60 cm) and slightly taller than wide.`
+  - `The cabinet is shallower than the washing machine: its front is set back 20 cm behind the machine's front.`
+  - `No wall hook.`
+
+## New general rule
+
+- A16 (process, not prompt): before generating, check each render's section order (left/right) and handle type against the catalogue preset and the prompt; do not generate while they disagree. comoda-cafea-120 is the second stale render after suspendat-tv-180.
+- For any piece standing beside a washing machine: `State its width as a multiple of the 60 cm machine and say that its front is set back behind the machine's front.`
+
+---
+
+# Batch 10 (v3) (12 photos)
+
+Reviewed: `/tmp/claude-0/batch10/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Measurements are pixel estimates, ±10%. All 12 accepted.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-3-usi-150 / alb-stejar-natur (redo) | ACCEPT | 8.5 | Ratio now 0.68 (real 0.71); near side is a plain white rectangle of real depth; tight in the corner |
+| comoda-mixta-180 / nuc-crem (redo) | ACCEPT | 9 | No coat or hook; lamp and plates only; door handles sit a little lower than in the render |
+| comoda-birou-90 / alb-stejar-natur | ACCEPT | 8.5 | 3 drawers left, door right, black channels; top level with the desk; printer on top |
+| comoda-birou-90 / alb-total | ACCEPT | 8.5 | Matches render; reads ~10% wide; top 2–3 cm above the desk |
+| separator-biblioteca-120 / alb-total | ACCEPT | 8.5 | 3 × 5, open both sides, bed zone visible through it; slightly wide (1.53 tall-to-wide against 1.67); its wall end is not clearly attached |
+| separator-cuburi-150 / alb-total | ACCEPT | 9 | 4 × 4 cubes against a wall, wall visible through; three fabric boxes |
+| separator-inalt-240 / bardolino-gri | ACCEPT | 8.5 | 4 × 7, one end at a wall, bed zone behind, plant at the free end; ceiling is cropped so the top gap cannot be read; far end 78% of near end |
+| separator-ingust-90 / salvie-stejar | ACCEPT | 9 | 2 columns × 5 open compartments, 2 sage drawers with gold knobs; screens the entrance from the living room |
+| separator-scund-200 / antracit-stejar | ACCEPT | 8 | 4 × 3 behind the sofa; reads about 10–12% too tall for its length (compartments nearly square; render: clearly wider than high) |
+| separator-sertare-160 / gri-casmir | ACCEPT | 8.5 | Bookcase against an office wall; 2 × 4 open compartments, 4 drawers with black bars; a floor lamp is switched on at the frame edge |
+| separator-sertare-160 / stejar-alb | ACCEPT | 9 | Divider between sofa and desk zone, seen through |
+| separator-usi-180 / alb-stejar-natur | ACCEPT | 8.5 | 3 × 4 open compartments, 3 oak doors without handles, against a living-room wall; 11 of 12 compartments are styled (brief: one third) |
+
+Separators: each either divides two zones with the room visible through it (biblioteca, inalt, ingust, scund, sertare stejar-alb) or stands against a wall as a bookcase where the brief allows it (cuburi, sertare gri-casmir, usi). Walkways at the free ends are clear. A15 holds: sides are plain rectangles 30–40 cm deep.
+
+## Optional prompt lines (no rejects)
+
+- separator-scund-200 remaining colours: `Each compartment is clearly wider than high (50 × 37 cm); the top of the unit is only a hand's width above the sofa back.`
+- separator-inalt-240 remaining colours: `The ceiling is visible above the unit along its whole length, with a 5–10 cm gap.`
+- separator-usi-180 and other shelving: `Only 4 of the 12 compartments hold anything; the other 8 are empty.` Stating the count works better than "one third".
+- A14: extend to floor lamps (`all lamps switched off`).
+
+---
+
+# Batch 11 (v3) (12 photos)
+
+Reviewed: `/tmp/claude-0/batch11/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Heights were measured against sockets (30 cm), switches (105 cm), washing machines (85 cm) and desks (75 cm); ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-baie-80 / alb-casmir (redo) | ACCEPT | 9 | Now ~1.4 × the washing machine's width, slightly taller than wide; no hook; towels and basket |
+| comoda-cafea-120 / alb-stejar-natur (redo) | ACCEPT | 9 | Door left, 3 drawers right, black knobs placed as in the new render |
+| separator-copii-120 / alb-total | ACCEPT (borderline) | 8.5 | 3 × 2 open compartments, 3 drawers, gold knobs; reads ~135–140 cm high (top ~30 cm above the switch instead of 15); drawers a little lower than in the render |
+| separator-copii-120 / stejar-alb | ACCEPT | 8.5 | Oak body, white drawers; divides door side from desk; sun patches on the floor |
+| separator-cuburi-150 / stejar-natur | REJECT (borderline) | 8 | 4 × 4 and the divider placement are right, but the top is above eye level and almost level with the door top: it reads as a ~1.9 m bookcase, not a 1.5 m one. The door itself is undersized (~1.8 m by the switch) |
+| suspendat-baie-60 / alb-casmir | ACCEPT | 8.5 | 1 door, steel knob low on the opening side; beside the mirror, above the washing machine; underside ~110–115 cm (brief 135 above a machine), top ~185 |
+| suspendat-baie-60 / alb-stejar-natur | ACCEPT | 9 | Above the WC cistern panel; underside ~115–120 cm, top ~190–200 |
+| suspendat-clasic-120 / alb-total | ACCEPT | 9 | Above the desk; underside ~130 cm (brief 140), top ~190, level with the door frame; desk lamp off |
+| suspendat-clasic-120 / stejar-natur | ACCEPT | 9 | Above washer + dryer under a worktop, same width; underside ~130 cm, ~40 cm above the worktop |
+| suspendat-tv-180 / stejar-natur | ACCEPT | 9 | Front 5.1 : 1 as real; TV ~130 cm, 22 cm above the unit, centre ~115 cm; underside ~20 cm (brief 30) |
+| suspendat-tv-240 / alb-total | ACCEPT | 8.5 | Flap, niche, flap with black channels under the flaps as in the render; underside ~30 cm; TV ~150 cm, 19 cm above |
+| suspendat-tv-240 / nuc-crem | ACCEPT | 8.5 | Walnut body, cream flaps; underside ~20 cm; TV ~160 cm (65" is 145), two thirds of the unit |
+
+Mount heights: no wall unit hangs too high. All seven are at or 10–20 cm below the brief; tops stay at or under door-frame height, TV centres at 1.10–1.20 m.
+Lamps: the only lamp (desk lamp, suspendat-clasic alb-total) is off. Shelf fill: copii 2 of 6, cuburi 7 of 16, as briefed.
+
+## Reject
+
+### separator-cuburi-150 / stejar-natur
+- Prompt additions:
+  - `The top of the bookcase is below the camera: its top surface is visible from above, with the mug standing on it.`
+  - `The room door behind is 2.05 m: the door rises 55 cm (more than one cube row and a half) above the top of the bookcase.`
+  - `The top of the bookcase is 45 cm above the light switch.`
+
+## New general rules
+
+- Low pieces (up to 1.5 m): `The top surface of the piece is visible from above` (camera at 1.4 m). It fixes height drift better than a number.
+- Floating TV units: `The gap between the floor and the underside is almost as tall as the unit itself (30 cm against 35 cm).` Two of three read ~20 cm.
+- Wall units above something: keep the relation line `50 cm of free wall between the worktop / machine and the underside`; current results give 25–40 cm.
+
+---
+
+# Batch 12 (v3) (10 photos, final)
+
+Reviewed: `/tmp/claude-0/batch12/<slug>/<paletteId>.webp` against the renders and the v3 prompts. Heights measured against sockets (30 cm), switches (105 cm), doors (205 cm), counters and washing machines; ±10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| separator-cuburi-150 / stejar-natur (redo) | ACCEPT | 9 | Top surface visible with the mug on it; reads ~140–150 cm; divider between sofa and dining |
+| suspendat-aventos-180 / supermat-alb | ACCEPT | 9 | 2 flaps, no handles; above a desk; underside ~135 cm (brief 155), top ~178; lamp off |
+| suspendat-baie-nisa-90 / alb-total | ACCEPT | 8.5 | Niche with 2 shelves left, door right, black knob as in the render; above the washing machine with only ~25–30 cm gap (underside ~110, brief 135) |
+| suspendat-baie-nisa-90 / stejar-alb | ACCEPT | 8.5 | Oak body, white door; above the WC cistern panel; underside ~105–135 cm depending on reference, top below the door frame |
+| suspendat-bucatarie-180 / alb-stejar-natur | ACCEPT | 8.5 | 3 oak doors, white body, channel under the doors; above a grey coffee counter, ~50 cm gap; top ~12 cm above the door frame; reads ~15% large |
+| suspendat-bucatarie-180 / alb-total | REJECT | 8 | Believable kitchen, but the cabinet reads ~230 × 96 cm instead of 180 × 72: top ~27 cm above the door frame and only ~25 cm under the ceiling |
+| suspendat-etajera-150 / alb-total | ACCEPT | 8.5 | 3 niches above a coffee counter; underside ~147 cm; reads ~20% large; only 1 of 3 niches filled; sun patches on the floor |
+| suspendat-etajera-150 / stejar-natur | ACCEPT | 8.5 | Above a sofa; underside ~130 cm, 45 cm above the sofa back; reads ~20% large |
+| suspendat-hol-90 / alb-stejar-natur | REJECT (borderline) | 8.5 | Cabinet matches the render, but its underside is level with the light switch (~105 cm, brief 140) directly above a sitting bench: nobody could sit under it |
+| suspendat-mixt-200 / casmir-alb | ACCEPT | 9 | Door, niche with 1 shelf, door; steel channel under the doors; underside ~30 cm, top ~86 cm; picture above; lamp off |
+
+Mount heights: nothing hangs too high. The one height problem is a top edge pushed up by an oversized cabinet (bucatarie alb-total). Everything else is at the brief or below it.
+
+## Rejects
+
+### suspendat-bucatarie-180 / alb-total
+- `The cabinet is 72 cm high: about one third of the height of the room door beside it. Each door is 60 cm wide and 72 cm high, only slightly taller than wide.`
+- `The top of the cabinet is only 12 cm above the top of the door frame; a 43 cm strip of wall is visible between the cabinet and the ceiling.`
+- `The cabinet is 180 cm long, shorter than the counter below it.`
+
+### suspendat-hol-90 / alb-stejar-natur
+- `The underside of the cabinet is 35 cm above the light switch and 95 cm above the bench seat: an adult can sit on the bench with free wall above the head.`
+- `The three coat hooks hang on the wall in the gap between the bench and the cabinet, not beside it.`
+- `Wall lamp switched off.`
+
+## Overall summary of the v3 round (batches 8–12)
+
+1. 50 variants reviewed; 48 are accepted (7 of them after one redo) and 2 need a redo: suspendat-bucatarie-180/alb-total and suspendat-hol-90/alb-stejar-natur. comoda-cafea-120/alb-total, held in batch 9, is cleared now that the render was corrected to door left, drawers right, knobs.
+2. Fronts, counts, handles and colours matched the renders throughout; the recurring defect was scale (pieces 15–30% too large against the door), fixed best by relation lines ("one third of the door height", "top surface visible from above").
+3. Andrew's original complaints are addressed: no wall unit hangs too high (they tend to hang 10–25 cm low), no dark chests, nightstands and chests are at believable sizes, and every piece stands in a room where it belongs.
+
+---
+
+# Batch 13 (v3) (2 redos)
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| suspendat-bucatarie-180 / alb-total (redo) | ACCEPT | 9 | Cabinet now ~80 cm high against the door; top ~12 cm above the door frame, clear wall under the ceiling; underside ~138 cm, ~50 cm above the counter; shorter than the counter |
+| suspendat-hol-90 / alb-stejar-natur (redo) | ACCEPT | 8.5 | Underside ~123 cm, ~23 cm above the switch and ~83 cm above the bench seat (brief 140); hooks in the gap; lamp off. Minor: thin white slivers on both sides, the right one with a clipped top corner (A15), and the hooks sit low (~110 cm) |
+
+With these two, all 50 v3 variants are accepted.
+
+---
+
+# Batch 14 (18 photos)
+
+Reviewed: `/tmp/claude-0/batch14/<slug>/<colour>.webp` against the current renders (several models now have 4, 6 or 12 doors) and the v3 briefs. 12 accepted, 6 rejected.
+
+## Rejects
+
+| Photo | Reason |
+|---|---|
+| comoda-4-sertare-100 / gri-casmir | C1: a wardrobe in the same cashmere decor with bar handles fills the left of the frame (same defect as batch 6). Chest itself is right |
+| comoda-clasica-160 / stejar-natur | C1: TV on legs standing on the chest in front of the wall mirror, plus a wardrobe at the left (same defect as batch 6) |
+| comoda-hol-120 / nuc-crem | A14: table lamp switched on; A10: fruit bowl in a hall. Cabinet itself is right |
+| dressing-hol-oglinda-160 / alb-casmir | A9: strong wide-angle stretching (far end ~70% of near end); the 160 cm wardrobe looks ~3 m long. Doors, strips and handles match the render |
+| dressing-ingust-90 / gri-casmir | A1: front is 2.0 : 1 instead of 2.7 : 1; reads ~125 cm wide beside the room door (same defect as batch 6) |
+| dressing-sticla-300 / grafit-total | A14: bright glowing lines under the top of all three sections read as LED strips. Coats and hooks are gone |
+
+## Accepted
+
+comoda-tv-200/alb-total (a soundbar is on top, against A4; not worth a redo), dressing-copii-150/alb-total, dressing-copii-150/denim-alb (top-right corner of the front slightly rounded), dressing-mare-360/alb-stejar-natur (no lamps), dressing-oglinda-glisanta-200/alb-casmir (reflection matches bed and window), dressing-oglinda-mijloc-240/alb-casmir, dressing-oglinda-mijloc-240/alb-stejar-natur, dressing-sertare-200/alb-stejar-natur, dressing-sertare-200/antracit-stejar, dressing-tavan-270/stejar-natur, dressing-tavan-270/supermat-crem, separator-sertare-160/gri-casmir (lamp gone; sun patches on the wall).
+
+---
+
+# Batch 15
+
+Ten new models/variants (briefs from `shop-art-direction-v3.json`, renders from `public/magazin/randari`). The six old rejects in the folder were skipped. All cm figures are pixel estimates, +-10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| dressing-oglinda-glisanta-200/alb-stejar-natur | ACCEPT | 8/10 | 2 sliding mirror doors in thin oak frame, white body and plinth, no handles: matches render. About 240 cm against the 205 cm door, top close under the ceiling. Mirrors show only this room (bed, window with curtain, a framed print); bed and window exist in the room. |
+| dressing-3-usi-oglinda-150/alb-casmir | ACCEPT | 8/10 | 3 doors, middle mirror with the narrow white strip carrying the handle, three black bar handles placed as in the render. About 220 cm, top roughly 15 cm above the door frame. Mirror reflects the bed with the folded blanket that is in the foreground. Cashmere is a little greyer than the render, acceptable. |
+| dressing-3-usi-oglinda-150/alb-total | ACCEPT | 8/10 | Same geometry, correct handles and strip. Child's room, mirror reflects the blue bed that is in the foreground. Sketchbook on the desk has a drawing, no lettering. |
+| dressing-cuier-100/alb-total | ACCEPT | 7.5/10 | Open stand, left rail + mid shelf, right 5 niches: matches render. Tight to the side wall, next to the entrance door, top about 15 cm under the door-frame top (brief 5 cm, within tolerance). Coats hang a bit short (about 70 cm) and one shelf looks slightly thicker than the others; minor. |
+| dressing-cuier-100/stejar-natur | ACCEPT | 8/10 | Same structure, 5 niches right, rail left. About 195 cm by the socket. Coats, cap, bag, two pairs of shoes; umbrella is allowed in a hall. Mid shelf on the left sits a little lower than the render (57% vs 47% from the top), acceptable. |
+| comoda-tv-160/alb-stejar-natur | ACCEPT | 7.5/10 | 2 oak drawers left, open niche with one shelf right, steel GOLA channels, plinth: matches render. Living room, faces the sofa, console + two boxes in the niche, only cabinet in the photo. Unit reads about 56 cm high / 175 cm wide, some 10% large against a correct 50-inch TV; at the limit but believable. |
+| comoda-tv-160/alb-total | REJECT | 5/10 | Geometry of the piece is right, but (1) the room is a bedroom: a bed corner is in the foreground, brief says living room wall facing a sofa; (2) scale: the unit top reaches about three quarters of the door-handle height, so it reads about 70 cm high and 230 cm wide, and the TV reads as a 75-inch; (3) niche holds books instead of console + two boxes. |
+| noptiera-deschisa-45/alb-total | ACCEPT | 8/10 | Open, one shelf, 2 niches, back panel, recessed plinth: matches render. Top roughly level with the mattress (5-8 cm above), about 60 cm by socket/switch. Lamp off, book on top, books and box in the niches. |
+| noptiera-deschisa-45/stejar-natur | ACCEPT | 8/10 | Same structure in oak, about 56 cm. Top about 9 cm above a low mattress, acceptable. Lamp off. Basket in the lower niche instead of a second book, harmless. Socket sits a little high (about 35 cm). |
+| suspendat-pat-240/alb-total | ACCEPT | 8/10 | 4 equal handle-less doors, about 6:1. Centred over the bed, overhangs it roughly 40 cm each side. Underside about 145 cm, top about 190 cm, clearly under the door-frame top, about 48 cm above the headboard, about 65 cm of wall above. Both lamps off, no ceiling lamp. Far door is 78% of the near one (A9 limit is 80%), not disturbing. |
+
+## Rejects
+
+**comoda-tv-160/alb-total**
+- Put it in a living room. Show a sofa in the foreground. No bed in the photo.
+- The unit is low: its top is 50 cm from the floor, level with the sofa seat cushion top plus 5 cm, and at less than half the height of the door handle (105 cm).
+- The unit is 160 cm wide: exactly twice the width of the door leaf (80 cm).
+- The TV is a 50-inch: 111 cm wide, it covers 70% of the unit width, not more. Its lower edge is 15 cm above the unit top.
+- The wall socket is 30 cm from the floor, below the unit top.
+- In the open niche: one flat black console on the shelf and two plain fabric boxes below. No books.
+
+## Patterns
+
+- No new general rule needed. 9 of 10 pass; the open pieces (cuier, open nightstand) and the mirror wardrobes came out right the first time.
+- The only failure repeats two old ones together: TV unit drifting into a bedroom, and the piece plus TV scaled up together so that only the door and socket give it away. For low TV units, always state the top height as a relation to the door handle ("less than half the handle height").
+
+---
+
+# Batch 16
+
+16 photos: 6 redos of the batch 14 rejects, 1 new wall unit, 9 kitchens (first kitchens reviewed). `comoda-tv-160/alb-total` skipped (old reject, redo still running). All cm figures are pixel estimates, +-10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| comoda-4-sertare-100/gri-casmir (redo) | ACCEPT | 8/10 | The wardrobe is gone; the chest is the only cabinet. 4 drawers with steel GOLA channels, plinth, about 100 cm high (top at door-handle level). Wall mirror reflects curtain and the bed that is in the foreground. |
+| comoda-clasica-160/stejar-natur (redo) | ACCEPT | 8/10 | TV and wardrobe are gone. 2 x 3 drawers, black knobs, plinth: matches render. About 2:1, top about 85-90 cm. Plant and a small sculpture on top, framed print above. |
+| comoda-hol-120/nuc-crem (redo) | ACCEPT | 7.5/10 | Lamp is off, fruit bowl replaced by an empty dish. 2 cream doors, black bar handles, walnut body and plinth: matches render. Hall with entrance door and mat; a window and a rope basket are unusual for a hall but believable. |
+| dressing-ingust-90/gri-casmir (redo) | ACCEPT | 8/10 | Front now about 2.5:1 and as wide as the door leaf beside it (reads 88-90 cm). 2 doors, 2 black knobs. Stands in a recess under a bulkhead, reads about 220 cm; fine. |
+| dressing-sticla-300/grafit-total (redo) | ACCEPT | 8/10 | No glowing lines any more. 3 glass doors in graphite frames, hanging / shelves / double rail inside as in the render. Glass reflects window and bed faintly, plausible. |
+| dressing-hol-oglinda-160/alb-casmir (redo) | ACCEPT | 7.5/10 | Now a near-frontal view, no stretching. 4 mirror doors with cashmere strips and 4 black handles placed as in the render. Reads about 175 cm wide against the 205 cm door (about 10% wide, at the limit). Mirrors show the opposite hall wall with hooks and an inner door, no camera. |
+| suspendat-pat-240/alb-stejar-natur | REJECT | 6/10 | Piece is right (4 oak doors, white body, no handles, about 40 cm high). Two brief breaches: (1) hung low: underside about 133 cm, top about 172 cm, some 38 cm under the door-frame top (brief: underside 150, top 190, 15-20 cm under the frame top); (2) the bed reads about 210 cm wide, so the 240 cm cabinet overhangs it by only about 20 cm on the left and 3 cm on the right (brief: 40 cm each side) and looks like a 180 cm unit. |
+| bucatarie-240/alb-stejar-natur | ACCEPT | 8/10 | Lowers: 3 drawers, door with handle under the sink, plain dishwasher front, oven with hob: as render. Uppers: 4 doors with handles as render, slim hood under the 4th. Pale grey stone worktop, grey tiles, kettle, board, herb pot. Worktop about 88 cm against the room door, total about 212 cm. |
+| bucatarie-240/alb-total | ACCEPT | 7.5/10 | Same layout, black handles as in the render, oak worktop, white square tiles. Coffee maker; a book instead of the fruit bowl. Strong sun patches (brief says overcast), harmless. |
+| bucatarie-compacta-180/alb-total | ACCEPT | 7.5/10 | Sink door, 3 drawers, oven with hob; 3 upper doors, the third shorter over the slim hood: as render. Steel handles, oak worktop, sage tiles, toaster, utensil jar, sofa edge. Left end is free-standing on a longer wall instead of wall to wall; believable. Worktop about 90 cm, total about 225 cm. |
+| bucatarie-260/alb-casmir | ACCEPT | 8.5/10 | 3 drawers, hob over 3 drawers, plain dishwasher front, sink over 2 doors; 5 upper doors, second one short over the hood: as render. Cashmere fronts, white body and plinth, steel handles. Worktop about 84 cm, total about 225 cm, door handle about 102 cm. Tea towel tucked on the dishwasher front. |
+| bucatarie-260/alb-total | ACCEPT | 8/10 | Same layout in white, dark grey stone worktop as briefed, coffee maker and herb pot. Gap between worktop and uppers reads about 48 cm (a little tight), total about 217 cm. |
+| bucatarie-frigider-300/alb-total | ACCEPT | 8/10 | Fridge column with tall door + short top door tight to the left wall; 3 drawers, sink door, plain front, oven with hob; 4 uppers, hood under the last: as render. Steel handles, marble-look worktop. Worktop about 89 cm, total about 217 cm. Chopping board instead of lemons. |
+| bucatarie-frigider-300/gri-casmir | ACCEPT | 8/10 | Same layout, all cashmere including plinth, oak worktop, zellige tiles, spice rack, board, jar. Last upper sits a few mm lower than its neighbours; not noticeable. |
+| bucatarie-coloane-380/alb-total | ACCEPT | 8/10 | Fridge column; oven column (2 drawers, oven, microwave, small door); 3 drawers; 2 sink doors; plain dishwasher front; 3 drawers under the hob. Uppers: door, pair, door, door over hood: as render. Black handles, dark concrete worktop, coffee machine, stools. Worktop about 87 cm, total about 220 cm. |
+| bucatarie-coloane-380/stejar-alb | ACCEPT | 7.5/10 | Same layout, white fronts, oak plinth, end panel and oven-column frame as render, white worktop, metro tiles, bowl, kettle, unlabelled bottle. An apron hangs from the fridge handle down to the floor; slightly untidy but real. |
+
+## Rejects
+
+**suspendat-pat-240/alb-stejar-natur**
+- Hang the cabinet higher: its underside is 150 cm from the floor, level with the top third of the room door; its top is 190 cm, only 15-20 cm below the top of the door frame.
+- Leave 45 cm of bare wall between the headboard top and the cabinet underside.
+- The bed is 160 cm wide, narrower than the cabinet: the cabinet sticks out 40 cm past the headboard on the left and 40 cm on the right. The headboard is two thirds of the cabinet width.
+- Camera 4 m back, 35 mm; the far door of the cabinet is at least 80% as wide as the near one.
+
+## Patterns
+
+- All six redos fixed their flagged defect without introducing a new one.
+- Kitchens: 9 of 9 pass. Module order, door/drawer counts, handle positions, the handle-less dishwasher front and the slim hood follow the renders; worktops follow the briefs; worktop height reads 84-90 cm and total height 212-226 cm against doors and switches.
+- Kitchen note, no rule change: on runs of 3 m and more the far module is 71-77% of the near one. That is geometry at 4 m and 15-25 degrees, not lens stretching, so A9's 80% should not be enforced on kitchens longer than 2.6 m.
+- Small props drift from the brief (book instead of fruit bowl, board instead of lemons). Not worth redos.
+- Wall units over a bed still tend to hang 15-20 cm low and the bed grows with them: keep stating the height as a relation to the door frame and the bed width as a fraction of the cabinet.
+
+---
+
+# Batch 17
+
+9 photos: 6 kitchens (two L-shaped models, open shelves, handle-less lift-up), 2 bathroom sets, 1 redo. `suspendat-pat-240/alb-stejar-natur` skipped (old reject). All cm figures are pixel estimates, +-10%.
+
+| Photo | Verdict | Realism | Notes |
+|---|---|---|---|
+| bucatarie-l-270/alb-casmir | ACCEPT | 8.5/10 | L-shape as render: left leg with white end panel, 3 drawers, oven with hob; main wall with corner door, 2 sink doors, plain dishwasher front. Uppers and hood as render, gold bar handles, continuous oak worktop, board and spoon jar, window right, round table. Worktop about 88 cm against the room door. |
+| bucatarie-l-270/alb-stejar-natur | REJECT | 7/10 | Everything matches except the drawer stack on the left leg: 4 drawers with 4 handles, render and brief have exactly 3. Room, worktop, uppers, hood, scale are fine. |
+| bucatarie-l-frigider-300/bardolino-gri | ACCEPT | 8/10 | Fridge column with oak side, 3 drawers, 2 sink doors, corner door; right leg with dishwasher front, oven with hob, 3 drawers; uppers on both walls, hood over the hob: as render. Grey fronts, pale oak body and plinth, black handles, white worktop as briefed. Worktop about 91 cm, total about 217 cm. Dishwasher front carries a horizontal bar with a tea towel; harmless. |
+| bucatarie-rafturi-240/salvie-stejar | ACCEPT | 8.5/10 | Lowers: 3 drawers, sink door, plain front, oven with hob. Uppers: open shelf unit, door, open shelf unit, door over the hood: as render. Sage fronts, pale oak body, small gold knobs. Plates, glasses, two unlabelled jars, board, zellige tiles. Total reads about 210 cm. |
+| bucatarie-ridicabile-300/alb-total | ACCEPT | 8.5/10 | No handles, knobs or grooves on any front; only the oven's own handle. Fridge column with tall door + top door, 3 drawers, 2 plain fronts, oven with hob, 4 tall flat upper fronts, hood under the last: as render. Oak worktop, plant, kettle. Worktop about 85 cm, total about 225-235 cm. |
+| bucatarie-ridicabile-300/grafit-total | ACCEPT | 8.5/10 | Same layout, no handles anywhere. Reads as dark charcoal, not black. White marble worktop and slab backsplash, empty white vase, espresso machine. Worktop about 86 cm, total about 229 cm against doorway and switch. Bowl of apples on the dining table is fine in a kitchen. |
+| baie-lavoar-coloana-120/alb-total | ACCEPT | 7/10 | Wall-hung vanity with 2 drawers, countertop basin, 2-door mirror cabinet, 2-door column, black handles: as render, proportions 0.79 vs 0.75. Bathtub edge left, sage tiles. Scale is the weak point: against tile line, socket and tub rim the set reads 10-20% large (about 135-150 cm wide); the anchors disagree with each other, and the picture is believable. Column is not tight to the side wall. |
+| baie-lavoar-coloana-120/alb-stejar-natur | ACCEPT | 8.5/10 | Same set in oak with white body. Washing machine on the same wall gives a firm scale: vanity top level with the machine top (about 85-88 cm), vanity about 80 cm wide, underside about 32 cm, top about 198 cm. Mirror reflects the window and wall of this room. Walk-in shower glass at the right. |
+| comoda-tv-160/alb-total (redo) | ACCEPT | 7/10 | Now a living room with sofa and rug; 2 drawers with steel GOLA channels, niche with one shelf, console and two boxes; TV wall-mounted about 20 cm above. Still a little large: top at about 57% of door-handle height, so it reads about 58-60 cm high and 190 cm wide with a 55-60 inch TV. Proportions of the piece are right (3.1:1) and the room is believable; at the limit, redo optional. |
+
+## Rejects
+
+**bucatarie-l-270/alb-stejar-natur**
+- The drawer stack on the left leg has exactly 3 drawers, not 4: three equal oak fronts, three gold handles, one per front.
+- Count the handles on that stack in the render: 3. Do not add a fourth front or a narrow top drawer.
+
+## Patterns
+
+- Push-to-open prompt works: both handle-less kitchens show completely flat fronts with no handle, knob or groove.
+- L-shaped kitchens keep the corner, the continuous worktop and the split of modules between the two walls.
+- New defect type for kitchens: an extra drawer in a stack (4 instead of 3). Worth a general line for all kitchen prompts: "Every drawer stack has exactly 3 drawers unless the render shows another number; count the handles."
+- Bathroom sets: a washing machine or a door on the same wall as the furniture gives a reliable scale (alb-stejar-natur); without it the set drifts large (alb-total). Prefer scenes with a same-wall anchor.

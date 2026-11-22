@@ -90,7 +90,7 @@ export function buildQuoteEmailHtml(answers: QuoteAnswers, heading: string, intr
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #EDE4D6;">
         <tr><td style="background:#2A2420;padding:28px 32px;">
-          <span style="color:#C06A3E;font-size:12px;letter-spacing:3px;text-transform:uppercase;">EpicMob</span>
+          <span style="color:#C06A3E;font-size:12px;letter-spacing:3px;text-transform:uppercase;">Epic Mob</span>
           <h1 style="margin:10px 0 0;color:#FBF8F3;font-size:24px;">${escapeHtml(heading)}</h1>
         </td></tr>
         <tr><td style="padding:28px 32px;">
@@ -100,7 +100,7 @@ export function buildQuoteEmailHtml(answers: QuoteAnswers, heading: string, intr
           ${files}
         </td></tr>
         <tr><td style="padding:20px 32px;background:#F5F0E8;color:#8a7f74;font-size:12px;">
-          Acest email a fost generat automat prin configuratorul EpicMob.
+          Acest email a fost generat automat prin configuratorul Epic Mob.
         </td></tr>
       </table>
     </td></tr>

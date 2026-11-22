@@ -14,7 +14,7 @@ export function WarmFinalCta() {
           pregătim o ofertă detaliată, fără obligații.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/contact" className="btn-warm btn-warm--primary">
+          <Link href="/cere-oferta" className="btn-warm btn-warm--primary">
             Cere o ofertă
             <ArrowRight size={18} strokeWidth={2} />
           </Link>

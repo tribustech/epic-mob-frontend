@@ -1,9 +1,11 @@
 // Single source of truth for the FAQ. Feeds both the visible /intrebari-frecvente
 // page and its FAQPage JSON-LD (so schema and content never drift — a Google
 // requirement). Answers are plain text, grounded in confirmed business facts
-// (owner-confirmed 2026-07-06): national coverage, ~9-week average delivery,
-// Blum hardware, montaj inclus, contract & factură, 24-month legal warranty,
-// deposit + balance-on-install payment, personalized pricing.
+// (owner-confirmed 2026-07-06): national coverage,
+// Blum hardware, montaj inclus, contract & factură, deposit + balance-on-install
+// payment, personalized pricing. Updated 2026-11: 5-year warranty and
+// "Livrare și montaj în 4–6 săptămâni" (the owner's current rules, same as the
+// Magazin), fixed shop prices next to custom offers.
 
 export type FaqItem = { question: string; answer: string };
 
@@ -11,12 +13,12 @@ export const faqItems: FaqItem[] = [
   {
     question: "Cât costă mobilierul la comandă?",
     answer:
-      "Prețul depinde de proiect: dimensiuni, materiale, feronerie și complexitatea execuției. De aceea lucrăm cu ofertă personalizată, nu cu prețuri de raft. Poți primi o estimare gratuită răspunzând la câteva întrebări în configurator sau scriindu-ne direct.",
+      "Modelele din Magazin au prețul afișat pe loc, confirmat la măsurători. Pentru proiectele complet personalizate pregătim o ofertă pe baza dimensiunilor, materialelor și feroneriei. Poți primi o estimare gratuită răspunzând la câteva întrebări în configurator sau scriindu-ne direct.",
   },
   {
     question: "Cât durează de la comandă până la montaj?",
     answer:
-      "În medie, un proiect ajunge la montaj în aproximativ 8–10 săptămâni de la semnarea contractului. Termenul exact depinde de complexitate și de disponibilitatea materialelor, iar îl confirmăm în ofertă.",
+      "Livrare și montaj în 4–6 săptămâni de la confirmarea comenzii. Termenul exact depinde de complexitate și de disponibilitatea materialelor, și îl confirmăm în ofertă.",
   },
   {
     question: "În ce zonă lucrați?",
@@ -26,7 +28,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Oferiți garanție la mobilier?",
     answer:
-      "Da. Fiecare lucrare beneficiază de garanție legală de conformitate de 24 de luni. Folosim feronerie Blum pe sertare și balamale, un standard de încredere pe termen lung.",
+      "Da. Oferim garanție 5 ani pentru fiecare lucrare. Folosim feronerie Blum pe sertare și balamale, un standard de încredere pe termen lung.",
   },
   {
     question: "Montajul este inclus?",
@@ -51,7 +53,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Cum se face plata?",
     answer:
-      "Se lucrează cu un avans la semnarea contractului, iar restul se achită la finalizare și montaj. Detaliile exacte le stabilim în ofertă, în funcție de proiect.",
+      "Se lucrează cu un avans de regulă de 50% la confirmarea comenzii, iar restul se achită la finalizare și montaj. Detaliile exacte le stabilim în ofertă, în funcție de proiect.",
   },
   {
     question: "Cum cer o ofertă?",

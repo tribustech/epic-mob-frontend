@@ -5,8 +5,10 @@ import { ChevronRight, PhoneCall, Ruler, ShieldCheck, Wrench } from "lucide-reac
 import { withAllPrices } from "@/components/shop/all-prices";
 import { ProductCard } from "@/components/shop/product-card";
 import { ProductView } from "@/components/shop/product-view";
+import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/lib/business-data";
-import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, pictureOf, productBySlug, productFacts } from "@/lib/shop/products";
+import { BRAND, baseOpenGraph } from "@/lib/seo";
+import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, colourCountText, pictureOf, productBySlug, productFacts } from "@/lib/shop/products";
 import { getShopItems, getShopProduct } from "@/lib/shop/server";
 
 export const revalidate = 600;
@@ -19,18 +21,27 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const product = productBySlug(slug);
   if (!product) return {};
-  const title = `${product.preset.name} | Magazin EpicMob`;
-  const description = `${product.preset.tagline} În ${product.paletteIds.length} combinații de culori, cu montaj inclus și garanție 5 ani.`;
+  const title = `${product.preset.name} | Magazin ${BRAND}`;
+  const description = `${product.preset.tagline} ${colourCountText(product.paletteIds.length)}, cu montaj inclus și garanție 5 ani.`;
   return {
     title: { absolute: title },
     description,
     alternates: { canonical: `/magazin/${slug}` },
-    openGraph: { title, description, url: `/magazin/${slug}`, type: "website", ...(pictureOf(slug, product.paletteIds[0]) ? { images: [pictureOf(slug, product.paletteIds[0])!] } : {}) },
+    openGraph: { ...baseOpenGraph, title, description, url: `/magazin/${slug}`, ...(pictureOf(slug, product.paletteIds[0]) ? { images: [pictureOf(slug, product.paletteIds[0])!] } : {}) },
   };
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ProductPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { slug } = await params;
+  // ?culoare= on the server, so the first paint shows that colour and price (ProductView checks it is one of the variants)
+  const culoare = (await searchParams).culoare;
+  const initialPaletteId = typeof culoare === "string" ? culoare : undefined;
   const product = productBySlug(slug);
   if (!product) notFound();
   const data = await getShopProduct(slug);
@@ -52,7 +63,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         "@type": "Product",
         name: item.name,
         description: item.tagline,
-        brand: { "@type": "Brand", name: "EpicMob" },
+        brand: { "@type": "Brand", name: BRAND },
         url: `${SITE_URL}/magazin/${slug}`,
         ...(item.photo ? { image: `${SITE_URL}${item.photo}` } : {}),
         offers: {
@@ -64,10 +75,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         },
       }
     : null;
+  const breadcrumbJsonLd = buildBreadcrumbSchema([
+    { name: "Acasă", path: "/" },
+    { name: "Magazin", path: "/magazin" },
+    { name: item.name, path: `/magazin/${slug}` },
+  ]);
 
   return (
     <main className="home-warm shop-page">
-      {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />}
+      {jsonLd && <JsonLd data={jsonLd} />}
+      <JsonLd data={breadcrumbJsonLd} />
       <div className="section-shell">
         <nav className="shop-crumbs" aria-label="Unde te afli">
           <ol>
@@ -87,7 +104,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </ol>
         </nav>
 
-        <ProductView item={item} scenes={scenes} configs={configs} />
+        <ProductView item={item} scenes={scenes} configs={configs} initialPaletteId={initialPaletteId} />
 
         <section className="shop-details">
           <div>

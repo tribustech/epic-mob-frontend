@@ -71,9 +71,11 @@ const cachedPrice = unstable_cache(
   { revalidate: 600, tags: ["shop-price"] },
 );
 
+/** CRM price in whole lei (rounded once, here): every page, the basket and the order use this number. */
 export async function priceOf(config: AtelierConfig): Promise<{ price: number | null; scene: AtelierScene | null }> {
   try {
-    return await cachedPrice(JSON.stringify(config));
+    const { price, scene } = await cachedPrice(JSON.stringify(config));
+    return { price: price == null || !Number.isFinite(price) ? null : Math.round(price), scene };
   } catch (error) {
     console.error("Shop price failed", error instanceof Error ? error.message : error);
     return { price: null, scene: null };
@@ -104,9 +106,8 @@ async function buildItem(
   palettes: ResolvedPalette[],
   { allPrices }: { allPrices: boolean },
 ): Promise<ShopItem | null> {
-  if (!presetAvailable(product.preset, catalog)) return null;
+  if (!productAvailable(product, catalog, palettes)) return null;
   const chosen = palettesOf(product, palettes);
-  if (chosen.length === 0) return null;
   const offer = offerFor(product.slug, product.category);
   const variants = await mapLimit(chosen, 4, async (palette, ): Promise<ShopVariant> => {
     const config = variantConfig(product, palette, catalog);
@@ -136,6 +137,22 @@ async function buildItem(
   };
 }
 
+/**
+ * Whether a product page can be shown with this catalog: the same check buildItem makes before pricing
+ * (the CRM can build the model, and at least one of its colours exists). Used by the sitemap.
+ */
+export function productAvailable(product: ShopProduct, catalog: AtelierCatalog, palettes: ResolvedPalette[]): boolean {
+  return presetAvailable(product.preset, catalog) && palettesOf(product, palettes).length > 0;
+}
+
+/** Slugs of the product pages that open now; null when the CRM catalog cannot be read. */
+export async function availableProductSlugs(): Promise<string[] | null> {
+  const catalog = await getShopCatalog();
+  if (!catalog) return null;
+  const palettes = resolvePalettes(catalog);
+  return SHOP_PRODUCTS.filter((p) => productAvailable(p, catalog, palettes)).map((p) => p.slug);
+}
+
 /** Every product with its colours; only the default colour is priced (list pages). */
 export async function getShopItems(): Promise<{ items: ShopItem[]; catalog: AtelierCatalog | null }> {
   const catalog = await getShopCatalog();
@@ -161,4 +178,40 @@ export async function getShopProduct(slug: string): Promise<{ item: ShopItem; sc
     scenes[palette.id] = (await priceOf(config)).scene; // cached by the call in buildItem
   }
   return { item, scenes, configs, catalog };
+}
+
+/** One basket line priced now (the basket's refresh and the order route use the same numbers). */
+export interface PricedShopLine {
+  slug: string;
+  paletteId: string;
+  name: string;
+  colour: string;
+  config: AtelierConfig;
+  /** usual price, whole lei; null when the CRM could not price it now */
+  price: number | null;
+  /** after the running offer */
+  finalPrice: number | null;
+  offerPercent: number;
+  offerLabel: string | null;
+}
+
+/** null when the product or colour is no longer sold. */
+export async function priceShopLine(slug: string, paletteId: string, catalog: AtelierCatalog, palettes: ResolvedPalette[]): Promise<PricedShopLine | null> {
+  const product = productBySlug(slug);
+  const palette = palettes.find((p) => p.id === paletteId);
+  if (!product || !palette || !product.paletteIds.includes(paletteId) || !presetAvailable(product.preset, catalog)) return null;
+  const config = variantConfig(product, palette, catalog);
+  const { price } = await priceOf(config);
+  const offer = offerFor(product.slug, product.category);
+  return {
+    slug: product.slug,
+    paletteId: palette.id,
+    name: product.preset.name,
+    colour: palette.name,
+    config,
+    price,
+    finalPrice: price == null ? null : offerPrice(price, offer),
+    offerPercent: offer?.percent ?? 0,
+    offerLabel: offer?.label ?? null,
+  };
 }

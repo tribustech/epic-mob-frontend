@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
-import { COMBO_PRESETS, presetAvailable, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
+import { COMBO_PRESETS, cardNames, categoryAvailable, presetAvailable, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
 import { CATEGORY_DISPLAY } from "@/lib/atelier/categories";
 import { doorOpening, hasGlass, hasMirror } from "@/lib/atelier/door-types";
+import { paletteAllowed } from "@/lib/atelier/house-rules";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "@/lib/atelier/types";
 import { glazingOf, type Glazing } from "./glass-look";
@@ -27,11 +28,6 @@ export const CATEGORY_SHORT: Record<AtelierCategory, string> = {
 /** „2,4 m" / „50 cm": the width a model starts from, shown as its own badge so it never truncates. */
 function sizeLabel(widthMm: number): string {
   return widthMm >= 1000 ? `${String(Math.round(widthMm / 100) / 10).replace(".", ",")} m` : `${Math.round(widthMm / 10)} cm`;
-}
-
-/** „Comodă cu 6 sertare 1,6 m" → „Comodă cu 6 sertare" (the size has its own badge). */
-function bareName(name: string): string {
-  return name.replace(/\s+\d+(?:,\d+)?\s?m$/u, "");
 }
 
 /** The two or three facts a newcomer looks for on a card: how it closes, mirror, drawers. */
@@ -83,7 +79,7 @@ function ModelCard({
         {selected && <SelectedMark className="absolute right-2 top-2" />}
       </span>
       <span className="atelier-model__text">
-        <span className="atelier-card__name">{bareName(name)}</span>
+        <span className="atelier-card__name">{name}</span>
         <span className="atelier-card__sub">{tagline}</span>
         <span className="atelier-model__facts">
           <span className="atelier-model__fact atelier-model__fact--size">{sizeLabel(preset.shape.widthMm)}</span>
@@ -120,8 +116,12 @@ export function StepModel({
   const combos = COMBO_PRESETS.flatMap((combo) => {
     const preset = presetById(combo.presetId);
     const palette = palettes.find((p) => p.id === combo.paletteId);
-    return preset && palette && preset.category === config.category && presetAvailable(preset, catalog) ? [{ combo, preset, palette }] : [];
+    // house rule: no dark chests of drawers or wall units, not even as a featured combination
+    const shown = preset && palette && preset.category === config.category && presetAvailable(preset, catalog) && paletteAllowed(preset.category, palette.id);
+    return shown ? [{ combo, preset, palette }] : [];
   });
+  const comboNames = cardNames(combos.map(({ combo }) => combo.name));
+  const presetNames = cardNames(presets.map((p) => p.name));
   // Two lists share the space: ready-made combinations (model + colours) and the plain models.
   // Open on the one that holds the current choice.
   const inCombos = combos.some(
@@ -145,7 +145,7 @@ export function StepModel({
     <div className="atelier-stack">
       <Section title="Ce construim?" className="atelier-section--cats">
         <RadioGroup label="Tip de mobilier" className="atelier-cats">
-          {CATEGORY_DISPLAY.map((id) => {
+          {CATEGORY_DISPLAY.filter((id) => id === config.category || categoryAvailable(id, catalog)).map((id) => {
             const sample = presetsFor(id)[0];
             return (
               <button
@@ -198,12 +198,12 @@ export function StepModel({
           </p>
           {list === "combos" ? (
             <div className="atelier-rail">
-              {combos.map(({ combo, preset, palette }) => {
+              {combos.map(({ combo, preset, palette }, i) => {
                 const looks = paletteLooks(catalog, palette);
                 return (
                   <ModelCard
                     key={combo.id}
-                    name={combo.name}
+                    name={comboNames[i]}
                     tagline={combo.tagline}
                     preset={preset}
                     glazing={glazingOf(catalog, preset.shape.doors)}
@@ -223,10 +223,10 @@ export function StepModel({
             </div>
           ) : (
             <div className="atelier-grid2">
-              {presets.map((preset) => (
+              {presets.map((preset, i) => (
                 <ModelCard
                   key={preset.id}
-                  name={preset.name}
+                  name={presetNames[i]}
                   tagline={preset.tagline}
                   badge={preset.badge}
                   preset={preset}

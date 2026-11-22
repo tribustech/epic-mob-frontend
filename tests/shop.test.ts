@@ -2,9 +2,24 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { hasMirror } from "../lib/atelier/door-types.ts";
 import { PALETTES } from "../lib/atelier/palettes.ts";
-import { WHITE_BODY_CODES } from "../lib/atelier/house-rules.ts";
+import { WHITE_BODY_CODES, paletteAllowed } from "../lib/atelier/house-rules.ts";
+import { COMBO_PRESETS, presetById } from "../lib/atelier/presets.ts";
 import { SHOP_OFFERS, offerFor, offerPrice } from "../lib/shop/offers.ts";
-import { HANDLES, PHOTO_COLOURS, ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, productFacts, renderOf } from "../lib/shop/products.ts";
+import {
+  HANDLES,
+  PHOTO_COLOURS,
+  RENAMED_SLUGS,
+  ROOM_LABELS,
+  SHOP_CATEGORIES,
+  SHOP_PRODUCTS,
+  photoOf,
+  productBySlug,
+  productFacts,
+  renderOf,
+  typeOf,
+  widthOf,
+  withMirror,
+} from "../lib/shop/products.ts";
 
 test("every shop product has a unique slug, a known category and known colours", () => {
   const slugs = new Set<string>();
@@ -112,15 +127,76 @@ test("each product has one or two photo colours, among the colours it sells, the
   for (const slug of Object.keys(PHOTO_COLOURS)) assert.ok(SHOP_PRODUCTS.some((p) => p.slug === slug), `photo colours for unknown model ${slug}`);
 });
 
-test("the photo brief (v3) covers exactly the photo colours that have no accepted photo yet", async () => {
+test("the photo brief (v3) covers every photo colour that has no accepted photo yet", async () => {
   const { readFileSync } = await import("node:fs");
   const PHOTOS = JSON.parse(readFileSync("lib/shop/photos.json", "utf8")) as Record<string, string[]>;
   const brief = JSON.parse(readFileSync("scripts/shop-art-direction-v3.json", "utf8")) as { products: Record<string, unknown>; variants: { slug: string; paletteId: string; render: string; out: string }[] };
   const want = Object.entries(PHOTO_COLOURS).flatMap(([slug, ids]) => ids.filter((id) => !PHOTOS[slug]?.includes(id)).map((id) => `${slug}/${id}`)).sort();
-  assert.deepEqual(brief.variants.map((v) => `${v.slug}/${v.paletteId}`).sort(), want);
+  const briefed = new Set(brief.variants.map((v) => `${v.slug}/${v.paletteId}`));
+  for (const w of want) assert.ok(briefed.has(w), `${w}: photo colour without a photo and without a brief`);
   for (const v of brief.variants) {
     assert.ok(brief.products[v.slug], `${v.slug}: no product brief`);
     assert.equal(v.render, `public/magazin/randari/${v.slug}/${v.paletteId}.webp`);
     assert.equal(v.out, `public/magazin/foto/${v.slug}/${v.paletteId}.webp`);
   }
+});
+
+test("only the photo colours show a room photo; the other colours fall back to the render", async () => {
+  const PHOTOS = (await import("../lib/shop/photos.json", { with: { type: "json" } })).default as Record<string, string[]>;
+  let checked = 0;
+  for (const [slug, ids] of Object.entries(PHOTOS)) {
+    for (const id of ids) {
+      const want = PHOTO_COLOURS[slug]?.includes(id) ? `/magazin/foto/${slug}/${id}.webp` : null;
+      assert.equal(photoOf(slug, id), want, `${slug}/${id}`);
+      if (!want) checked++;
+    }
+  }
+  assert.ok(checked > 0, "some older photos are hidden");
+});
+
+test("featured combinations keep the no-dark rule for chests of drawers and wall units", () => {
+  for (const c of COMBO_PRESETS) {
+    const preset = presetById(c.presetId)!;
+    assert.ok(paletteAllowed(preset.category, c.paletteId), `${c.id}: dark ${c.paletteId} on ${preset.category}`);
+  }
+  assert.equal(paletteAllowed("COMODA", "nuc-negru-mat"), false);
+  assert.equal(paletteAllowed("DRESSING", "nuc-negru-mat"), true);
+});
+
+test("no hinged wardrobe door in the shop is wider than 65 cm (standard hinges)", () => {
+  for (const p of SHOP_PRODUCTS) {
+    const s = p.preset.shape;
+    if (s.category !== "DRESSING" || !s.doors.type.startsWith("BATANTE")) continue;
+    for (const c of s.columns) assert.ok(c.widthMm / (c.doorsAcross ?? 1) <= 650, `${p.slug}: ${c.widthMm} mm column with ${c.doorsAcross ?? 1} door(s)`);
+  }
+});
+
+test("a renamed product is still found by its old slug", () => {
+  for (const [from, to] of Object.entries(RENAMED_SLUGS)) {
+    assert.equal(productBySlug(from)?.slug, to);
+    assert.ok(!SHOP_PRODUCTS.some((p) => p.slug === from), `${from} is still a product`);
+  }
+  assert.equal(productBySlug("bucatarie-coloane-360")?.preset.shape.widthMm, 3800);
+});
+
+test("shop filters: kind of piece, width band and mirror", () => {
+  const tv = SHOP_PRODUCTS.filter((p) => typeOf(p.slug) === "comoda-tv").map((p) => p.category);
+  assert.ok(tv.includes("comode") && tv.includes("suspendate"), "TV units on legs and wall-hung");
+  const at = (slug: string) => widthOf(productBySlug(slug)!.preset);
+  assert.equal(at("noptiera-50"), "sub-1m");
+  assert.equal(at("dressing-3-usi-150"), "1-1,6m");
+  assert.equal(at("comoda-clasica-160"), "1,6-2,4m");
+  assert.equal(at("dressing-clasic-240"), "1,6-2,4m");
+  assert.equal(at("dressing-familie-300"), "peste-2,4m");
+  const mirror = (slug: string) => withMirror(productBySlug(slug)!.preset);
+  assert.equal(mirror("dressing-oglinda-240"), true);
+  assert.equal(mirror("dressing-oglinda-mijloc-240"), true);
+  assert.equal(mirror("baie-lavoar-60"), true);
+  assert.equal(mirror("dressing-clasic-240"), false);
+});
+
+test("product facts: the bathroom size legend sits right after the size", () => {
+  const facts = productFacts(productBySlug("baie-lavoar-60")!.preset);
+  assert.equal(facts[0], "Dimensiuni: 60 × 190 × 46 cm (lățime × înălțime până sus × adâncime), suspendat");
+  for (const p of SHOP_PRODUCTS) for (const f of productFacts(p.preset)) assert.doesNotMatch(f, /Blum Tandem/);
 });

@@ -18,7 +18,7 @@ export function WarmTabbar() {
         <span>Materiale</span>
       </Link>
 
-      <Link href="/contact" className="warm-tabbar__cta">
+      <Link href="/cere-oferta" className="warm-tabbar__cta">
         Cere o ofertă
       </Link>
 

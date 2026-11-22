@@ -1,4 +1,5 @@
 import { BOTTOM_HEIGHT_RANGE, CATEGORY_ORDER, CATEGORY_RULES } from "./categories";
+import { partialDrawersAvailable } from "./drawers";
 import { doorOpening, isDoorFill, normalizeDoors } from "./door-types";
 import { HANDLE_FINISHES, HANDLE_KINDS, cleanHandle } from "./handles";
 import type {
@@ -140,6 +141,8 @@ export function parseConfig(raw: unknown, catalog: AtelierCatalog): AtelierConfi
   const handle = cleanHandle(c.handle as { type?: unknown; finish?: unknown } | undefined);
   if (handle && (catalog.handles?.types ?? []).some((t) => t.type === handle.type)) config.handle = handle;
 
+  if (c.drawerExtension === "PARTIALA" && partialDrawersAvailable(catalog)) config.drawerExtension = "PARTIALA";
+
   if (isKitchen({ category })) {
     const k = (c.kitchen && typeof c.kitchen === "object" ? c.kitchen : {}) as Record<string, unknown>;
     const layout = !isBath({ category }) && LAYOUTS.includes(k.layout as KitchenLayout) ? (k.layout as KitchenLayout) : "LINIAR";
@@ -180,7 +183,7 @@ function fromBase64Url(code: string): string {
 
 /** The configuration as a short URL-safe code (letters, digits, - and _ only). */
 export function encodeShare(config: AtelierConfig): string {
-  const { doors, fronts, handle, bottom, kitchen } = config;
+  const { doors, fronts, handle, bottom, kitchen, drawerExtension } = config;
   const packCols = (cols: AtelierColumn[]) =>
     cols.map((c) =>
       trimmed([c.widthMm, CONTENTS.indexOf(c.content), c.shelves, c.drawers, c.railPosition === "JOS" ? 1 : c.railPosition === "SUS" ? 0 : null, c.doorRows, c.doorsAcross, c.upper ? UPPERS.indexOf(c.upper) : null]),
@@ -198,6 +201,7 @@ export function encodeShare(config: AtelierConfig): string {
     kitchen
       ? trimmed([LAYOUTS.indexOf(kitchen.layout), kitchen.worktopId, kitchen.led ? 1 : null, kitchen.legB?.widthMm, kitchen.legB ? packCols(kitchen.legB.columns) : null])
       : null,
+    drawerExtension === "PARTIALA" ? 1 : null,
   ]);
   return toBase64Url(JSON.stringify(packed));
 }
@@ -215,7 +219,7 @@ export function decodeShare(code: unknown, catalog: AtelierCatalog): AtelierConf
     return null;
   }
   if (!Array.isArray(p) || p[0] !== VERSION) return null;
-  const [, cat, size, cols, doors, carcass, fronts, handle, bottom, kitchen] = p as unknown[];
+  const [, cat, size, cols, doors, carcass, fronts, handle, bottom, kitchen, drawerExt] = p as unknown[];
   const unpackCols = (list: unknown[][]) =>
     list.map((c) => ({
       widthMm: c[0],
@@ -266,6 +270,7 @@ export function decodeShare(code: unknown, catalog: AtelierCatalog): AtelierConf
               : undefined,
         }
       : undefined,
+    drawerExtension: drawerExt === 1 ? "PARTIALA" : undefined,
   };
   return parseConfig(raw, catalog);
 }

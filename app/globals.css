@@ -19,8 +19,11 @@
   --color-cream: #FBF8F3;
   --color-clay: #EDE4D6;
   --color-espresso: #2A2420;
-  --color-terracotta: #C06A3E;
+  /* Accent darkened for WCAG AA: cream text on it and it as text on sand/cream
+     reach 4.5:1 (#C06A3E only reached 3.7:1). */
+  --color-terracotta: #A5542F;
   --color-terracotta-deep: #A5542F;
+  --color-terracotta-ink: #8E4526;
   --color-olive: #7C7A54;
 }
 
@@ -1114,6 +1117,28 @@ select {
   vertical-align: top;
 }
 
+/* Skip link: hidden until focused, then shown over the header (first Tab stop). */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1100;
+  padding: 0.75rem 1.1rem;
+  border-radius: 999px;
+  background: var(--espresso, #2a2420);
+  color: var(--cream, #fbf8f3);
+  font-size: 0.875rem;
+  font-weight: 700;
+  transform: translateY(calc(-100% - 1rem));
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+  outline: 2px solid var(--terracotta, #a5542f);
+  outline-offset: 2px;
+}
+
 /* Site header and ICOMAT-inspired menu */
 .site-header {
   position: sticky;
@@ -1241,6 +1266,72 @@ select {
     radial-gradient(circle at 84% 12%, rgba(243, 198, 35, 0.16), transparent 28%),
     linear-gradient(135deg, #070707 0%, #15130f 56%, #23170d 100%);
   color: var(--home-ivory);
+}
+
+/* Menu motion (CSS only, the header ships on every page): the panel wipes
+   down, the links rise one after another, the lower panels follow. Closing
+   plays the wipe in reverse (MENU_CLOSE_MS in site-header.tsx). The global
+   reduced-motion rule turns all of it off. */
+.site-menu {
+  animation: site-menu-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.site-menu--closing {
+  animation: site-menu-out 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  pointer-events: none;
+}
+
+.site-menu__item {
+  animation: site-menu-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(0.16s + var(--i, 0) * 0.08s);
+}
+
+.site-menu__lower {
+  animation: site-menu-rise-short 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
+}
+
+@keyframes site-menu-in {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0% 0);
+  }
+}
+
+@keyframes site-menu-out {
+  from {
+    opacity: 1;
+    clip-path: inset(0 0 0% 0);
+  }
+  to {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@keyframes site-menu-rise {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes site-menu-rise-short {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .site-menu__top {
@@ -1909,9 +2000,16 @@ select {
   --clay: #EDE4D6;
   --espresso: #2A2420;
   --mocha-72: rgba(42, 36, 32, 0.72);
-  --mocha-52: rgba(42, 36, 32, 0.52);
-  --terracotta: #C06A3E;
+  /* muted text: 0.68 keeps 4.5:1 on sand, cream and clay (0.52 was 3.2:1) */
+  --mocha-52: rgba(42, 36, 32, 0.68);
+  /* accent: text-safe on light grounds (4.7:1 on sand, 5.1:1 under cream text) */
+  --terracotta: #A5542F;
+  /* kept equal to the accent: the shop styles build on it (shop.css) */
   --terracotta-deep: #A5542F;
+  /* darker accent: hover states, and text on clay (5.5:1) */
+  --terracotta-ink: #8E4526;
+  /* accent for text on espresso sections (7:1) */
+  --terracotta-light: #E3A27F;
   --olive: #7C7A54;
   --whatsapp: #25D366;
   --whatsapp-deep: #1DA851;
@@ -1936,6 +2034,17 @@ select {
   color: var(--terracotta);
 }
 
+/* on clay bands the accent needs its deeper tone to keep 4.5:1 */
+.bg-clay .eyebrow-warm {
+  color: var(--terracotta-ink);
+}
+
+/* on the dark espresso bands the dark accent would drop to 2.8:1 */
+.bg-espresso .eyebrow-warm,
+.bg-espresso .home-warm .eyebrow {
+  color: var(--terracotta-light);
+}
+
 /* ══ Hero slider (Crafto decor-store style) ══ */
 .hero2 {
   position: relative;
@@ -1956,6 +2065,71 @@ select {
   position: absolute;
   inset: 0 0 0 60%;
   background: var(--clay);
+}
+
+/* Hero motion, CSS only (warm-hero.tsx): the copy rises in on load (staggered
+   by --d), the stage settles from a slight zoom, and each new slide fades in
+   over the previous one. The headline and image are never hidden by opacity, so
+   they paint at once for LCP. Reduced motion turns it all off globally. */
+.hero2__enter {
+  animation: hero2-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(0.15s + var(--d, 0) * 0.12s);
+}
+
+.hero2__enter--move {
+  animation-name: hero2-rise-move;
+}
+
+.hero2__stage-in {
+  animation: hero2-settle 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero2__text-in {
+  animation: hero2-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero2__img-in {
+  animation: hero2-img-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes hero2-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero2-rise-move {
+  from {
+    transform: translateY(1.6rem);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes hero2-settle {
+  from {
+    transform: scale(0.94);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes hero2-img-in {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Decorative circle stack on the right */
@@ -2007,6 +2181,8 @@ select {
   mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
   animation: hero2-orbit 18s linear infinite;
   pointer-events: none;
+  /* own compositor layer: the endless rotation never repaints on the main thread */
+  will-change: transform;
 }
 
 /* Bright leading dot of the comet */
@@ -2016,6 +2192,7 @@ select {
   border-radius: 50%;
   animation: hero2-orbit 18s linear infinite;
   pointer-events: none;
+  will-change: transform;
 }
 
 .hero2__spin-dot::before {
@@ -2095,18 +2272,36 @@ select {
 
 .hero2__dots {
   display: inline-flex;
-  gap: 0.5rem;
+  align-items: center;
 }
 
+/* 24×24 px tap area (WCAG 2.5.8); the visible dot is drawn inside it */
 .hero2__dot {
+  position: relative;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.hero2__dot::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 999px;
-  background: var(--line-strong);
+  background: rgba(42, 36, 32, 0.4);
+  transform: translate(-50%, -50%);
   transition: width 0.3s ease, background 0.3s ease;
 }
 
 .hero2__dot--active {
+  width: 2.1rem;
+}
+
+.hero2__dot--active::before {
   width: 1.6rem;
   background: var(--terracotta);
 }
@@ -2179,7 +2374,7 @@ select {
 }
 
 .warm-tabbar__cta:active {
-  background: var(--terracotta-deep);
+  background: var(--terracotta-ink);
 }
 
 .warm-tabbar__icon {
@@ -2215,7 +2410,7 @@ select {
 }
 
 .btn-warm--primary:hover {
-  background: var(--terracotta-deep);
+  background: var(--terracotta-ink);
   transform: translateY(-2px);
   box-shadow: 0 1rem 2rem rgba(165, 84, 47, 0.34);
 }
@@ -2245,10 +2440,10 @@ select {
   transform: translateY(-2px);
 }
 
-/* WhatsApp CTA — official brand green. */
+/* WhatsApp CTA — official brand green, dark text (white on it is only 2:1). */
 .btn-warm--whatsapp {
   background: #25d366;
-  color: #ffffff;
+  color: var(--espresso);
   box-shadow: 0 0.75rem 1.5rem rgba(37, 211, 102, 0.28);
 }
 
@@ -2397,7 +2592,8 @@ select {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3em;
-  color: var(--terracotta);
+  /* the footer sits on clay: the deeper accent keeps 5.5:1 */
+  color: var(--terracotta-ink);
 }
 
 .warm-footer a {
@@ -2406,7 +2602,30 @@ select {
 }
 
 .warm-footer a:hover {
-  color: var(--terracotta);
+  color: var(--terracotta-ink);
+}
+
+/* one link per row, at least 32px tall so it is easy to tap */
+.warm-footer__link {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  font-size: 0.875rem;
+}
+
+.warm-footer__social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+.warm-footer__social:hover {
+  border-color: var(--terracotta-ink);
 }
 
 .warm-footer__divider {
@@ -2438,12 +2657,14 @@ select {
 }
 
 .site-header--warm .site-header__cta:hover {
-  background: var(--terracotta-deep);
-  border-color: var(--terracotta-deep);
+  background: var(--terracotta-ink);
+  border-color: var(--terracotta-ink);
 }
 
 .site-header--warm .site-header__menu-button {
   color: var(--espresso);
+  /* 44 px tall tap area (it was 33 px) */
+  min-height: 2.75rem;
 }
 
 /* Typographic wordmark (homepage only — the PNG logo is light-on-dark) */
@@ -2571,7 +2792,8 @@ select {
 }
 
 .pf-chip--active .pf-chip__count {
-  background: color-mix(in srgb, #ffffff 24%, transparent);
+  /* darker than the chip so the cream count keeps 4.5:1 */
+  background: rgba(42, 36, 32, 0.2);
 }
 
 /* ── Bento "open" affordance (top-right arrow badge) ── */
@@ -2754,14 +2976,20 @@ select {
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
-  color: color-mix(in srgb, var(--terracotta) 62%, var(--sand));
+  color: var(--terracotta);
 }
 
 .warm-journey__desc {
   max-width: 30ch;
   font-size: 1rem;
   line-height: 1.7;
-  color: color-mix(in srgb, var(--espresso) 60%, transparent);
+  /* stays ≥ 4.5:1 even on the side cards, which fade to 0.9 opacity */
+  color: color-mix(in srgb, var(--espresso) 80%, transparent);
+}
+
+.warm-journey__cards:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 4px;
 }
 
 /* The SVG track is injected here; overflow visible so the arc + ticks show.
@@ -3195,7 +3423,7 @@ select {
 }
 
 .material-verdict__head--con {
-  color: var(--terracotta-deep);
+  color: var(--terracotta-ink);
 }
 
 .material-verdict__list {
@@ -3233,7 +3461,7 @@ select {
 
 .material-verdict__mark--con {
   background: rgba(192, 106, 62, 0.16);
-  color: var(--terracotta-deep);
+  color: var(--terracotta-ink);
 }
 
 /* ── Property chips (icon row from the infographic) ── */
@@ -3359,7 +3587,7 @@ select {
 
 .placement__badge--avoid {
   background: rgba(192, 106, 62, 0.16);
-  color: var(--terracotta-deep);
+  color: var(--terracotta-ink);
 }
 
 .placement__note {
@@ -3502,6 +3730,8 @@ select {
   padding-top: 1.1rem;
   font-weight: 700;
   font-size: 0.9rem;
+  /* the material's accent darkened toward espresso: ≥ 4.7:1 on the cream card (the raw accents were 2.5–3.8:1) */
+  color: color-mix(in srgb, var(--mat-accent) 60%, var(--espresso, #2a2420));
   transition: gap 0.25s ease;
 }
 

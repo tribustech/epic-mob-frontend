@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { MiniPreview } from "@/components/atelier/mini-preview";
@@ -9,6 +10,7 @@ import { presetById } from "@/lib/atelier/presets";
 import { pictureOf } from "@/lib/shop/products";
 import type { ShopItem, ShopVariant } from "@/lib/shop/server";
 import { formatPrice } from "./price";
+import { AdminCardBadge } from "@/components/admin/admin-card-badge";
 
 const MOOD_OF = new Map(PALETTES.map((p) => [p.id, p.mood]));
 
@@ -22,8 +24,18 @@ export function ProductPicture({ item, variant, sizes, priority = false }: { ite
   const preset = presetById(item.slug);
   const src = pictureOf(item.slug, variant.paletteId);
   if (src) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={`${item.name}, ${variant.name}`} className="shop-pic__photo" sizes={sizes} loading={priority ? "eager" : "lazy"} />;
+    // next/image serves a copy as wide as the slot (`sizes`), not the 1200 px original
+    return (
+      <Image
+        src={src}
+        alt={`${item.name}, ${variant.name}`}
+        className="shop-pic__photo"
+        fill
+        sizes={sizes ?? "(max-width: 640px) 50vw, 25vw"}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
+      />
+    );
   }
   return (
     <div className="shop-pic__studio" role="img" aria-label={`${item.name}, ${variant.name}`}>
@@ -62,8 +74,8 @@ export function PriceLine({ variant, offer, size = "md" }: { variant: ShopVarian
 }
 
 /**
- * One product in a grid or rail. The whole card opens the product. With a mouse, the small colour dots
- * also switch the picture and the price, and the card then opens the product in that colour.
+ * One product in a grid or rail. The whole card opens the product. The small colour dots switch the picture
+ * and the price (each has a 44 px tall tap area), and the card then opens the product in that colour.
  * `mood` (the colour family chosen in the filters) decides which colour is shown first.
  */
 export function ProductCard({ item, priority = false, mood = null }: { item: ShopItem; priority?: boolean; mood?: PaletteMood | null }) {
@@ -89,6 +101,7 @@ export function ProductCard({ item, priority = false, mood = null }: { item: Sho
           <PriceLine variant={variant} offer={item.offer} />
         </div>
       </Link>
+      <AdminCardBadge share={variant.share} offerPercent={item.offer?.percent ?? null} />
       {item.variants.length > 1 && (
         <div className="shop-card__swatches">
           {item.variants.slice(0, 6).map((v) => (
@@ -101,7 +114,9 @@ export function ProductCard({ item, priority = false, mood = null }: { item: Sho
               title={v.name}
               onClick={() => setPicked(v.paletteId)}
             >
-              <Swatch variant={v} size={18} />
+              <span className="shop-card__ring">
+                <Swatch variant={v} size={18} />
+              </span>
             </button>
           ))}
           <span className="shop-card__more">{item.variants.length} culori</span>
