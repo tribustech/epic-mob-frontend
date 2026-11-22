@@ -1,6 +1,6 @@
 # Poze magazin rămase de generat
 
-Actualizat: 22.11.2026. Stadiu: 182 de poze acceptate pentru 63 de modele, în PR-ul site #6.
+Actualizat: 22.11.2026. Stadiu: 191 de poze acceptate pentru 68 din cele 74 de modele, în PR-ul site #6.
 Rămân 8 poze. Codex a atins limita, care se resetează vineri, 28.11, la 08:58. Se poate porni și mai devreme, dacă reîncarci creditele ChatGPT.
 
 ## Cum se pornește
