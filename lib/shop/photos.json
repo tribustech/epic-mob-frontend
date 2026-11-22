@@ -79,6 +79,21 @@
     "antracit-stejar",
     "nuc-crem"
   ],
+  "dressing-sertare-200": [
+    "antracit-stejar",
+    "alb-stejar-natur"
+  ],
+  "dressing-copii-150": [
+    "denim-alb",
+    "alb-total"
+  ],
+  "dressing-tavan-270": [
+    "supermat-crem",
+    "stejar-natur"
+  ],
+  "dressing-hol-oglinda-160": [
+    "alb-casmir"
+  ],
   "dressing-oglinda-una-180": [
     "alb-casmir",
     "alb-total",
@@ -86,6 +101,10 @@
     "alb-antracit",
     "alb-gri-matase",
     "alb-stejar-deschis"
+  ],
+  "dressing-oglinda-mijloc-240": [
+    "alb-casmir",
+    "alb-stejar-natur"
   ],
   "dressing-oglinzi-300": [
     "alb-casmir",

@@ -16,7 +16,7 @@ const renders = JSON.parse(fs.readFileSync(path.join(root, "lib", "shop", "rende
  * them): their hinged doors were split to at most 65 cm wide (2026-11-21, hinge limit), so the old photos
  * show half as many doors. Remove a model from here once its new photos are in its folder.
  */
-const STALE = new Set(["dressing-sertare-200", "dressing-copii-150", "dressing-tavan-270", "dressing-hol-oglinda-160", "dressing-oglinda-mijloc-240"]);
+const STALE = new Set([]);
 const out = {};
 for (const slug of Object.keys(renders)) {
   if (STALE.has(slug)) continue;
