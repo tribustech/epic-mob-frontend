@@ -2,6 +2,7 @@ export const navigation = [
   { href: "/", label: "Acasă", icon: "House" as const, color: "#007AFF" },
   { href: "/portfolio", label: "Portofoliu", icon: "Briefcase" as const, color: "#FF9500" },
   { href: "/materiale", label: "Materiale", icon: "SwatchBook" as const, color: "#C06A3E" },
+  { href: "/magazin", label: "Magazin", icon: "ShoppingBag" as const, color: "#AF52DE" },
   { href: "/configurator", label: "Atelier 3D", icon: "Box" as const, color: "#34C759" },
   { href: "/contact", label: "Contact", icon: "Mail" as const, color: "#FF3B30" },
 ];

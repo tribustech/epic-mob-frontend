@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AtelierConfigurator } from "@/components/atelier/atelier-configurator";
 import { getAtelierCatalog } from "@/lib/atelier/crm";
-import type { AtelierCatalog, AtelierMaterial } from "@/lib/atelier/types";
+import { publicCatalog } from "@/lib/atelier/public-catalog";
 
 // The catalog comes from the CRM (cached 10 minutes); regenerate on the same cadence
 // so a page built while the CRM was unreachable recovers on its own.
@@ -25,40 +25,21 @@ export const metadata: Metadata = {
   },
 };
 
-/** Only the public fields reach the client bundle / RSC payload, whatever else the CRM sends. */
-function publicCatalog(catalog: AtelierCatalog): AtelierCatalog {
-  const material = (m: AtelierMaterial): AtelierMaterial => ({
-    id: m.id,
-    name: m.name,
-    decorCode: m.decorCode ?? null,
-    brand: m.brand ?? null,
-    imageUrl: m.imageUrl ?? null,
-  });
-  return {
-    carcass: (catalog.carcass ?? []).map(material),
-    fronts: {
-      PAL: (catalog.fronts?.PAL ?? []).map(material),
-      MDF_MELAMINAT: (catalog.fronts?.MDF_MELAMINAT ?? []).map(material),
-      MDF_VOPSIT: (catalog.fronts?.MDF_VOPSIT ?? []).map((m) => ({ id: m.id, name: m.name })),
-    },
-    ral: (catalog.ral ?? []).map((r) => ({ code: r.code, name: r.name, hex: r.hex })),
-    handles: { types: (catalog.handles?.types ?? []).map((t) => ({ type: t.type, label: t.label })) },
-  };
-}
-
 function CatalogUnavailable() {
   return (
-    <div className="atelier-panel mx-auto max-w-2xl text-center">
-      <h2 className="atelier-panel__title">Atelierul 3D se odihnește puțin</h2>
-      <p className="mt-3 text-[var(--home-ivory)]/70">
-        Configuratorul nu este disponibil chiar acum. Spune-ne ce ai în minte și îți pregătim o ofertă
-        personalizată.
-      </p>
-      <Link href="/cere-oferta" className="portfolio-btn portfolio-btn--primary mt-6">
-        Cere ofertă
-        <ArrowRight size={16} aria-hidden="true" />
-      </Link>
-    </div>
+    <section className="home-shell py-12 sm:py-20">
+      <div className="atelier-panel mx-auto max-w-2xl text-center">
+        <h1 className="atelier-panel__title">Atelierul 3D se odihnește puțin</h1>
+        <p className="mt-3 text-base text-[var(--home-ivory)]/70">
+          Configuratorul nu este disponibil chiar acum. Spune-ne ce ai în minte și îți pregătim o ofertă
+          personalizată.
+        </p>
+        <Link href="/cere-oferta" className="portfolio-btn portfolio-btn--primary mt-6">
+          Cere ofertă
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
   );
 }
 
@@ -66,24 +47,8 @@ export default async function ConfiguratorPage() {
   const raw = await getAtelierCatalog();
   const catalog = raw ? publicCatalog(raw) : null;
 
+  // The tool starts right under the site header (its compact <h1> lives in the panel).
   return (
-    <main className="atelier-page min-h-screen">
-      <section className="home-shell pb-20 pt-8 sm:pt-12">
-        <header className="max-w-3xl">
-          <p className="home-kicker">Atelier 3D</p>
-          <h1 className="display-font mt-4 text-[clamp(2.4rem,5vw,4rem)] leading-[1.02] text-[var(--home-ivory)]">
-            Configurează-ți mobilierul
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--home-ivory)]/70">
-            Dressing, comodă, separator sau corpuri suspendate: alege dimensiunile, coloanele și materialele. Vezi
-            modelul în 3D și prețul estimativ pe loc,
-            apoi trimite-ne configurația — venim la măsurători.
-          </p>
-        </header>
-        <div className="mt-8 sm:mt-10">
-          {catalog ? <AtelierConfigurator catalog={catalog} /> : <CatalogUnavailable />}
-        </div>
-      </section>
-    </main>
+    <main className="atelier-page">{catalog ? <AtelierConfigurator catalog={catalog} /> : <CatalogUnavailable />}</main>
   );
 }

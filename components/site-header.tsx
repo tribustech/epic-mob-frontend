@@ -33,6 +33,7 @@ export function SiteHeader() {
     pathname.startsWith("/portfolio") ||
     pathname.startsWith("/materiale") ||
     pathname === "/configurator" ||
+    pathname.startsWith("/magazin") ||
     pathname === "/contact" ||
     pathname === "/politica-confidentialitate" ||
     pathname === "/intrebari-frecvente";

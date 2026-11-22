@@ -1,5 +1,6 @@
 import { WarmHero } from "@/components/home/warm/warm-hero";
 import { WarmCategories } from "@/components/home/warm/warm-categories";
+import { WarmShop } from "@/components/home/warm/warm-shop";
 import { WarmBento } from "@/components/home/warm/warm-bento";
 import { WarmJourney } from "@/components/home/warm/warm-journey";
 import { WarmMaterials } from "@/components/home/warm/warm-materials";
@@ -14,6 +15,7 @@ export function WarmHome() {
       <main className="home-warm">
         <WarmHero />
         <WarmCategories />
+        <WarmShop />
         <WarmBento />
         <WarmJourney />
         <WarmMaterials />
