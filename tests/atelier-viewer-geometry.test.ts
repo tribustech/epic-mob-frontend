@@ -120,7 +120,7 @@ test("recessed grip: horizontal in the middle of a drawer's top edge, real-size"
   assert.ok(n.depth < 0.018 && n.depth >= 0.01);
 });
 
-test("recessed grip: vertical on the side of a door that opens, at hand height on a tall one", () => {
+test("recessed grip: on the side of a tall door at hand height, on the top / bottom edge of a base / upper door by the corner that opens", () => {
   const left = front("L", { h: 2400 });
   const nl = notchOf(left, "INGROPAT");
   assert.equal(nl?.edge, "RIGHT");
@@ -132,10 +132,13 @@ test("recessed grip: vertical on the side of a door that opens, at hand height o
   assert.ok(Math.abs(handMm - 1050) < 5, `hand height ${handMm}`);
   // a lift-up door: along its bottom edge
   assert.equal(notchOf(front("T", { y: 1500, h: 360, w: 900 }, true), "INGROPAT")?.edge, "BOTTOM");
-  // an upper door: near its bottom corner; a base door: near its top corner
+  // an upper door: along its bottom edge; a base door: along its top edge; both towards the side that opens
   const upper = notchOf(front("L", { y: 1500, h: 700 }, true), "INGROPAT");
   const base = notchOf(front("L", { y: 100, h: 700 }), "INGROPAT");
-  assert.ok((upper?.centre ?? 0) < 0 && (base?.centre ?? 0) > 0);
+  assert.equal(upper?.edge, "BOTTOM");
+  assert.equal(base?.edge, "TOP");
+  assert.ok((upper?.centre ?? 0) > 0 && (base?.centre ?? 0) > 0);
+  assert.ok((notchOf(front("R", { y: 100, h: 700 }), "INGROPAT")?.centre ?? 0) < 0);
 });
 
 test("milled edge: a long shallow cut along the grip edge, with a return at each end", () => {

@@ -201,7 +201,7 @@ test("handles: all six types, a finish only where there is metal to colour", () 
   assert.deepEqual(atelierReducer(c, { type: "setHandle", handle: { type: "GOLA", finish: "ROZ" as never } }).handle, { type: "GOLA" });
   assert.equal(cleanHandle(null), null);
   assert.equal(handleHasFinish("PUSH"), false);
-  assert.equal(handleHasFinish("INGROPAT"), true);
+  assert.equal(handleHasFinish("INGROPAT"), false); // routed into the front: the front's colour
 });
 
 test("the handle on the fronts: default per category, default colour, none without handled fronts", () => {
@@ -232,7 +232,7 @@ test("handles cut into the front: painted fronts only, never over a mirror; an i
   for (const type of ["APLICAT", "BUTON", "GOLA", "PUSH"] as const) assert.equal(handleUnavailable(pal, type), null);
   const vopsit = atelierReducer(pal, { type: "setFronts", fronts: { kind: "MDF_VOPSIT", modelId: "drept", ralCode: "RAL 9010" } });
   assert.equal(handleUnavailable(vopsit, "INGROPAT"), null);
-  const chosen = atelierReducer(vopsit, { type: "setHandle", handle: { type: "INGROPAT", finish: "INOX" } });
+  const chosen = atelierReducer(vopsit, { type: "setHandle", handle: { type: "INGROPAT" } });
   assert.deepEqual(followUps(vopsit, chosen, painted).actions, []);
   // a mirror on one hinged column: the recessed grip can no longer be cut
   const mirrored = atelierReducer(chosen, { type: "setDoorFill", index: 0, fill: "OGLINDA" });
@@ -240,7 +240,7 @@ test("handles cut into the front: painted fronts only, never over a mirror; an i
   const extra = followUps(chosen, mirrored, painted);
   assert.equal(extra.handleReset, true);
   const fixed = extra.actions.reduce(atelierReducer, mirrored);
-  assert.deepEqual(fixed.handle, { type: "APLICAT", finish: "INOX" });
+  assert.deepEqual(fixed.handle, { type: "APLICAT" }); // the recessed grip had no colour to carry over
   assert.equal(followUps(mirrored, fixed, painted).handleReset, false);
   // back to board fronts: same
   const board = atelierReducer(chosen, { type: "setFronts", fronts: { kind: "PAL", materialId: "stejar" } });

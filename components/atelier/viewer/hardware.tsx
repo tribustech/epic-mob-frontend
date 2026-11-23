@@ -82,6 +82,8 @@ const HANDLE_STANDOFF_MM = 32;
 const RECESS_LONG_MM = 190;
 const RECESS_SHORT_MM = 46;
 const RECESS_DEEP_MM = 12;
+/** on a side-hung base / upper door: distance from the opening corner to the end of the scoop */
+const RECESS_CORNER_MM = 40;
 /* The milled edge („profil J"): a long, shallow cut in the front's own colour, with a return at each end. */
 const MILL_HIGH_MM = 24;
 const MILL_DEEP_MM = 9;
@@ -124,14 +126,18 @@ function barLength(mode: FrontMode, w: number, h: number): number {
  */
 export function gripNotch(kind: EffectiveHandle, mode: FrontMode, edge: GripEdge, cls: FrontClass, w: number, h: number, d: number, yMm: number): Notch | null {
   if (kind === "INGROPAT") {
-    const vertical = mode === "L" || mode === "R";
-    const along = vertical ? h : w;
-    const across = vertical ? w : h;
+    // Only a tall door is gripped on its side edge; a base / upper door is gripped on its top / bottom
+    // edge by the corner that opens (two doors that meet no longer get two scoops facing each other).
+    const side = (mode === "L" || mode === "R") && cls === "TALL";
+    const along = side ? h : w;
+    const across = side ? w : h;
     if (along < 130 || across < 70) return null;
-    const length = Math.min(RECESS_LONG_MM, along * 0.62);
+    const length = Math.min(RECESS_LONG_MM, along * (side || cls === "DRAWER" || mode === "T" ? 0.62 : 0.45));
     const height = Math.min(RECESS_SHORT_MM, across * 0.42);
-    const at: GripEdge = vertical ? (mode === "R" ? "LEFT" : "RIGHT") : mode === "T" ? "BOTTOM" : "TOP";
-    const centre = vertical ? anchor(cls, mode, w, h, yMm, length)[1] : 0;
+    const at: GripEdge = side ? (mode === "R" ? "LEFT" : "RIGHT") : mode === "T" || cls === "WALL" ? "BOTTOM" : "TOP";
+    let centre = 0;
+    if (side) centre = anchor(cls, mode, w, h, yMm, length)[1];
+    else if (mode === "L" || mode === "R") centre = (mode === "R" ? -1 : 1) * Math.max(0, w / 2 - length / 2 - Math.min(RECESS_CORNER_MM, w * 0.08));
     return { edge: at, centre: centre * S, length: length * S, height: height * S, depth: Math.min(RECESS_DEEP_MM, d * 0.68) * S, radius: Math.min(15, height * 0.4) * S };
   }
   if (kind === "PROFIL_J") {
@@ -207,16 +213,6 @@ function knobGeometry(): THREE.BufferGeometry {
   return knob;
 }
 
-/** The metal shell of a recessed grip (its own geometry: it follows the size of the front). */
-function Shell({ w, h, d, notch, material }: { w: number; h: number; d: number; notch: Notch; material: THREE.Material }) {
-  const geometry = useMemo(
-    () => notchLiner(w * S, h * S, d * S, notch, { lip: 2.4 * S, proud: 0.7 * S, floorDark: 0.26, floorLight: 0.8, wallDark: 0.34 }),
-    [w, h, d, notch],
-  );
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  return <mesh geometry={geometry} material={material} raycast={noRaycast} />;
-}
-
 /** The shade inside a milled edge and the line of its cut. */
 function Mill({ w, h, d, notch, mats }: { w: number; h: number; d: number; notch: Notch; mats: HardwareMaterials }) {
   const veil = useMemo(
@@ -274,8 +270,8 @@ export const FrontHardware = memo(function FrontHardware({
     const [x, y] = anchor(cls, mode, w, h, yMm, 42);
     return <mesh geometry={knobGeometry()} position={[x * S, y * S, face]} material={mats.metal} castShadow raycast={noRaycast} />;
   }
-  if (kind === "INGROPAT" && notch) return <Shell w={w} h={h} d={d} notch={notch} material={mats.shell} />;
-  if (kind === "PROFIL_J" && notch) return <Mill w={w} h={h} d={d} notch={notch} mats={mats} />;
+  // the scoop is routed into the board itself (front colour, shaded inside), not a metal plate on it
+  if ((kind === "INGROPAT" || kind === "PROFIL_J") && notch) return <Mill w={w} h={h} d={d} notch={notch} mats={mats} />;
   return null;
 });
 
