@@ -2,13 +2,15 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Box, Check, ChevronRight, Image as ImageIcon, PencilRuler, Ruler, ShoppingBag, Truck } from "lucide-react";
 import { effectiveHandle } from "@/lib/atelier/handles";
+import { encodeShare } from "@/lib/atelier/share";
 import type { AtelierConfig, AtelierScene } from "@/lib/atelier/types";
 import { MAX_QTY, addToCart, cartCount, cartSizeText, useCart, type AddResult } from "@/lib/shop/cart";
 import { DELIVERY_TEXT } from "@/lib/shop/products";
-import type { ShopItem } from "@/lib/shop/server";
+import type { ShopItem, ShopVariant } from "@/lib/shop/server";
+import { resizedConfig, sizeKey, sizedName, widthLabel } from "@/lib/shop/sizes";
 import { trackPixel } from "@/lib/meta-pixel";
 import { PriceLine, ProductPicture, Swatch } from "./product-card";
 import { formatPrice } from "./price";
@@ -28,13 +30,13 @@ export function ProductView({
   scenes,
   configs,
   initialPaletteId,
-  size,
-  sizes = [],
+  widths,
+  initialWidthMm,
 }: {
-  /** „240 × 220 × 60 cm": the piece is sold at exactly this size */
-  size: string;
-  /** the same model in other sizes (this one included), for the size chips */
-  sizes?: { slug: string; label: string; price: number | null; current: boolean }[];
+  /** the widths the piece is sold in, ascending, the photographed one included („240 × 220 × 60 cm" each) */
+  widths: { widthMm: number; size: string }[];
+  /** ?latime= read on the server */
+  initialWidthMm?: number;
   item: ShopItem;
   scenes: Record<string, AtelierScene | null>;
   configs: Record<string, AtelierConfig>;
@@ -44,6 +46,12 @@ export function ProductView({
   const [paletteId, setPaletteId] = useState(
     initialPaletteId && item.variants.some((v) => v.paletteId === initialPaletteId) ? initialPaletteId : item.variants[0].paletteId,
   );
+  const baseWidthMm = configs[item.variants[0].paletteId]?.widthMm ?? widths[0]?.widthMm ?? 0;
+  const [widthMm, setWidthMm] = useState(
+    initialWidthMm && widths.some((w) => w.widthMm === initialWidthMm) ? initialWidthMm : baseWidthMm,
+  );
+  /** prices at the other widths, by basket key („alb-total@1800"); null = could not be priced */
+  const [sizedPrices, setSizedPrices] = useState<Record<string, { price: number | null; finalPrice: number | null } | null>>({});
   const [view, setView] = useState<"poza" | "3d">("poza");
   const [doorsOpen, setDoorsOpen] = useState(false);
   const [added, setAdded] = useState<"idle" | AddResult>("idle");
@@ -77,11 +85,57 @@ export function ProductView({
     return () => window.clearTimeout(t);
   }, [added]);
 
-  const variant = item.variants.find((v) => v.paletteId === paletteId) ?? item.variants[0];
-  const scene = scenes[variant.paletteId] ?? null;
-  const config = configs[variant.paletteId];
+  const sized = widthMm !== baseWidthMm;
+  const keyOf = (id: string) => sizeKey(id, widthMm, baseWidthMm);
+
+  // another width: today's prices of every colour at that width, from the same route as the basket
+  useEffect(() => {
+    if (!sized) return;
+    const missing = item.variants.map((v) => keyOf(v.paletteId)).filter((k) => !(k in sizedPrices));
+    if (missing.length === 0) return;
+    let live = true;
+    fetch("/api/magazin/preturi", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ lines: missing.map((k) => ({ slug: item.slug, paletteId: k })) }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { lines?: { paletteId: string; available: boolean; price: number | null; finalPrice: number | null }[] } | null) => {
+        if (!live) return;
+        const next: typeof sizedPrices = {};
+        for (const k of missing) {
+          const l = data?.lines?.find((x) => x.paletteId === k);
+          next[k] = l?.available ? { price: l.price, finalPrice: l.finalPrice } : null;
+        }
+        setSizedPrices((prev) => ({ ...prev, ...next }));
+      })
+      .catch(() => live && setSizedPrices((prev) => ({ ...prev, ...Object.fromEntries(missing.map((k) => [k, null])) })));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [widthMm, item.slug, item.variants]);
+
+  /** a colour with the prices of the chosen width (undefined price = still loading) */
+  const at = (v: ShopVariant): ShopVariant & { loading?: boolean } => {
+    if (!sized) return v;
+    const k = keyOf(v.paletteId);
+    if (!(k in sizedPrices)) return { ...v, price: null, finalPrice: null, loading: true };
+    const p = sizedPrices[k];
+    return { ...v, price: p?.price ?? null, finalPrice: p?.finalPrice ?? null };
+  };
+
+  const base = item.variants.find((v) => v.paletteId === paletteId) ?? item.variants[0];
+  const variant = at(base);
+  const baseConfig = configs[variant.paletteId];
+  const config = useMemo(() => (baseConfig && sized ? resizedConfig(baseConfig, widthMm) : baseConfig) ?? undefined, [baseConfig, sized, widthMm]);
+  const share = sized && config ? encodeShare(config) : variant.share;
+  // the 3D scene is the photographed width; other widths show the photo with a note
+  const scene = sized ? null : (scenes[variant.paletteId] ?? null);
   const handle = config ? effectiveHandle(config) : null;
-  const inCart = cart.find((l) => l.slug === item.slug && l.paletteId === variant.paletteId)?.qty ?? 0;
+  const cartKey = keyOf(variant.paletteId);
+  const sizeNow = widths.find((w) => w.widthMm === widthMm)?.size ?? widths[0]?.size ?? "";
+  const inCart = cart.find((l) => l.slug === item.slug && l.paletteId === cartKey)?.qty ?? 0;
   const cartTotal = cartCount(cart);
 
   const choose = (id: string) => {
@@ -93,12 +147,22 @@ export function ProductView({
     window.history.replaceState(null, "", url.toString());
   };
 
+  const chooseWidth = (w: number) => {
+    setWidthMm(w);
+    setAdded("idle");
+    if (w !== baseWidthMm) setView("poza");
+    const url = new URL(window.location.href);
+    if (w === baseWidthMm) url.searchParams.delete("latime");
+    else url.searchParams.set("latime", String(w));
+    window.history.replaceState(null, "", url.toString());
+  };
+
   const add = () => {
     const onOffer = !!item.offer && variant.price != null && variant.finalPrice != null && variant.finalPrice < variant.price;
     const result = addToCart({
       slug: item.slug,
-      paletteId: variant.paletteId,
-      name: item.name,
+      paletteId: cartKey,
+      name: sizedName(item.name, baseWidthMm, widthMm),
       colour: variant.name,
       price: variant.finalPrice,
       regularPrice: onOffer ? variant.price : null,
@@ -138,6 +202,7 @@ export function ProductView({
             </div>
           )}
           {item.offer && !show3d && <span className="shop-tag shop-tag--offer shop-viewer__tag">{item.offer.label}</span>}
+          {sized && <span className="shop-viewer__note">Poza arată modelul de {widthLabel(baseWidthMm)}. Tu îl primești la {widthLabel(widthMm)} lățime.</span>}
         </div>
         {scene && config && (
           <div className="shop-viewswitch" role="group" aria-label="Cum vrei să vezi produsul">
@@ -153,13 +218,13 @@ export function ProductView({
 
       <div className="shop-product__info">
         {!item.offer && item.badge ? <span className="shop-tag shop-tag--soft">{item.badge}</span> : null}
-        <h1 className="display-font shop-product__title">{item.name}</h1>
+        <h1 className="display-font shop-product__title">{sizedName(item.name, baseWidthMm, widthMm)}</h1>
         <p className="shop-product__tagline">{item.tagline}</p>
         <p className="shop-product__size">
-          <Ruler size={17} aria-hidden="true" /> <span>{size}</span> <span className="shop-product__size-key">lățime × înălțime × adâncime</span>
+          <Ruler size={17} aria-hidden="true" /> <span>{sizeNow}</span> <span className="shop-product__size-key">lățime × înălțime × adâncime</span>
         </p>
 
-        <PriceLine variant={variant} offer={item.offer} size="lg" />
+        {variant.loading ? <p className="shop-product__pricing">Calculăm prețul pentru {widthLabel(widthMm)}…</p> : <PriceLine variant={variant} offer={item.offer} size="lg" />}
         {item.offer && variant.price != null && (
           <p className="shop-product__offer-note">
             {item.offer.label}: prețul obișnuit este {formatPrice(variant.price)}. Oferta ține până pe {offerEndText(item.offer)}.
@@ -179,7 +244,7 @@ export function ProductView({
                   <Swatch variant={v} size={38} />
                   <span className="shop-colour__text">
                     <span className="shop-colour__name">{v.name}</span>
-                    {v.finalPrice != null && <span className="shop-colour__price">{formatPrice(v.finalPrice)}</span>}
+                    {at(v).finalPrice != null && <span className="shop-colour__price">{formatPrice(at(v).finalPrice as number)}</span>}
                   </span>
                   {on && (
                     <span className="shop-colour__check" aria-hidden="true">
@@ -200,25 +265,21 @@ export function ProductView({
           </p>
         </fieldset>
 
-        {sizes.length > 1 && (
-          <nav className="shop-sizes" aria-label="Alte mărimi">
-            <span className="shop-sizes__label">Mărimea</span>
+        {widths.length > 1 && (
+          <fieldset className="shop-sizes">
+            <legend className="shop-sizes__label">Alege lățimea</legend>
             <div className="shop-sizes__list">
-              {sizes.map((s) =>
-                s.current ? (
-                  <span key={s.slug} className="shop-size is-active" aria-current="page">
-                    <strong>{s.label}</strong>
-                    {variant.finalPrice != null && <span>{formatPrice(variant.finalPrice)}</span>}
-                  </span>
-                ) : (
-                  <Link key={s.slug} href={`/magazin/${s.slug}?culoare=${variant.paletteId}`} className="shop-size">
-                    <strong>{s.label}</strong>
-                    {s.price != null && <span>de la {formatPrice(s.price)}</span>}
-                  </Link>
-                ),
-              )}
+              {widths.map((w) => {
+                const on = w.widthMm === widthMm;
+                return (
+                  <button key={w.widthMm} type="button" className={`shop-size ${on ? "is-active" : ""}`} aria-pressed={on} data-width={w.widthMm} onClick={() => chooseWidth(w.widthMm)}>
+                    <strong>{widthLabel(w.widthMm)}</strong>
+                    <span>{w.widthMm === baseWidthMm ? "ca în poză" : w.widthMm < baseWidthMm ? "mai îngust" : "mai lat"}</span>
+                  </button>
+                );
+              })}
             </div>
-          </nav>
+          </fieldset>
         )}
 
         <div className="shop-buy" ref={buyRef}>
@@ -251,13 +312,13 @@ export function ProductView({
           </p>
         </div>
 
-        <Link href={`/configurator?c=${variant.share}`} className="shop-customize">
+        <Link href={`/configurator?c=${share}`} className="shop-customize">
           <span className="shop-customize__icon">
             <PencilRuler size={20} aria-hidden="true" />
           </span>
           <span className="shop-customize__text">
             <strong>Personalizează în Atelierul 3D</strong>
-            <span>Altă lățime, alt interior, alte uși sau mânere. Pornești exact de la acest produs.</span>
+            <span>Orice altă lățime, alt interior, alte uși sau mânere. Pornești exact de la acest produs.</span>
             {item.offer && (
               <span className="shop-customize__offer">
                 {item.offer.label} (−{item.offer.percent}%) se aplică doar modelului standard din magazin. În Atelierul 3D vezi prețul obișnuit.

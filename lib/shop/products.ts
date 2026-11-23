@@ -471,8 +471,8 @@ export function withMirror(preset: LayoutPreset): boolean {
 const cmText = (mm: number) => `${Math.round(mm / 10)}`;
 
 /** „240 × 260 × 60 cm" (lățime × înălțime × adâncime) */
-export function sizeText(preset: LayoutPreset): string {
-  const s = preset.shape;
+export function sizeText(preset: LayoutPreset, widthMm?: number): string {
+  const s = widthMm ? { ...preset.shape, widthMm } : preset.shape;
   if (s.category === "BAIE") return `${cmText(s.widthMm)} × ${cmText(s.heightMm)} × ${cmText(s.depthMm)} cm`;
   if (s.category === "BUCATARIE") {
     const b = s.kitchen?.layout !== "LINIAR" ? s.kitchen?.legB : undefined;

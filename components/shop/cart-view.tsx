@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { splitSizeKey } from "@/lib/shop/sizes";
 import { ArrowLeft, ArrowRight, CheckCircle2, CircleAlert, Minus, PhoneCall, Plus, Ruler, ShoppingBag, Trash2, Truck } from "lucide-react";
 import { trackPixel } from "@/lib/meta-pixel";
 import { ConsentNote } from "@/components/legal/consent-note";
@@ -21,7 +22,7 @@ const lineKey = (l: { slug: string; paletteId: string }) => `${l.slug}|${l.palet
 
 function lineImage(l: CartLine): string | null {
   const product = productBySlug(l.slug);
-  return product ? pictureOf(l.slug, l.paletteId) : null;
+  return product ? pictureOf(l.slug, splitSizeKey(l.paletteId).paletteId) : null;
 }
 
 export function CartView() {
@@ -287,7 +288,8 @@ export function CartView() {
           <ul className="shop-cart__lines" ref={listRef}>
             {lines.map((l) => {
               const img = lineImage(l);
-              const href = `/magazin/${l.slug}?culoare=${l.paletteId}`;
+              const sk = splitSizeKey(l.paletteId);
+              const href = `/magazin/${l.slug}?culoare=${sk.paletteId}${sk.widthMm ? `&latime=${sk.widthMm}` : ""}`;
               const onOffer = l.regularPrice != null && l.price != null && l.regularPrice > l.price && l.offerPercent > 0;
               const unavailable = gone.includes(lineKey(l));
               return (

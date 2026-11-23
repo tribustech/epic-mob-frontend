@@ -10,6 +10,7 @@ import { encodeShare } from "@/lib/atelier/share";
 import { atelierReducer } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig, AtelierPriceResult, AtelierScene } from "@/lib/atelier/types";
 import { offerFor, offerPrice, type ShopOffer } from "./offers";
+import { resizedConfig, sizeKey, sizedName, sizeOptions, splitSizeKey } from "./sizes";
 import { carcassSpec, frontSpec } from "./specs";
 import { SHOP_PRODUCTS, pictureOf, productBySlug, type ShopProduct } from "./products";
 
@@ -201,18 +202,23 @@ export interface PricedShopLine {
   offerLabel: string | null;
 }
 
-/** null when the product or colour is no longer sold. */
-export async function priceShopLine(slug: string, paletteId: string, catalog: AtelierCatalog, palettes: ResolvedPalette[]): Promise<PricedShopLine | null> {
+/** null when the product or colour is no longer sold, or the width is not one it is sold in. */
+export async function priceShopLine(slug: string, key: string, catalog: AtelierCatalog, palettes: ResolvedPalette[]): Promise<PricedShopLine | null> {
   const product = productBySlug(slug);
+  const { paletteId, widthMm } = splitSizeKey(key);
   const palette = palettes.find((p) => p.id === paletteId);
   if (!product || !palette || !product.paletteIds.includes(paletteId) || !presetAvailable(product.preset, catalog)) return null;
-  const config = variantConfig(product, palette, catalog);
+  const base = variantConfig(product, palette, catalog);
+  if (widthMm != null && !sizeOptions(product.preset).includes(widthMm)) return null;
+  const config = widthMm == null ? base : resizedConfig(base, widthMm);
+  if (!config) return null;
   const { price } = await priceOf(config);
   const offer = offerFor(product.slug, product.category);
+  const sized = widthMm != null && widthMm !== product.preset.shape.widthMm;
   return {
     slug: product.slug,
-    paletteId: palette.id,
-    name: product.preset.name,
+    paletteId: sizeKey(palette.id, widthMm, product.preset.shape.widthMm),
+    name: sized ? sizedName(product.preset.name, product.preset.shape.widthMm, widthMm) : product.preset.name,
     colour: palette.name,
     config,
     price,
