@@ -2442,3 +2442,115 @@
   color: var(--espresso);
   text-decoration-color: currentColor;
 }
+
+/* ── room and kind-of-furniture pages (/magazin/camera/…, /magazin/categorie/…) ── */
+.shop-landing__hero {
+  padding-top: 0.5rem;
+}
+.shop-landing__count {
+  margin-top: 1rem;
+  font-weight: 700;
+  color: var(--espresso);
+}
+.shop-landing__about {
+  margin-top: 4rem;
+  display: grid;
+  gap: 2.5rem;
+}
+@media (min-width: 1024px) {
+  .shop-landing__about {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 4rem;
+    align-items: start;
+  }
+}
+.shop-landing__text p {
+  margin-top: 0.9rem;
+  max-width: 40rem;
+  line-height: 1.65;
+  color: var(--mocha-72);
+}
+.shop-landing__text .shop-landing__materials-title {
+  margin-top: 1.4rem;
+  font-weight: 700;
+  color: var(--espresso);
+}
+.shop-landing__materials {
+  margin-top: 0.4rem;
+  display: grid;
+  gap: 0.2rem;
+}
+.shop-landing__materials a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
+.shop-faq {
+  border-bottom: 1px solid var(--line);
+}
+.shop-faq:first-of-type {
+  margin-top: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+.shop-faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.2rem;
+  padding: 0.8rem 0;
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+}
+.shop-faq summary::-webkit-details-marker {
+  display: none;
+}
+.shop-faq summary svg {
+  flex-shrink: 0;
+  color: var(--shop-accent);
+  transition: transform 0.2s ease;
+}
+.shop-faq[open] summary svg {
+  transform: rotate(180deg);
+}
+.shop-faq p {
+  padding-bottom: 1rem;
+  line-height: 1.6;
+  color: var(--mocha-72);
+}
+.shop-landing__more {
+  margin-top: 1.2rem;
+  color: var(--shop-muted);
+}
+.shop-landing__nav {
+  margin-top: 3.5rem;
+  display: grid;
+  gap: 1.6rem;
+}
+.shop-landing__nav--top {
+  margin-top: 1.6rem;
+}
+@media (min-width: 1024px) {
+  .shop-landing__nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem;
+  }
+}
+.shop-landing__chips {
+  margin-top: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.shop-landing__chips .shop-opt {
+  white-space: normal;
+}
+.shop-browser__pages {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.2rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}

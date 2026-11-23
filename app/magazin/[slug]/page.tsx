@@ -12,6 +12,7 @@ import { BRAND, baseOpenGraph } from "@/lib/seo";
 import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, colourCountText, pictureOf, productBySlug, productFacts, sizeText } from "@/lib/shop/products";
 import { BOARDS_PAGE, DECOR_NOTE, HARDWARE_PAGE, constructionSpec } from "@/lib/shop/specs";
 import { getShopItems, getShopProduct } from "@/lib/shop/server";
+import { categoryLandingOf, roomLandingOf } from "@/lib/shop/landing";
 
 export const revalidate = 600;
 
@@ -59,6 +60,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!data) notFound();
   const { item, scenes, configs } = data;
   const category = SHOP_CATEGORIES.find((c) => c.id === item.category);
+  const categoryPage = categoryLandingOf(item.category);
 
   const { items } = await getShopItems();
   const related = items
@@ -97,6 +99,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const breadcrumbJsonLd = buildBreadcrumbSchema([
     { name: "Acasă", path: "/" },
     { name: "Magazin", path: "/magazin" },
+    ...(categoryPage ? [{ name: categoryPage.name, path: categoryPage.path }] : []),
     { name: item.name, path: `/magazin/${slug}` },
   ]);
 
@@ -113,7 +116,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {category && (
               <li>
                 <ChevronRight size={14} aria-hidden="true" />
-                <Link href={`/magazin?categorie=${category.id}#produse`}>{category.label}</Link>
+                <Link href={categoryPage?.path ?? `/magazin?categorie=${category.id}#produse`}>{category.label}</Link>
               </li>
             )}
             <li className="shop-crumbs__here">
@@ -132,7 +135,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {productFacts(product.preset).map((f) => (
                 <li key={f}>{f}</li>
               ))}
-              <li>Potrivit pentru: {item.rooms.map((r) => ROOM_LABELS[r].toLowerCase()).join(", ")}</li>
+              <li>
+                Potrivit pentru:{" "}
+                {item.rooms.map((r, i) => {
+                  const page = roomLandingOf(r);
+                  const label = ROOM_LABELS[r].toLowerCase();
+                  return (
+                    <span key={r}>
+                      {i > 0 && ", "}
+                      {page ? (
+                        <Link href={page.path} className="shop-matlink">
+                          {label}
+                        </Link>
+                      ) : (
+                        label
+                      )}
+                    </span>
+                  );
+                })}
+              </li>
             </ul>
           </div>
           <div>

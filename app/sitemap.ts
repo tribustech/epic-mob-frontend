@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/business-data";
 import { allPortfolioProjects } from "@/lib/portfolio-data";
 import { materialSlugs } from "@/lib/materials-data";
+import { MIN_LANDING_PRODUCTS, categoryLandings, onLanding, roomLandings } from "@/lib/shop/landing";
+import { productBySlug } from "@/lib/shop/products";
 import { availableProductSlugs } from "@/lib/shop/server";
 
 // the shop part follows the CRM catalog (a kitchen page opens only once the CRM prices kitchens)
@@ -41,12 +43,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // only the product pages that open (the product page shows 404 for the others); none while the CRM is
   // unreachable, since the pages cannot be built then either
-  const shopRoutes: MetadataRoute.Sitemap = ((await availableProductSlugs()) ?? []).map((slug) => ({
+  const available = (await availableProductSlugs()) ?? [];
+  const shopRoutes: MetadataRoute.Sitemap = available.map((slug) => ({
     url: `${SITE_URL}/magazin/${slug}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...shopRoutes, ...portfolioRoutes, ...materialRoutes];
+  // room and kind-of-furniture pages, only those that open now (the page is a 404 with fewer products)
+  const products = available.map((slug) => productBySlug(slug)).filter((p) => !!p);
+  const landingRoutes: MetadataRoute.Sitemap = [...categoryLandings(), ...roomLandings()]
+    .filter((l) => products.filter((p) => onLanding(l, p)).length >= MIN_LANDING_PRODUCTS)
+    .map((l) => ({
+      url: `${SITE_URL}${l.path}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    }));
+
+  return [...staticRoutes, ...landingRoutes, ...shopRoutes, ...portfolioRoutes, ...materialRoutes];
 }
