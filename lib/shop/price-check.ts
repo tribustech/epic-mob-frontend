@@ -9,11 +9,14 @@ import { atelierReducer, type AtelierAction } from "../atelier/state";
 import type { AtelierCatalog, AtelierConfig, DoorFill, DoorType, HandleKind } from "../atelier/types.ts";
 import { offerFor, type ShopOffer } from "./offers";
 import { SHOP_CATEGORIES, SHOP_PRODUCTS, type ShopProduct } from "./products";
-import { variantConfig } from "./server";
+import { FRONT_INFO, FRONT_SLUG } from "./fronts";
+import { frontVariants, variantConfig } from "./server";
 
 /**
  * Every combination the shop sells, for the admin price check (site /admin/preturi, CRM „Magazin"):
  *  - every product × every colour it is sold in, exactly as the shop builds it (variantConfig);
+ *  - every colour on the other boards of fronts the shop page offers (MDF melaminat AGT, MDF vopsit, or PAL
+ *    for an AGT / painted colour);
  *  - on the product's default colour, the options a client can switch to in the configurator, one at a
  *    time from the default: every other handle type the catalog offers and the fronts can take, and for
  *    wardrobes every other door type (none / sliding / hinged × panel / mirror / glass). Mirror versus no
@@ -126,6 +129,12 @@ export function priceCheckRows(catalog: AtelierCatalog, today?: string): PriceCh
       });
       rows.push(row("", "Ca în magazin", base));
       if (i === 0) for (const v of optionVariants(base, catalog)) rows.push(row(v.variant, v.label, v.config));
+      // every colour on the other boards of fronts the shop sells it on (PAL · AGT · vopsit), as on its page
+      for (const { option, config } of frontVariants(product, palette, catalog, base)) {
+        if (option.native || !config) continue;
+        const r = row(`fronturi:${option.material}`, `Fronturi ${FRONT_INFO[option.material].label}${option.colourName ? ` (${option.colourName})` : ""}`, config);
+        rows.push({ ...r, path: `${r.path}${r.path.includes("?") ? "&" : "?"}fronturi=${FRONT_SLUG[option.material]}` });
+      }
     });
   }
   return rows;

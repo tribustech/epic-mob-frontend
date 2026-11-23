@@ -4,13 +4,16 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Box, Check, ChevronRight, Image as ImageIcon, PencilRuler, Ruler, ShoppingBag, Truck } from "lucide-react";
-import { effectiveHandle } from "@/lib/atelier/handles";
+import type { FrontMaterial } from "@/lib/atelier/front-materials";
+import { effectiveHandle, frontsNoun } from "@/lib/atelier/handles";
 import { encodeShare } from "@/lib/atelier/share";
 import type { AtelierConfig, AtelierScene } from "@/lib/atelier/types";
 import { MAX_QTY, addToCart, cartCount, cartSizeText, useCart, type AddResult } from "@/lib/shop/cart";
 import { DELIVERY_TEXT } from "@/lib/shop/products";
 import { materialPageOf } from "@/lib/shop/specs";
-import type { ShopItem, ShopVariant } from "@/lib/shop/server";
+import type { ShopFrontOption, ShopItem, ShopVariant } from "@/lib/shop/server";
+import { FRONT_INFO, colourWithFronts, frontMaterialFromSlug, FRONT_SLUG } from "@/lib/shop/fronts";
+import { swatchStyle } from "@/components/atelier/material-look";
 import { resizedConfig, sizeKey, sizedName, widthLabel } from "@/lib/shop/sizes";
 import { trackPixel } from "@/lib/meta-pixel";
 import { PriceLine, ProductPicture, Swatch } from "./product-card";
@@ -50,7 +53,10 @@ export function ProductView({
   initialPaletteId,
   widths,
   initialWidthMm,
+  fronts = {},
 }: {
+  /** the boards of fronts each colour comes in (PAL · AGT · vopsit); empty for a piece without fronts */
+  fronts?: Record<string, ShopFrontOption[]>;
   /** the widths the piece is sold in, ascending, the photographed one included („240 × 220 × 60 cm" each) */
   widths: { widthMm: number; size: string }[];
   /** ?latime= read on the server */
@@ -68,7 +74,9 @@ export function ProductView({
   const [widthMm, setWidthMm] = useState(
     initialWidthMm && widths.some((w) => w.widthMm === initialWidthMm) ? initialWidthMm : baseWidthMm,
   );
-  /** prices at the other widths, by basket key („alb-total@1800"); null = could not be priced */
+  /** the board of the fronts the client chose; null = each colour's own (PAL for most) */
+  const [frontChoice, setFrontChoice] = useState<FrontMaterial | null>(null);
+  /** prices at other widths / on other boards, by basket key („alb-total~agt@1800"); null = could not be priced */
   const [sizedPrices, setSizedPrices] = useState<Record<string, { price: number | null; finalPrice: number | null } | null>>({});
   const [view, setView] = useState<"poza" | "3d">("poza");
   const [doorsOpen, setDoorsOpen] = useState(false);
@@ -86,6 +94,8 @@ export function ProductView({
       if (wanted && item.variants.some((v) => v.paletteId === wanted)) setPaletteId(wanted);
       const w = Number(q.get("latime"));
       if (widths.some((x) => x.widthMm === w)) setWidthMm(w);
+      const f = frontMaterialFromSlug(q.get("fronturi"));
+      if (f) setFrontChoice(f);
     };
     fromUrl();
   }, [item.variants, widths]);
@@ -107,12 +117,23 @@ export function ProductView({
   }, [added]);
 
   const sized = widthMm !== baseWidthMm;
-  const keyOf = (id: string) => sizeKey(id, widthMm, baseWidthMm);
+  /** the board a colour is shown on: the client's choice when the colour comes on it, else its own */
+  const frontOf = (id: string): ShopFrontOption | undefined => {
+    const list = fronts[id] ?? [];
+    return (frontChoice && list.find((o) => o.material === frontChoice && !o.reason)) || list.find((o) => o.native);
+  };
+  const keyOf = (id: string) => sizeKey(frontOf(id)?.key ?? id, widthMm, baseWidthMm);
+  /** basket keys that the page did not price on the server (another width, another board) */
+  const extraKey = (k: string) => !item.variants.some((v) => v.paletteId === k);
+  const shownFront = frontOf(paletteId);
+  const frontList = fronts[paletteId] ?? [];
 
-  // another width: today's prices of every colour at that width, from the same route as the basket
+  // another width or another board: today's prices from the same route as the basket (every colour on the
+  // chosen board, and the current colour on each board, so every button shows its price)
   useEffect(() => {
-    if (!sized) return;
-    const missing = item.variants.map((v) => keyOf(v.paletteId)).filter((k) => !(k in sizedPrices));
+    const wanted = new Set(item.variants.map((v) => keyOf(v.paletteId)));
+    for (const o of frontList) if (!o.reason) wanted.add(sizeKey(o.key, widthMm, baseWidthMm));
+    const missing = [...wanted].filter((k) => extraKey(k) && !(k in sizedPrices));
     if (missing.length === 0) return;
     let live = true;
     fetch("/api/magazin/preturi", {
@@ -135,22 +156,29 @@ export function ProductView({
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [widthMm, item.slug, item.variants]);
+  }, [widthMm, frontChoice, paletteId, item.slug, item.variants]);
 
-  /** a colour with the prices of the chosen width (undefined price = still loading) */
-  const at = (v: ShopVariant): ShopVariant & { loading?: boolean } => {
-    if (!sized) return v;
-    const k = keyOf(v.paletteId);
-    if (!(k in sizedPrices)) return { ...v, price: null, finalPrice: null, loading: true };
+  /** the prices of one basket key (undefined = still loading) */
+  const pricesOf = (k: string, v: ShopVariant): { price: number | null; finalPrice: number | null } | undefined => {
+    if (!extraKey(k)) return { price: v.price, finalPrice: v.finalPrice };
+    if (!(k in sizedPrices)) return undefined;
     const p = sizedPrices[k];
-    return { ...v, price: p?.price ?? null, finalPrice: p?.finalPrice ?? null };
+    return { price: p?.price ?? null, finalPrice: p?.finalPrice ?? null };
+  };
+
+  /** a colour with the prices of the chosen width and board (loading = still being priced) */
+  const at = (v: ShopVariant): ShopVariant & { loading?: boolean } => {
+    const p = pricesOf(keyOf(v.paletteId), v);
+    if (!p) return { ...v, price: null, finalPrice: null, loading: true };
+    return { ...v, ...p };
   };
 
   const base = item.variants.find((v) => v.paletteId === paletteId) ?? item.variants[0];
   const variant = at(base);
-  const baseConfig = configs[variant.paletteId];
+  const otherFront = shownFront && !shownFront.native ? shownFront : null;
+  const baseConfig = configs[otherFront?.key ?? variant.paletteId] ?? configs[variant.paletteId];
   const config = useMemo(() => (baseConfig && sized ? resizedConfig(baseConfig, widthMm) : baseConfig) ?? undefined, [baseConfig, sized, widthMm]);
-  const share = sized && config ? encodeShare(config) : variant.share;
+  const share = (sized || otherFront) && config ? encodeShare(config) : variant.share;
   // the 3D scene is the photographed width; other widths show the photo with a note
   const scene = sized ? null : (scenes[variant.paletteId] ?? null);
   const handle = config ? effectiveHandle(config) : null;
@@ -158,6 +186,15 @@ export function ProductView({
   const sizeNow = widths.find((w) => w.widthMm === widthMm)?.size ?? widths[0]?.size ?? "";
   const inCart = cart.find((l) => l.slug === item.slug && l.paletteId === cartKey)?.qty ?? 0;
   const cartTotal = cartCount(cart);
+
+  const chooseFront = (m: FrontMaterial) => {
+    setFrontChoice(m);
+    setAdded("idle");
+    const url = new URL(window.location.href);
+    if (frontList.find((o) => o.material === m)?.native) url.searchParams.delete("fronturi");
+    else url.searchParams.set("fronturi", FRONT_SLUG[m]);
+    window.history.replaceState(null, "", url.toString());
+  };
 
   const choose = (id: string) => {
     setPaletteId(id);
@@ -184,7 +221,7 @@ export function ProductView({
       slug: item.slug,
       paletteId: cartKey,
       name: sizedName(item.name, baseWidthMm, widthMm),
-      colour: variant.name,
+      colour: colourWithFronts(variant.name, otherFront?.material ?? null),
       price: variant.finalPrice,
       regularPrice: onOffer ? variant.price : null,
       offerPercent: onOffer ? item.offer!.percent : 0,
@@ -195,6 +232,9 @@ export function ProductView({
   };
 
   const show3d = view === "3d" && !!scene && !!config;
+  const frontsWord = config ? frontsNoun(config) : { plain: "uși", the: "ușile" };
+  const nativeFront = frontList.find((o) => o.native);
+  const nativeLabel = nativeFront ? FRONT_INFO[nativeFront.material].label : "PAL melaminat";
   const canBuy = variant.finalPrice != null;
   const done = added === "added";
   const addIcon = done ? <Check size={18} aria-hidden="true" /> : <ShoppingBag size={18} aria-hidden="true" />;
@@ -209,7 +249,7 @@ export function ProductView({
               columns={config.columns.map((c) => c.content)}
               railPositions={config.columns.map((c) => c.railPosition)}
               carcass={variant.carcass}
-              front={variant.front}
+              front={otherFront?.look ?? variant.front}
               updating={false}
               doorsOpen={doorsOpen}
               onDoorsOpenChange={setDoorsOpen}
@@ -223,7 +263,13 @@ export function ProductView({
             </div>
           )}
           {item.offer && !show3d && <span className="shop-tag shop-tag--offer shop-viewer__tag">{item.offer.label}</span>}
-          {sized && <span className="shop-viewer__note">Poza arată modelul de {widthLabel(baseWidthMm)}. Tu îl primești la {widthLabel(widthMm)} lățime.</span>}
+          {(sized || (otherFront && !show3d)) && (
+            <span className="shop-viewer__note">
+              {sized && `Poza arată modelul de ${widthLabel(baseWidthMm)}. Tu îl primești la ${widthLabel(widthMm)} lățime.`}
+              {sized && otherFront && !show3d && " "}
+              {otherFront && !show3d && `Poza arată ${frontsWord.the} din ${nativeLabel}. Tu le primești din ${FRONT_INFO[otherFront.material].label}${otherFront.colourName ? ` (${otherFront.colourName})` : ""}.`}
+            </span>
+          )}
         </div>
         {scene && config && (
           <div className="shop-viewswitch" role="group" aria-label="Cum vrei să vezi produsul">
@@ -245,7 +291,11 @@ export function ProductView({
           <Ruler size={17} aria-hidden="true" /> <span>{sizeNow}</span> <span className="shop-product__size-key">lățime × înălțime × adâncime</span>
         </p>
 
-        {variant.loading ? <p className="shop-product__pricing">Calculăm prețul pentru {widthLabel(widthMm)}…</p> : <PriceLine variant={variant} offer={item.offer} size="lg" />}
+        {variant.loading ? (
+          <p className="shop-product__pricing">Calculăm prețul{sized ? ` pentru ${widthLabel(widthMm)}` : ""}{otherFront ? ` cu ${frontsWord.plain} din ${FRONT_INFO[otherFront.material].label}` : ""}…</p>
+        ) : (
+          <PriceLine variant={variant} offer={item.offer} size="lg" />
+        )}
         {item.offer && variant.price != null && (
           <p className="shop-product__offer-note">
             {item.offer.label}: prețul obișnuit este {formatPrice(variant.price)}. Oferta ține până pe {offerEndText(item.offer)}.
@@ -281,10 +331,62 @@ export function ProductView({
               <strong>Corp:</strong> <SpecText spec={variant.carcassSpec} link /> ({plainDecor(variant.carcassName)})
             </span>
             <span>
-              <strong>Uși și fețe:</strong> <SpecText spec={variant.frontSpec} link={materialPageOf(variant.frontSpec) !== materialPageOf(variant.carcassSpec)} /> ({plainDecor(variant.frontName)})
+              <strong>Uși și fețe:</strong>{" "}
+              {otherFront?.spec ? (
+                <>
+                  <SpecText spec={otherFront.spec} link={materialPageOf(otherFront.spec) !== materialPageOf(variant.carcassSpec)} />
+                  {otherFront.colourName ? ` (${otherFront.colourName.split(" · ")[0]})` : ""}
+                </>
+              ) : (
+                <>
+                  <SpecText spec={variant.frontSpec} link={materialPageOf(variant.frontSpec) !== materialPageOf(variant.carcassSpec)} /> ({plainDecor(variant.frontName)})
+                </>
+              )}
             </span>
           </p>
         </fieldset>
+
+        {frontList.length > 1 && (
+          <fieldset className="shop-fronts">
+            <legend className="shop-sizes__label">Din ce sunt {frontsWord.the}</legend>
+            <div className="shop-fronts__list">
+              {frontList.map((o) => {
+                const on = o.material === shownFront?.material;
+                const p = o.reason ? undefined : pricesOf(sizeKey(o.key, widthMm, baseWidthMm), base);
+                const info = FRONT_INFO[o.material];
+                return (
+                  <button
+                    key={o.material}
+                    type="button"
+                    className={`shop-front ${on ? "is-active" : ""}`}
+                    aria-pressed={on}
+                    disabled={!!o.reason}
+                    data-front={FRONT_SLUG[o.material]}
+                    onClick={() => chooseFront(o.material)}
+                  >
+                    <span className="shop-front__swatch" style={o.look ? swatchStyle(o.look) : undefined} aria-hidden="true" />
+                    <span className="shop-front__text">
+                      <span className="shop-front__head">
+                        <strong>{info.label}</strong>
+                        <span className="shop-front__price">
+                          {o.reason ? "" : p === undefined ? "…" : p.finalPrice != null ? formatPrice(p.finalPrice) : "—"}
+                        </span>
+                      </span>
+                      {o.reason ? (
+                        <span className="shop-front__reason">{o.reason}</span>
+                      ) : (
+                        <>
+                          {o.colourName && <span className="shop-front__colour">{o.colourName}</span>}
+                          <span className="shop-front__blurb">{info.blurb}</span>
+                        </>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        )}
 
         {widths.length > 1 && (
           <fieldset className="shop-sizes">
@@ -361,7 +463,7 @@ export function ProductView({
             {variant.finalPrice != null && formatPrice(variant.finalPrice)}
             {item.offer && variant.price != null && <s>{formatPrice(variant.price)}</s>}
           </span>
-          <span className="shop-sticky__colour">{variant.name}</span>
+          <span className="shop-sticky__colour">{colourWithFronts(variant.name, otherFront?.material ?? null)}</span>
         </div>
         {cartTotal > 0 && (
           <Link href="/magazin/cos" className="shop-sticky__cart" aria-label={`Vezi coșul: ${cartSizeText(cart.length, cartTotal)}`}>

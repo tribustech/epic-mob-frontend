@@ -1,7 +1,8 @@
 import { unstable_cache } from "next/cache";
 import { carcassLook, frontLook, type MaterialLook } from "@/components/atelier/material-look";
 import { crmFetch, getAtelierCatalog } from "@/lib/atelier/crm";
-import { handleUnavailable, hasHandledFronts } from "@/lib/atelier/handles";
+import { frontOptions, materialOfKind, type FrontMaterial } from "@/lib/atelier/front-materials";
+import { handleUnavailable, hasHandledFronts, usesFronts } from "@/lib/atelier/handles";
 import { followUps } from "@/lib/atelier/house-rules";
 import { resolvePalettes, type ResolvedPalette } from "@/lib/atelier/palettes";
 import { presetAvailable } from "@/lib/atelier/presets";
@@ -10,6 +11,7 @@ import { encodeShare } from "@/lib/atelier/share";
 import { atelierReducer } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig, AtelierPriceResult, AtelierScene } from "@/lib/atelier/types";
 import { offerFor, offerPrice, type ShopOffer } from "./offers";
+import { colourWithFronts, frontKey } from "./fronts";
 import { resizedConfig, sizeKey, sizedName, sizeOptions, splitSizeKey } from "./sizes";
 import { carcassSpec, frontSpec } from "./specs";
 import { SHOP_PRODUCTS, pictureOf, productBySlug, type ShopProduct } from "./products";
@@ -31,6 +33,23 @@ export interface ShopVariant {
   finalPrice: number | null;
   /** `/configurator?c=…` code */
   share: string;
+}
+
+/** One board the fronts of a colour can be made of, on the product page (lib/atelier/front-materials.ts). */
+export interface ShopFrontOption {
+  material: FrontMaterial;
+  /** the board the colour is drawn with: its photo and its listed price */
+  native: boolean;
+  /** the colour id with this board („alb-casmir~vopsit"; the native board: the colour id) */
+  key: string;
+  /** why it is not offered for this colour („Vopsit doar în culori uni"); null = offered */
+  reason: string | null;
+  /** the colour on this board: „Soft Touch White · AGT 734" */
+  colourName: string | null;
+  /** how these fronts are drawn (3D, swatch) */
+  look: MaterialLook | null;
+  /** „MDF vopsit RAL 9016, mat" */
+  spec: string | null;
 }
 
 export interface ShopItem {
@@ -64,6 +83,33 @@ export function variantConfig(product: ShopProduct, palette: ResolvedPalette, ca
     config = atelierReducer(config, { type: "setHandle", handle: h });
   }
   return followUps(config, config, catalog).actions.reduce(atelierReducer, config);
+}
+
+/**
+ * The colour on each board of fronts (PAL · AGT · vopsit), with the configuration the shop prices for it.
+ * Empty when the piece has no fronts (open shelves: the board changes nothing). The body never changes.
+ */
+export function frontVariants(
+  product: ShopProduct,
+  palette: ResolvedPalette,
+  catalog: AtelierCatalog,
+  base: AtelierConfig = variantConfig(product, palette, catalog),
+): { option: ShopFrontOption; config: AtelierConfig | null }[] {
+  if (!usesFronts(base)) return [];
+  const native = materialOfKind(palette.fronts.kind);
+  return frontOptions(catalog, palette.fronts, base.handle?.type ?? null).map((o) => {
+    const config = !o.fronts ? null : o.native ? base : variantConfig(product, { ...palette, fronts: o.fronts }, catalog);
+    const option: ShopFrontOption = {
+      material: o.material,
+      native: o.native,
+      key: frontKey(palette.id, o.material, native),
+      reason: o.reason,
+      colourName: o.colourName,
+      look: config ? frontLook(catalog, config) : null,
+      spec: o.fronts ? frontSpec({ ...palette, fronts: o.fronts }, catalog) : null,
+    };
+    return { option, config };
+  });
 }
 
 /** CRM price of one configuration, cached 10 minutes (same as the catalog). */
@@ -170,7 +216,15 @@ export async function getShopItems(): Promise<{ items: ShopItem[]; catalog: Atel
 }
 
 /** One product with every colour priced, plus the 3D scene of each colour (product page). */
-export async function getShopProduct(slug: string): Promise<{ item: ShopItem; scenes: Record<string, AtelierScene | null>; configs: Record<string, AtelierConfig>; catalog: AtelierCatalog } | null> {
+export async function getShopProduct(slug: string): Promise<{
+  item: ShopItem;
+  scenes: Record<string, AtelierScene | null>;
+  /** by colour id, and by colour id with another board of fronts („alb-casmir~vopsit") */
+  configs: Record<string, AtelierConfig>;
+  /** the boards of fronts each colour comes in (empty: the piece has no fronts) */
+  fronts: Record<string, ShopFrontOption[]>;
+  catalog: AtelierCatalog;
+} | null> {
   const product = productBySlug(slug);
   const catalog = await getShopCatalog();
   if (!product || !catalog) return null;
@@ -179,12 +233,16 @@ export async function getShopProduct(slug: string): Promise<{ item: ShopItem; sc
   if (!item) return null;
   const scenes: Record<string, AtelierScene | null> = {};
   const configs: Record<string, AtelierConfig> = {};
+  const fronts: Record<string, ShopFrontOption[]> = {};
   for (const palette of palettesOf(product, palettes)) {
     const config = variantConfig(product, palette, catalog);
     configs[palette.id] = config;
     scenes[palette.id] = (await priceOf(config)).scene; // cached by the call in buildItem
+    const options = frontVariants(product, palette, catalog, config);
+    fronts[palette.id] = options.map((o) => o.option);
+    for (const o of options) if (o.config && !o.option.native) configs[o.option.key] = o.config;
   }
-  return { item, scenes, configs, catalog };
+  return { item, scenes, configs, fronts, catalog };
 }
 
 /** One basket line priced now (the basket's refresh and the order route use the same numbers). */
@@ -200,15 +258,29 @@ export interface PricedShopLine {
   finalPrice: number | null;
   offerPercent: number;
   offerLabel: string | null;
+  /** the board of the fronts when it is not the colour's own; null = as the colour is shown */
+  front: FrontMaterial | null;
+  /** for the workshop: „fronturi MDF vopsit RAL 9016, mat" (null = the colour's own fronts) */
+  frontNote: string | null;
 }
 
-/** null when the product or colour is no longer sold, or the width is not one it is sold in. */
+/**
+ * null when the product or colour is no longer sold, the width is not one it is sold in, or the colour has
+ * no such board of fronts.
+ */
 export async function priceShopLine(slug: string, key: string, catalog: AtelierCatalog, palettes: ResolvedPalette[]): Promise<PricedShopLine | null> {
   const product = productBySlug(slug);
-  const { paletteId, widthMm } = splitSizeKey(key);
+  const { paletteId, widthMm, front: asked } = splitSizeKey(key);
   const palette = palettes.find((p) => p.id === paletteId);
   if (!product || !palette || !product.paletteIds.includes(paletteId) || !presetAvailable(product.preset, catalog)) return null;
-  const base = variantConfig(product, palette, catalog);
+  let base = variantConfig(product, palette, catalog);
+  const native = materialOfKind(palette.fronts.kind);
+  const front = asked && asked !== native ? asked : null;
+  if (front) {
+    const other = frontVariants(product, palette, catalog, base).find((v) => v.option.material === front);
+    if (!other?.config) return null;
+    base = other.config;
+  }
   if (widthMm != null && !sizeOptions(product.preset).includes(widthMm)) return null;
   const config = widthMm == null ? base : resizedConfig(base, widthMm);
   if (!config) return null;
@@ -217,13 +289,15 @@ export async function priceShopLine(slug: string, key: string, catalog: AtelierC
   const sized = widthMm != null && widthMm !== product.preset.shape.widthMm;
   return {
     slug: product.slug,
-    paletteId: sizeKey(palette.id, widthMm, product.preset.shape.widthMm),
+    paletteId: sizeKey(frontKey(palette.id, front, native), widthMm, product.preset.shape.widthMm),
     name: sized ? sizedName(product.preset.name, product.preset.shape.widthMm, widthMm) : product.preset.name,
-    colour: palette.name,
+    colour: colourWithFronts(palette.name, front),
     config,
     price,
     finalPrice: price == null ? null : offerPrice(price, offer),
     offerPercent: offer?.percent ?? 0,
     offerLabel: offer?.label ?? null,
+    front,
+    frontNote: front ? `fronturi ${frontSpec({ ...palette, fronts: config.fronts }, catalog)}` : null,
   };
 }

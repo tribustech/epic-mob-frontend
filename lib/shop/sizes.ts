@@ -1,7 +1,9 @@
 import { CATEGORY_RULES } from "../atelier/categories";
 import type { LayoutPreset } from "../atelier/presets";
 import { atelierReducer } from "../atelier/state";
+import type { FrontMaterial } from "../atelier/front-materials";
 import type { AtelierConfig } from "../atelier/types.ts";
+import { splitFrontKey } from "./fronts";
 
 /**
  * Every shop product also comes in a few other widths (Andrew 2026-11-23: „diverse dimensiuni la fiecare
@@ -13,15 +15,21 @@ import type { AtelierConfig } from "../atelier/types.ts";
 
 const SEP = "@";
 
-/** „alb-total@1800" → { paletteId: "alb-total", widthMm: 1800 }; a plain colour id → widthMm null. */
-export function splitSizeKey(key: string): { paletteId: string; widthMm: number | null } {
+/**
+ * „alb-total@1800" → { paletteId: "alb-total", widthMm: 1800, front: null }; a plain colour id → widthMm null.
+ * The board of the fronts may sit between the two („alb-total~agt@1800", lib/shop/fronts.ts): `paletteId` is
+ * always the bare colour, `front` that board (null = the colour's own).
+ */
+export function splitSizeKey(key: string): { paletteId: string; widthMm: number | null; front: FrontMaterial | null } {
   const at = key.indexOf(SEP);
-  if (at < 0) return { paletteId: key, widthMm: null };
+  const head = at < 0 ? key : key.slice(0, at);
+  const { paletteId, front } = splitFrontKey(head);
+  if (at < 0) return { paletteId, widthMm: null, front };
   const n = Number(key.slice(at + 1));
-  return { paletteId: key.slice(0, at), widthMm: Number.isInteger(n) && n > 0 ? n : null };
+  return { paletteId, widthMm: Number.isInteger(n) && n > 0 ? n : null, front };
 }
 
-/** The basket id of a colour at a width (the model's own width: just the colour). */
+/** The basket id of a colour (with its fronts' board, lib/shop/fronts.ts) at a width (the model's own width: no suffix). */
 export const sizeKey = (paletteId: string, widthMm: number | null, baseWidthMm: number): string =>
   widthMm == null || widthMm === baseWidthMm ? paletteId : `${paletteId}${SEP}${widthMm}`;
 

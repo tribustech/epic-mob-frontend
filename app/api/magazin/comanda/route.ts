@@ -55,6 +55,8 @@ interface Line {
   percent: number;
   /** what the basket showed; used when the CRM cannot price the line right now */
   shown: number | null;
+  /** „fronturi MDF vopsit RAL 9016, mat" when the client chose another board than the colour's own */
+  frontNote: string | null;
 }
 
 export async function POST(request: Request) {
@@ -104,7 +106,7 @@ export async function POST(request: Request) {
       // the slug the basket sent, so it can match the line (a renamed product keeps its old slug there)
       changed.push({ slug: text(item?.slug), paletteId: text(item?.paletteId), available: true, name: priced.name, colour: priced.colour, price, finalPrice, offerPercent, offerLabel });
     }
-    lines.push({ slug: priced.slug, paletteId: priced.paletteId, name: priced.name, colour: priced.colour, qty, config, price, final: finalPrice, offerLabel, percent: offerPercent, shown });
+    lines.push({ slug: priced.slug, paletteId: priced.paletteId, name: priced.name, colour: priced.colour, qty, config, price, final: finalPrice, offerLabel, percent: offerPercent, shown, frontNote: priced.frontNote });
   }
   if (gone.length > 0) {
     // the basket marks these lines (by slug + colour), so the client knows which one to take out
@@ -132,6 +134,7 @@ export async function POST(request: Request) {
   const lineText = (l: Line, i: number) =>
     [
       `Comandă din Magazin (${i + 1}/${lines.length}): ${l.name}, culoarea „${l.colour}", ${l.qty} buc.`,
+      l.frontNote ? `Clientul a ales ${l.frontNote}.` : null,
       l.final != null ? `Preț afișat: ${lei(l.final)}/buc` : l.shown != null ? `Preț afișat în coș: ${lei(l.shown)}/buc (nu l-am putut recalcula acum)` : null,
       l.qty > 1 && unit(l) != null ? `Total linie: ${lei((unit(l) as number) * l.qty)}.` : null,
       l.percent > 0 && l.price != null ? `(${l.offerLabel} −${l.percent}%, preț obișnuit ${lei(l.price)})` : null,
@@ -142,9 +145,10 @@ export async function POST(request: Request) {
       .join(" ")
       .slice(0, CONTACT_LIMITS.notes);
 
-  const readableKey = (key: string) => {
-    const k = splitSizeKey(key);
-    return k.widthMm ? `${k.paletteId}, lățime ${Math.round(k.widthMm / 10)} cm` : k.paletteId;
+  /** „alb-casmir~vopsit@1800" → „alb-casmir, fronturi MDF vopsit RAL 9016, mat, lățime 180 cm" */
+  const readableKey = (l: Line) => {
+    const k = splitSizeKey(l.paletteId);
+    return [k.paletteId, l.frontNote, k.widthMm ? `lățime ${Math.round(k.widthMm / 10)} cm` : null].filter(Boolean).join(", ").slice(0, 120); // the CRM keeps at most 120 characters
   };
   /** structured shop data for the CRM (budget and draft quote = what the client was shown); none without a price */
   const shopData = (l: Line) => {
@@ -153,8 +157,8 @@ export async function POST(request: Request) {
     const onOffer = l.final != null && l.percent > 0 && l.price != null;
     return {
       slug: l.slug,
-      // „alb-total@1800" → „alb-total, lățime 180 cm" (the CRM shows it as it is)
-      paletteId: readableKey(l.paletteId),
+      // „alb-total~vopsit@1800" → „alb-total, fronturi MDF vopsit RAL 9016, mat, lățime 180 cm" (the CRM shows it as it is)
+      paletteId: readableKey(l),
       qty: l.qty,
       unitPrice,
       regularPrice: onOffer ? (l.price as number) : unitPrice,
@@ -192,7 +196,7 @@ export async function POST(request: Request) {
   const rows = lines
     .map(
       (l, i) =>
-        `<tr><td>${esc(l.name)}<br><small>${esc(l.colour)}</small></td><td>${l.qty}</td><td>${unit(l) != null ? esc(lei(unit(l) as number)) : "—"}${
+        `<tr><td>${esc(l.name)}<br><small>${esc(l.colour)}${l.frontNote ? `<br>${esc(l.frontNote)}` : ""}</small></td><td>${l.qty}</td><td>${unit(l) != null ? esc(lei(unit(l) as number)) : "—"}${
           l.percent ? `<br><small>−${l.percent}% din ${esc(lei(l.price ?? 0))}</small>` : ""
         }</td><td>${results[i] ? `<a href="${esc(results[i]!.crmUrl)}">CRM</a>` : `<span style="color:#b42318">nu e în CRM</span>`}</td></tr>`,
     )
