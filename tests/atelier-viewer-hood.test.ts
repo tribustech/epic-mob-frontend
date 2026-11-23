@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { HOOD_MM, hoodUnits } from "../components/atelier/viewer/hood.ts";
+import { HOOD_MM, hoodUnits, integrateHoods } from "../components/atelier/viewer/hood.ts";
 import type { AtelierScene, ScenePiece } from "../lib/atelier/types.ts";
 
 // a 600 mm hood cabinet next to an ordinary wall cabinet, as the CRM sends them (bucatarie-240)
@@ -31,4 +31,14 @@ test("a hood cabinet's sides reach the bottom line of the other wall cabinets", 
 
 test("no hood, no unit", () => {
   assert.deepEqual(hoodUnits({ ...scene, pieces: pieces.filter((p) => p.role !== "APARAT") }), []);
+});
+
+test("drawn, the hood cabinet's door reaches the neighbour's line and the hood hides behind it", () => {
+  const drawn = integrateHoods(scene);
+  const door = drawn.pieces[5];
+  assert.equal(door.y, pieces[1].y); // same bottom as the neighbour's door
+  assert.equal(door.y + door.h, pieces[5].y + pieces[5].h);
+  const hood = drawn.pieces[6];
+  assert.ok(hood.h <= 5 && hood.z + hood.d < door.z, "only a thin filter plate, behind the doors");
+  assert.equal(pieces[5].y, 1571); // the CRM's scene is untouched
 });
