@@ -13,7 +13,8 @@ export const isHandleKind = (v: unknown): v is HandleKind => (HANDLE_KINDS as re
 export const isHandleFinish = (v: unknown): v is HandleFinish => (HANDLE_FINISHES as readonly unknown[]).includes(v);
 
 /** Types with a visible piece of metal, whose colour the client can choose. */
-const WITH_FINISH: ReadonlySet<HandleKind> = new Set<HandleKind>(["APLICAT", "BUTON", "INGROPAT", "GOLA"]);
+// the recessed grip is routed into the front itself (its colour is the front's), so it has no finish to pick
+const WITH_FINISH: ReadonlySet<HandleKind> = new Set<HandleKind>(["APLICAT", "BUTON", "GOLA"]);
 export const handleHasFinish = (type: HandleKind | null | undefined): boolean => !!type && WITH_FINISH.has(type);
 
 export interface HandleInfo {

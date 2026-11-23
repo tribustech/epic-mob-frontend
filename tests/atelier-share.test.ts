@@ -70,7 +70,7 @@ test("share link: handle + colour, a face per door, mirror / glass types, painte
     carcassMaterialId: vopsit.carcassMaterialId,
     fronts: { ...vopsit.fronts, faces: 2 },
     doors: { type: "BATANTE", fills: ["OGLINDA", "STICLA", "PANOU"], mirrorId: "og-clară", glassId: "st-mata" },
-    handle: { type: "INGROPAT", finish: "AURIU" },
+    handle: { type: "INGROPAT" },
   };
   assert.deepEqual(decodeShare(encodeShare(rich), catalog), rich);
 
