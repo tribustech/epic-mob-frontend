@@ -3,7 +3,7 @@ import { createHmac } from "node:crypto";
 import test from "node:test";
 import { optionVariants, priceCheckRows } from "../lib/shop/price-check.ts";
 import { verifyAdminToken } from "../lib/admin/token.ts";
-import { shareCodeOf } from "../lib/admin/breakdown.ts";
+import { partSearchText, partsCsv, shareCodeOf, type CabinetCostBlock } from "../lib/admin/breakdown.ts";
 import { decodeShare } from "../lib/atelier/share.ts";
 import { PALETTES } from "../lib/atelier/palettes.ts";
 import { SHOP_PRODUCTS } from "../lib/shop/products.ts";
@@ -90,4 +90,21 @@ test("partial drawer extension: listed as an option and kept by the share code, 
   // an older CRM (no partial runners): no such row, and a code asking for it falls back to full extension
   assert.ok(!priceCheckRows(catalog, "2026-11-21").some((r) => r.variant === "sertare:PARTIALA"));
   assert.equal(decodeShare(partial.share, catalog)?.drawerExtension, undefined);
+});
+
+test("per cabinet: CSV has every piece (semicolon, decimal comma, quoted cells) and search folds diacritics", () => {
+  const cab: CabinetCostBlock = {
+    label: "C1", kind: "CORP", type: "INALT", widthMm: 800, heightMm: 2600, depthMm: 500,
+    parts: [
+      { name: "Laterală", lengthMm: 2500, widthMm: 495, thicknessMm: 18, qty: 2, materialId: "m", materialName: "W1000 ST9; Alb", decorCode: "W1000 ST9", areaSqm: 2.475, boardCost: 156.93, cuttingCost: 24.55, edges: [{ side: "L1", edgeBandId: "e", name: "ABS 0.4mm", lengthMm: 2500 }], edgeMl: 5, edgeCost: 5, total: 186.48 },
+      { name: "Spate", lengthMm: 2496, widthMm: 796, thicknessMm: 3, qty: 1, materialId: "p", materialName: "PFL alb", decorCode: null, areaSqm: 1.9868, boardCost: 38.73, cuttingCost: 12.78, edges: [], edgeMl: 0, edgeCost: 0, total: 51.51 },
+    ],
+    hardware: [], extras: [], totals: { boards: 195.66, cuttingService: 37.33, edging: 5, hardware: 0, total: 237.99 },
+  };
+  const lines = partsCsv([cab]).split("\r\n");
+  assert.equal(lines.length, 3);
+  assert.match(lines[0], /^Corp;Piesă;Lungime mm/);
+  assert.equal(lines[1], 'C1;Laterală;2500;495;18;2;"W1000 ST9; Alb";W1000 ST9;2,475;156,93;24,55;L1;ABS 0.4mm;5;5;186,48');
+  assert.ok(partSearchText(cab, cab.parts[0]).includes("laterala"));
+  assert.ok(partSearchText(cab, cab.parts[1]).includes("2496x796"));
 });

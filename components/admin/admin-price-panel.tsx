@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { PriceBreakdown } from "@/lib/admin/breakdown";
+import { encodeShare } from "@/lib/atelier/share";
 import type { AtelierConfig } from "@/lib/atelier/types";
 import { BreakdownView } from "./breakdown-view";
 import { queueBreakdown, useIsAdmin } from "./client";
@@ -48,6 +49,9 @@ export function AdminPricePanel({ config, offerPercent = null }: { config: Ateli
           <div className="adm-drawer__head">
             <strong>Din ce se face prețul</strong>
             {loading && <span className="adm-muted">se calculează…</span>}
+            <a className="adm-btn adm-btn--ghost adm-drawer__crm" href={`/admin/crm?c=${encodeShare(config)}`} target="_blank" rel="noreferrer">
+              Deschide în CRM
+            </a>
             <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setOpen(false)}>Închide</button>
           </div>
           {state.error && <p className="adm-bad">{state.error}</p>}

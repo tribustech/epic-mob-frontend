@@ -40,9 +40,32 @@
 /* floating button + drawer */
 .adm-fab { position: fixed; right: 16px; bottom: 16px; z-index: 1050; padding: 10px 14px; border-radius: 999px; background: #1f1c19; color: #fff; font-weight: 700; font-size: .85rem; box-shadow: 0 6px 20px rgba(0,0,0,.25); border: 2px solid #f2c14e; cursor: pointer; }
 .adm-fab--bad { border-color: #e5534b; }
-.adm-drawer { position: fixed; z-index: 1100; right: 0; top: 0; bottom: 0; width: min(560px, 100vw); overflow-y: auto; background: #fbf8f3; color: #1f1c19; box-shadow: -8px 0 30px rgba(0,0,0,.3); padding: 14px 16px 24px; display: grid; gap: 10px; align-content: start; }
+.adm-drawer { position: fixed; z-index: 1100; right: 0; top: 0; bottom: 0; width: min(1100px, 95vw); overflow-y: auto; background: #fbf8f3; color: #1f1c19; box-shadow: -8px 0 30px rgba(0,0,0,.3); padding: 14px 16px 24px; display: grid; gap: 10px; align-content: start; }
 .adm-drawer__head { display: flex; align-items: center; gap: 10px; justify-content: space-between; position: sticky; top: -14px; background: #fbf8f3; padding: 6px 0; z-index: 1; }
 .adm-drawer__foot { margin: 0; }
+.adm-drawer__head strong { margin-right: auto; }
+.adm-drawer__crm { text-decoration: none; font-size: .85rem; }
+.adm-drawer > *, .adm-bd > *, .adm-cabs > * { min-width: 0; }
+@media (max-width: 640px) {
+  .adm-drawer { width: 100vw; padding: 10px 10px 24px; }
+  .adm-drawer__head { flex-wrap: wrap; gap: 6px; }
+  .adm-drawer__head .adm-btn { font-size: .8rem; padding: 5px 10px; }
+}
+
+/* per cabinet: every piece */
+.adm-cabs { display: grid; gap: 8px; min-width: 0; }
+.adm-cabs__head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.adm-cabs__head h3 { margin: 0; font-size: 1rem; font-weight: 700; }
+.adm-cabs__tools { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 320px; justify-content: flex-end; }
+.adm-cabs__tools input { flex: 1 1 200px; min-width: 0; padding: 6px 10px; border: 1px solid #c9c1b6; border-radius: 8px; background: #fff; color: #1f1c19; }
+.adm-cabs__tools .adm-btn { font-size: .8rem; }
+.adm-cab > summary small { font-weight: 400; margin-left: 6px; }
+.adm-parts { min-width: 860px; font-size: .8rem; }
+.adm-parts th, .adm-parts td { white-space: nowrap; }
+.adm-parts td:first-child, .adm-parts td:nth-child(4) { white-space: normal; min-width: 120px; }
+.adm-parts .num { text-align: right; }
+.adm-parts tr.adm-parts__hw td { background: #faf6ee; }
+.adm-parts tfoot td { text-align: right; color: #6b645c; border-bottom: 0; padding-top: 6px; }
 
 /* product card badge */
 .adm-badge { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 6px 12px 10px; padding: 6px 8px; border-radius: 8px; background: #fff7df; border: 1px dashed #c9a13a; color: #1f1c19; font-size: .75rem; }
