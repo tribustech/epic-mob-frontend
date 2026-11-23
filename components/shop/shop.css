@@ -2260,3 +2260,61 @@
     transition: none;
   }
 }
+
+/* Home: the way into the whole shop, under the cards (Andrew 2026-11-23: the top link alone was too weak) */
+.home-shop__foot {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.6rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(46, 34, 28, 0.1);
+}
+@media (min-width: 900px) {
+  .home-shop__foot {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+}
+.home-shop__rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.home-shop__room {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.6rem;
+  padding: 0 1rem;
+  border: 1px solid rgba(46, 34, 28, 0.16);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--espresso);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.home-shop__room span {
+  color: rgba(46, 34, 28, 0.5);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+.home-shop__room:hover {
+  border-color: var(--shop-accent);
+  background: #fbf6f1;
+}
+.home-shop .btn-warm.home-shop__all {
+  justify-content: center;
+  min-height: 3.25rem;
+  padding: 0 1.8rem;
+  font-size: 1.02rem;
+}
+@media (min-width: 900px) {
+  .home-shop .btn-warm.home-shop__more {
+    min-height: 3rem;
+    padding: 0 1.5rem;
+    border: 0;
+    background: var(--espresso);
+    color: var(--cream);
+  }
+}
