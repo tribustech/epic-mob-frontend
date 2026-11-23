@@ -1,6 +1,7 @@
 "use client";
 
 import { HARDWARE_CATEGORY, formatLei, formatLei2, formatNum, headline, type PriceBreakdown } from "@/lib/admin/breakdown";
+import { CabinetsView } from "./cabinets-view";
 import "./admin.css";
 
 function Section({ title, total, open = false, children }: { title: string; total?: number; open?: boolean; children: React.ReactNode }) {
@@ -118,6 +119,7 @@ export function BreakdownView({ b, compact = false }: { b: PriceBreakdown; compa
           </Section>
         </>
       )}
+      {t && !compact && (b.cabinets ?? []).length > 0 && <CabinetsView cabinets={b.cabinets!} reconciliation={b.reconciliation} />}
       {!compact && (b.warnings ?? []).length > 0 && (
         <Section title={`Avertismente motor (${b.warnings!.length})`}>
           <ul className="adm-list">{b.warnings!.map((w, i) => <li key={i}>{w.cabinet ? `${w.cabinet}: ` : ""}{w.message}</li>)}</ul>
