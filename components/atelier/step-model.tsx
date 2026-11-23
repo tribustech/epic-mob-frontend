@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { ResolvedPalette } from "@/lib/atelier/palettes";
-import { COMBO_PRESETS, cardNames, categoryAvailable, presetAvailable, presetById, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
+import { cardNames, categoryAvailable, presetAvailable, presetsFor, type LayoutPreset } from "@/lib/atelier/presets";
 import { CATEGORY_DISPLAY } from "@/lib/atelier/categories";
 import { doorOpening, hasGlass, hasMirror } from "@/lib/atelier/door-types";
 import { paletteAllowed } from "@/lib/atelier/house-rules";
@@ -13,7 +13,7 @@ import { glazingOf, type Glazing } from "./glass-look";
 import { paletteLooks, type MaterialLook } from "./material-look";
 import { MiniPreview } from "./mini-preview";
 
-import { shapeKey, type Act } from "./session";
+import { combosFor, curatedColours, leadCombo, shapeKey, type Act } from "./session";
 import { RadioGroup, Section, SelectedMark } from "./ui";
 
 export const CATEGORY_SHORT: Record<AtelierCategory, string> = {
@@ -113,13 +113,8 @@ export function StepModel({
 }) {
   const currentKey = shapeKey(config);
   const presets = presetsFor(config.category).filter((p) => presetAvailable(p, catalog));
-  const combos = COMBO_PRESETS.flatMap((combo) => {
-    const preset = presetById(combo.presetId);
-    const palette = palettes.find((p) => p.id === combo.paletteId);
-    // house rule: no dark chests of drawers or wall units, not even as a featured combination
-    const shown = preset && palette && preset.category === config.category && presetAvailable(preset, catalog) && paletteAllowed(preset.category, palette.id);
-    return shown ? [{ combo, preset, palette }] : [];
-  });
+  // house rule inside: no dark chests of drawers or wall units, not even as a featured combination
+  const combos = combosFor(config.category, catalog, palettes);
   const comboNames = cardNames(combos.map(({ combo }) => combo.name));
   const presetNames = cardNames(presets.map((p) => p.name));
   // Two lists share the space: ready-made combinations (model + colours) and the plain models.
@@ -133,11 +128,22 @@ export function StepModel({
 
   const pickCategory = (category: AtelierCategory) => {
     if (category === config.category) return;
-    // start the new category from its first ready-made model (or its plain defaults)
-    const first = presetsFor(category).find((p) => presetAvailable(p, catalog));
-    act(first ? { type: "applyPreset", shape: first.shape } : { type: "setCategory", category });
-    // the 3D now shows that first model: show the list where its card is marked as chosen
-    if (first) setTab("models");
+    // Start the new category from its best-looking combination (model + colours) while the colours are
+    // still ours; colours the client chose stay, on the category's first model (unless a house rule forbids them).
+    const lead = leadCombo(category, catalog, palettes);
+    const keep = !curatedColours(activePalette) && (activePalette === null || paletteAllowed(category, activePalette));
+    if (lead && !keep) {
+      act([
+        { type: "applyPreset", shape: lead.preset.shape },
+        { type: "applyPalette", carcassMaterialId: lead.palette.carcassMaterialId, fronts: lead.palette.fronts },
+      ]);
+      setTab("combos");
+    } else {
+      const first = presetsFor(category).find((p) => presetAvailable(p, catalog));
+      act(first ? { type: "applyPreset", shape: first.shape } : { type: "setCategory", category });
+      // the 3D now shows that first model: show the list where its card is marked as chosen
+      if (first) setTab("models");
+    }
     trackFunnel("category_selected", { category });
   };
 

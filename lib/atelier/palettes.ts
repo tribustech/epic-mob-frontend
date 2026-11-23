@@ -90,6 +90,26 @@ export const PALETTES: PaletteDef[] = [
 ];
 
 /**
+ * The combinations that look best on a piece of furniture in 3D (warm wood with a soft colour), shown first
+ * among the ready-made colours; the others follow in PALETTES order. All-white comes later on purpose.
+ */
+export const FEATURED_PALETTE_IDS: readonly string[] = [
+  "salvie-stejar", "stejar-casmir", "alb-stejar-natur", "nuc-crem", "alb-casmir", "stejar-alb", "caramel-stejar", "supermat-verde",
+];
+
+/** The featured palettes first (in FEATURED_PALETTE_IDS order), then the rest as they came. */
+export function featuredFirst<T extends { id: string }>(list: readonly T[]): T[] {
+  const rank = (id: string) => {
+    const i = FEATURED_PALETTE_IDS.indexOf(id);
+    return i < 0 ? FEATURED_PALETTE_IDS.length : i;
+  };
+  return list
+    .map((item, i) => ({ item, i }))
+    .sort((a, b) => rank(a.item.id) - rank(b.item.id) || a.i - b.i)
+    .map((x) => x.item);
+}
+
+/**
  * The painted-MDF front model used when the client has not picked one: the flat one
  * („plan drept"), else the first. Shared by the palettes and the manual colour picker, so the
  * same RAL always prices the same.

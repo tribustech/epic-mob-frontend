@@ -57,3 +57,24 @@ export function constructionSpec(preset: LayoutPreset): string[] {
 /** Why the colour names are decors: said once, plainly. */
 export const DECOR_NOTE =
   "Numele culorilor (de ex. „Stejar natur”) sunt decoruri: o suprafață melaminată, rezistentă la zgârieturi și ușor de șters, pe placă de PAL sau MDF. Nu e lemn masiv.";
+
+/**
+ * The materials pages on the site that explain each board (internal links from the shop, for
+ * clients and for SEO). Keyed by the words that start a spec line from carcassSpec / frontSpec.
+ */
+export const MATERIAL_PAGES = [
+  { name: "PAL melaminat", href: "/materiale/pal-melaminat" },
+  { name: "MDF melaminat", href: "/materiale/mdf-melaminat" },
+  { name: "MDF înfoliat", href: "/materiale/mdf-infoliat" },
+  { name: "MDF vopsit", href: "/materiale/mdf-vopsit" },
+] as const;
+
+/** The materials page a spec line starts with: „MDF vopsit RAL 9016, mat" → MDF vopsit. */
+export function materialPageOf(spec: string): (typeof MATERIAL_PAGES)[number] | undefined {
+  return MATERIAL_PAGES.find((m) => spec.startsWith(m.name));
+}
+
+/** Where the Blum hinges, slides and lift systems are explained. */
+export const HARDWARE_PAGE = "/materiale#feronerie";
+/** The four boards side by side (what a decor is on each). */
+export const BOARDS_PAGE = "/materiale#lemn";

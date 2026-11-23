@@ -26,6 +26,7 @@ import {
   noRaycast,
   type HardwareMaterials,
 } from "./viewer/hardware";
+import { hoodUnits } from "./viewer/hood";
 import { refreshShadows, useTween } from "./viewer/motion";
 import {
   planScene,
@@ -640,7 +641,7 @@ function buildStatics(scene: AtelierScene, moving: string, legB: THREE.Matrix4 |
   const groups: Record<"carcass" | "back" | "worktop" | "front", BoardSpec[]> = { carcass: [], back: [], worktop: [], front: [] };
   const corpEdges: BoardSpec[] = [];
   const frontEdges: BoardSpec[] = [];
-  scene.pieces.forEach((piece, i) => {
+  const add = (piece: ScenePiece, i: number) => {
     if (piece.role === "APARAT" || moving[i] === "1") return;
     const board: BoardSpec = {
       size: [Math.max(piece.w, 1) * S, Math.max(piece.h, 1) * S, Math.max(piece.d, 1) * S],
@@ -652,7 +653,10 @@ function buildStatics(scene: AtelierScene, moving: string, legB: THREE.Matrix4 |
     groups[piece.role === "FRONT" ? "front" : piece.role === "SPATE" ? "back" : piece.role === "BLAT" ? "worktop" : "carcass"].push(board);
     if (piece.role === "FRONT") frontEdges.push(board);
     else if (piece.role === "CORP") corpEdges.push(board);
-  });
+  };
+  // the side panels of a hood cabinet run down to the line of the other wall cabinets (drawn only)
+  const prolonged = new Map(hoodUnits(scene).flatMap((u) => u.sides.map((s) => [s.index, s.piece] as const)));
+  scene.pieces.forEach((piece, i) => add(prolonged.get(i) ?? piece, i));
   return {
     carcass: mergeBoards(groups.carcass),
     back: mergeBoards(groups.back),
@@ -728,16 +732,20 @@ export interface ApplianceMaterials {
   white: THREE.Material;
   ring: THREE.Material;
   ceramic: THREE.Material;
+  /** brushed steel of a built-in hood (darker and duller than `inox`, so it does not read as a white slab) */
+  steel: THREE.Material;
 }
 type ApplianceMaterial = keyof ApplianceMaterials;
-const APPLIANCE_MATERIALS: readonly ApplianceMaterial[] = ["inox", "glass", "basin", "white", "ring", "ceramic"];
+const APPLIANCE_MATERIALS: readonly ApplianceMaterial[] = ["inox", "glass", "basin", "white", "ring", "ceramic", "steel"];
 
 /**
  * Every sink, hob, oven, microwave, fridge, hood, basin and washer of the scene, each drawn in the
  * box the CRM gives for it — as one geometry per material (six draw calls for all of them).
  */
 function buildAppliances(scene: AtelierScene, legB: THREE.Matrix4 | null): Record<ApplianceMaterial, THREE.BufferGeometry | null> {
-  const parts: Record<ApplianceMaterial, THREE.BufferGeometry[]> = { inox: [], glass: [], basin: [], white: [], ring: [], ceramic: [] };
+  const parts: Record<ApplianceMaterial, THREE.BufferGeometry[]> = { inox: [], glass: [], basin: [], white: [], ring: [], ceramic: [], steel: [] };
+  const hoods = hoodUnits(scene);
+  let hoodIndex = 0;
   for (const piece of scene.pieces) {
     if (piece.role !== "APARAT") continue;
     const matrix = piece.leg === "B" ? legB : null;
@@ -810,9 +818,23 @@ function buildAppliances(scene: AtelierScene, legB: THREE.Matrix4 | null): Recor
         add("inox", new THREE.RingGeometry(r, r + 0.025, 40).translate(cx, cy - h * 0.06, front + 0.005));
         break;
       }
-      case "HOTA":
-        box([w, h, d], [cx, cy, cz], "inox");
+      case "HOTA": {
+        // a built-in telescopic hood between the cabinet's side panels (see viewer/hood.ts): the body
+        // inside the carcass, a filter grille underneath and a steel visor flush with the doors
+        const u = hoods[hoodIndex++];
+        if (!u) break;
+        const mm = (x: number, y: number, z: number, bw: number, bh: number, bd: number, material: ApplianceMaterial) =>
+          box([bw * S, bh * S, bd * S], centred({ x, y, z, w: bw, h: bh, d: bd, role: "APARAT" }, scene), material);
+        const inner = u.x1 - u.x0;
+        const visorD = 18;
+        mm(u.x0 + 1, u.y0 + 8, u.zBack, inner - 2, u.y1 - u.y0 - 8, u.zFront - visorD - u.zBack, "steel");
+        mm(u.x0 + 12, u.y0 + 5, u.zBack + 12, inner - 24, 3, u.zFront - visorD - u.zBack - 24, "glass");
+        mm(u.x0 + 2, u.y0 + 2, u.zFront - visorD, inner - 4, u.y1 - u.y0 - 5, visorD, "steel");
+        // the seam between the pull-out visor and the fixed fascia, and the control strip on the visor
+        mm(u.x0 + 2, u.y0 + 50, u.zFront - 0.5, inner - 4, 1.5, 1, "ring");
+        mm(u.x0 + inner / 2 - 60, u.y0 + 22, u.zFront - 0.5, 120, 6, 1.2, "glass");
         break;
+      }
       default:
         break;
     }
@@ -824,6 +846,7 @@ function buildAppliances(scene: AtelierScene, legB: THREE.Matrix4 | null): Recor
     white: mergeParts(parts.white),
     ring: mergeParts(parts.ring),
     ceramic: mergeParts(parts.ceramic),
+    steel: mergeParts(parts.steel),
   };
 }
 
@@ -1475,6 +1498,7 @@ const Wardrobe = memo(function Wardrobe({
       white: new THREE.MeshStandardMaterial({ color: "#eef0f2", roughness: 0.5 }),
       ring: new THREE.MeshBasicMaterial({ color: "#5d5d5d", toneMapped: false }),
       ceramic: new THREE.MeshStandardMaterial({ color: "#f6f5f2", roughness: 0.18, envMap: env0, envMapIntensity: 0.5 }),
+      steel: new THREE.MeshStandardMaterial({ color: "#8f959b", metalness: 0.85, roughness: 0.42, envMap: env0, envMapIntensity: 0.7 }),
     }),
     [env0],
   );

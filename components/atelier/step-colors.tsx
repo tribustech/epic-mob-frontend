@@ -6,8 +6,8 @@ import { COLOR_FAMILIES, FAMILY_LABELS, colorFamily, type ColorFamily } from "@/
 import { doorFills } from "@/lib/atelier/door-types";
 import { trackFunnel } from "@/lib/atelier/funnel";
 import { frontsNoun, usesFronts } from "@/lib/atelier/handles";
-import { FEATURED_WORKTOP_CODES, usableWorktops } from "@/lib/atelier/house-rules";
-import { PALETTES, defaultVopsitModelId, type ResolvedPalette } from "@/lib/atelier/palettes";
+import { FEATURED_WORKTOP_CODES, paletteAllowed, usableWorktops } from "@/lib/atelier/house-rules";
+import { PALETTES, defaultVopsitModelId, featuredFirst, type ResolvedPalette } from "@/lib/atelier/palettes";
 import { ralNameRo } from "@/lib/atelier/ral-names";
 import type { AtelierCatalog, AtelierConfig, AtelierFronts, AtelierMaterial } from "@/lib/atelier/types";
 import { glazingOf } from "./glass-look";
@@ -457,7 +457,14 @@ export function StepColors({
   // the ready-made combinations, drawn on this very piece of furniture
   const shape = useMemo(() => shapeOf(config), [config]);
   const glazing = useMemo(() => glazingOf(catalog, config.doors), [catalog, config.doors]);
-  const combos = useMemo(() => palettes.map((palette) => ({ palette, looks: paletteLooks(catalog, palette) })), [catalog, palettes]);
+  // the best-looking first; no dark ones on chests of drawers and wall units (house rule)
+  const combos = useMemo(
+    () =>
+      featuredFirst(palettes)
+        .filter((palette) => paletteAllowed(config.category, palette.id))
+        .map((palette) => ({ palette, looks: paletteLooks(catalog, palette) })),
+    [catalog, palettes, config.category],
+  );
   const mirrorDoors = config.category === "DRESSING" && config.doors.type !== "NONE" && !doorFills(config).some((f) => f === "PANOU");
 
   return (
