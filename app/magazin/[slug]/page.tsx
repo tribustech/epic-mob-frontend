@@ -5,10 +5,11 @@ import { ChevronRight, PhoneCall, Ruler, ShieldCheck, Wrench } from "lucide-reac
 import { withAllPrices } from "@/components/shop/all-prices";
 import { ProductCard } from "@/components/shop/product-card";
 import { ProductView } from "@/components/shop/product-view";
+import { sizeOptions } from "@/lib/shop/sizes";
 import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/lib/business-data";
 import { BRAND, baseOpenGraph } from "@/lib/seo";
-import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, colourCountText, pictureOf, productBySlug, productFacts, sizeText, typeOf } from "@/lib/shop/products";
+import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, colourCountText, pictureOf, productBySlug, productFacts, sizeText } from "@/lib/shop/products";
 import { DECOR_NOTE, constructionSpec } from "@/lib/shop/specs";
 import { getShopItems, getShopProduct } from "@/lib/shop/server";
 
@@ -57,18 +58,9 @@ export default async function ProductPage({
     .slice(0, 4);
   const relatedPriced = await withAllPrices(related);
 
-  // the same model in other sizes: same category and kind of piece (TV unit, shoe cabinet…) or the same name
-  // without its width („dressing-clasic-240" / „dressing-clasic-180")
-  const stem = (s: string) => s.replace(/-\d+$/, "");
-  const sameModel = (o: (typeof items)[number]) =>
-    o.category === item.category && ((typeOf(o.slug) !== null && typeOf(o.slug) === typeOf(slug)) || stem(o.slug) === stem(slug));
-  const sizes = [item, ...items.filter((o) => o.slug !== slug && sameModel(o))]
-    .map((o) => {
-      const p = productBySlug(o.slug)!;
-      const prices = o.variants.map((v) => v.finalPrice).filter((x): x is number => x != null);
-      return { slug: o.slug, width: p.preset.shape.widthMm, label: `${Math.round(p.preset.shape.widthMm / 10)} cm`, price: prices.length ? Math.min(...prices) : null, current: o.slug === slug };
-    })
-    .sort((a, b) => a.width - b.width);
+  // the widths it is sold in (3: the photographed one, one smaller, one larger); ?latime= opens one
+  const widths = sizeOptions(product.preset).map((w) => ({ widthMm: w, size: sizeText(product.preset, w) }));
+  const latime = Number((await searchParams).latime);
 
   const priced = item.variants.filter((v) => v.finalPrice != null);
   const jsonLd = priced.length
@@ -118,7 +110,7 @@ export default async function ProductPage({
           </ol>
         </nav>
 
-        <ProductView item={item} scenes={scenes} configs={configs} initialPaletteId={initialPaletteId} size={sizeText(product.preset)} sizes={sizes} />
+        <ProductView item={item} scenes={scenes} configs={configs} initialPaletteId={initialPaletteId} widths={widths} initialWidthMm={Number.isInteger(latime) ? latime : undefined} />
 
         <section className="shop-details">
           <div>

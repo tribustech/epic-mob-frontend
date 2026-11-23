@@ -9,6 +9,7 @@ import { checkContact } from "@/lib/shop/contact-check";
 import { productBySlug } from "@/lib/shop/products";
 import { orderReference } from "@/lib/shop/reference";
 import { getShopCatalog, priceShopLine } from "@/lib/shop/server";
+import { splitSizeKey } from "@/lib/shop/sizes";
 
 /**
  * „Trimite comanda" from the basket. Every line is rebuilt here from its product + colour (nothing
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
     const priced = await priceShopLine(text(item?.slug), text(item?.paletteId), catalog, palettes);
     if (!priced) {
       const product = productBySlug(text(item?.slug));
-      const colour = palettes.find((p) => p.id === text(item?.paletteId))?.name;
+      const colour = palettes.find((p) => p.id === splitSizeKey(text(item?.paletteId)).paletteId)?.name;
       gone.push({ slug: text(item?.slug), paletteId: text(item?.paletteId), name: product ? `${product.preset.name}${colour ? ` (${colour})` : ""}` : "" });
       continue;
     }
@@ -141,6 +142,10 @@ export async function POST(request: Request) {
       .join(" ")
       .slice(0, CONTACT_LIMITS.notes);
 
+  const readableKey = (key: string) => {
+    const k = splitSizeKey(key);
+    return k.widthMm ? `${k.paletteId}, lățime ${Math.round(k.widthMm / 10)} cm` : k.paletteId;
+  };
   /** structured shop data for the CRM (budget and draft quote = what the client was shown); none without a price */
   const shopData = (l: Line) => {
     const unitPrice = unit(l);
@@ -148,7 +153,8 @@ export async function POST(request: Request) {
     const onOffer = l.final != null && l.percent > 0 && l.price != null;
     return {
       slug: l.slug,
-      paletteId: l.paletteId,
+      // „alb-total@1800" → „alb-total, lățime 180 cm" (the CRM shows it as it is)
+      paletteId: readableKey(l.paletteId),
       qty: l.qty,
       unitPrice,
       regularPrice: onOffer ? (l.price as number) : unitPrice,
