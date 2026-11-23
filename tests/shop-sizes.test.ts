@@ -10,9 +10,9 @@ test("size keys round-trip and the photographed width has no suffix", () => {
   assert.equal(sizeKey("alb-total", 1800, 2400), "alb-total@1800");
   assert.equal(sizeKey("alb-total", 2400, 2400), "alb-total");
   assert.equal(sizeKey("alb-total", null, 2400), "alb-total");
-  assert.deepEqual(splitSizeKey("alb-total@1800"), { paletteId: "alb-total", widthMm: 1800 });
-  assert.deepEqual(splitSizeKey("alb-total"), { paletteId: "alb-total", widthMm: null });
-  assert.deepEqual(splitSizeKey("alb-total@abc"), { paletteId: "alb-total", widthMm: null });
+  assert.deepEqual(splitSizeKey("alb-total@1800"), { paletteId: "alb-total", widthMm: 1800, front: null });
+  assert.deepEqual(splitSizeKey("alb-total"), { paletteId: "alb-total", widthMm: null, front: null });
+  assert.deepEqual(splitSizeKey("alb-total@abc"), { paletteId: "alb-total", widthMm: null, front: null });
 });
 
 test("every shop product comes in at most 3 widths, its own included, and each one can be built", () => {

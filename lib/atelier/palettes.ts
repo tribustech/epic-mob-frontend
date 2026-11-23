@@ -1,4 +1,6 @@
-import type { AtelierCatalog, AtelierFronts } from "./types.ts";
+import { colorFamily, plainFamily, type ColorFamily } from "./color-families";
+import { DECOR_TONES } from "./decor-tones";
+import type { AtelierCatalog, AtelierFronts, AtelierMaterial, FrontKind } from "./types.ts";
 
 export type PaletteMood = "LUMINOS" | "LEMN" | "INCHIS" | "COLORAT";
 
@@ -166,6 +168,11 @@ export function activePaletteId(
   );
 }
 
+/** Weighted RGB distance (the eye is most sensitive to green). */
+function distance(a: [number, number, number], b: [number, number, number]): number {
+  return 2 * (a[0] - b[0]) ** 2 + 4 * (a[1] - b[1]) ** 2 + 3 * (a[2] - b[2]) ** 2;
+}
+
 function rgbOf(hex: string): [number, number, number] | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
   if (!m) return null;
@@ -181,8 +188,7 @@ export function nearestRal(ral: AtelierCatalog["ral"], color: string): AtelierCa
   for (const r of ral) {
     const c = rgbOf(r.hex);
     if (!c) continue;
-    // weighted RGB distance (the eye is most sensitive to green)
-    const d = target ? 2 * (c[0] - target[0]) ** 2 + 4 * (c[1] - target[1]) ** 2 + 3 * (c[2] - target[2]) ** 2 : 0;
+    const d = target ? distance(c, target) : 0;
     if (d < bestD) {
       best = r;
       bestD = d;
@@ -199,4 +205,144 @@ export function paintedFrontsLike(catalog: AtelierCatalog, color: string): Ateli
   const modelId = defaultVopsitModelId(catalog);
   const ral = nearestRal(catalog.ral, color);
   return modelId && ral ? { kind: "MDF_VOPSIT", modelId, ralCode: ral.code, faces: 1 } : null;
+}
+
+/* ── the front material: PAL, AGT (MDF melaminat) or MDF vopsit ── */
+
+/** The three front materials, cheapest first, in the words the workshop uses with clients. */
+export const FRONT_MATERIALS: readonly { kind: FrontKind; label: string; hint: string }[] = [
+  { kind: "PAL", label: "PAL melaminat", hint: "Placa clasică: decor de lemn sau culori uni." },
+  { kind: "MDF_MELAMINAT", label: "MDF melaminat (AGT)", hint: "Placă mai densă, mată catifelată sau lucioasă." },
+  { kind: "MDF_VOPSIT", label: "MDF vopsit", hint: "Vopsit mat în orice culoare. Permite mânerul îngropat." },
+];
+
+export const FRONT_MATERIAL_LABEL: Record<FrontKind, string> = Object.fromEntries(FRONT_MATERIALS.map((m) => [m.kind, m.label])) as Record<FrontKind, string>;
+
+/** The front materials this catalog can make (painted fronts need a model and paint colours). */
+export function frontMaterialsOffered(catalog: AtelierCatalog): FrontKind[] {
+  return FRONT_MATERIALS.map((m) => m.kind).filter((kind) =>
+    kind === "MDF_VOPSIT" ? catalog.fronts.MDF_VOPSIT.length > 0 && catalog.ral.length > 0 : catalog.fronts[kind].length > 0,
+  );
+}
+
+/** The average tone of a decor (measured from its photo); null when unknown. */
+export type ToneOf = (material: AtelierMaterial) => string | null;
+const measuredTone: ToneOf = (m) => (m.decorCode ? (DECOR_TONES[m.decorCode] ?? null) : null);
+
+/** High-gloss and metallic panels („HG White", „Cashmere Gold"): a matte front is matched to a matte one when there is one close enough. */
+const GLOSSY = /\b(HG|high ?gloss|lucios|gloss|metallic|metalic|gold)\b/i;
+/** about forty steps of green: a gloss panel wins only when no matte one is near */
+const GLOSS_PENALTY = 6000;
+/** Pearl and metallic paints (RAL 1036 „Pearl gold"…). */
+const SHINY_PAINT = /pearl|metallic|perlat|metalizat|luminous/i;
+
+/** Wood, stone and other patterns cannot be painted: only flat colours carry over to paint as they are. */
+const GRAINED = new Set<ColorFamily>(["LEMN_DESCHIS", "LEMN_INCHIS", "PIATRA"]);
+
+/** What the current fronts look like: their tone and their family („lemn deschis", „culori"…). */
+function frontsSource(
+  catalog: AtelierCatalog,
+  fronts: AtelierFronts,
+  toneOf: ToneOf,
+): { color: string | null; family: ColorFamily; decorCode: string | null; glossy: boolean } | null {
+  if (fronts.kind === "MDF_VOPSIT") {
+    const ral = catalog.ral.find((r) => r.code === fronts.ralCode);
+    // painted fronts are matte
+    return ral ? { color: ral.hex, family: plainFamily(ral.hex), decorCode: null, glossy: false } : null;
+  }
+  const m = catalog.fronts[fronts.kind].find((x) => x.id === fronts.materialId);
+  if (!m) return null;
+  return { color: toneOf(m) ?? measuredTone(m), family: colorFamily({ name: m.name, decorCode: m.decorCode }), decorCode: m.decorCode, glossy: GLOSSY.test(m.name) };
+}
+
+/**
+ * The same fronts in another material, looking as close as possible: the same decor code when the other
+ * material has it, else the nearest colour of the same family (a light oak stays a light oak), else of the
+ * same kind (grain / flat), else any. Paint cannot imitate wood or stone: a grained front becomes the nearest
+ * flat paint colour, and `approx` says so. null when that material has nothing to offer.
+ */
+export function frontsInMaterial(
+  catalog: AtelierCatalog,
+  from: AtelierFronts,
+  kind: FrontKind,
+  toneOf: ToneOf = measuredTone,
+): { fronts: AtelierFronts; approx: boolean } | null {
+  if (from.kind === kind) return { fronts: from, approx: false };
+  const source = frontsSource(catalog, from, toneOf);
+  if (kind === "MDF_VOPSIT") {
+    const modelId = defaultVopsitModelId(catalog);
+    // a flat colour stays in its family (a sage stays a green, not the nearest beige); wood takes the nearest of all
+    // pearl and metallic paints only when asked for by name: never as a stand-in
+    const plain = catalog.ral.filter((r) => !SHINY_PAINT.test(r.name));
+    const pool = plain.length ? plain : catalog.ral;
+    const ral = source && !GRAINED.has(source.family)
+      ? nearestOf(pool, (r) => r.hex, (r) => plainFamily(r.hex), source)
+      : nearestRal(pool, source?.color ?? "#ffffff");
+    if (!modelId || !ral) return null;
+    return { fronts: { kind: "MDF_VOPSIT", modelId, ralCode: ral.code, faces: 1 }, approx: !!source && GRAINED.has(source.family) };
+  }
+  const list = catalog.fronts[kind];
+  if (list.length === 0) return null;
+  const same = source?.decorCode ? list.find((m) => m.decorCode === source.decorCode) : undefined;
+  if (same) return { fronts: { kind, materialId: same.id }, approx: false };
+  const best = nearestOf(list, (m) => toneOf(m) ?? measuredTone(m), (m) => colorFamily({ name: m.name, decorCode: m.decorCode }), source, (m) =>
+    GLOSSY.test(m.name) === (source?.glossy ?? false) ? 0 : GLOSS_PENALTY,
+  );
+  return best ? { fronts: { kind, materialId: best.id }, approx: false } : null;
+}
+
+/** Tiers: the same family, then the same kind (grain / flat), then the rest; inside a tier, the nearest colour. */
+function nearestOf<T>(
+  list: readonly T[],
+  colorOf: (item: T) => string | null,
+  familyOf: (item: T) => ColorFamily,
+  source: { color: string | null; family: ColorFamily } | null,
+  penalty: (item: T) => number = () => 0,
+): T | null {
+  const target = source?.color ? rgbOf(source.color) : null;
+  const grained = !!source && GRAINED.has(source.family);
+  let best: T | null = null;
+  let bestScore = Infinity;
+  for (const item of list) {
+    const family = familyOf(item);
+    const tone = colorOf(item);
+    const c = tone ? rgbOf(tone) : null;
+    const tier = !source ? 0 : family === source.family ? 0 : GRAINED.has(family) === grained ? 1 : 2;
+    const d = target && c ? distance(c, target) : 9 * 255 ** 2 * 3;
+    const score = tier * 1e7 + d + penalty(item);
+    if (score < bestScore) {
+      best = item;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
+/**
+ * The client's own colour, remembered while they compare materials: going PAL → AGT → MDF vopsit → PAL brings
+ * back the very PAL decor they had, and each material is matched to that colour, not to the last stand-in.
+ * `produced` is what the last switch made; once the client picks another colour, that becomes the origin.
+ */
+export interface MaterialTrail {
+  origin: AtelierFronts;
+  produced: AtelierFronts;
+}
+
+const sameFronts = (a: AtelierFronts, b: AtelierFronts) =>
+  a.kind === b.kind && (a.materialId ?? null) === (b.materialId ?? null) && (a.ralCode ?? null) === (b.ralCode ?? null) && (a.modelId ?? null) === (b.modelId ?? null);
+
+export function switchFrontMaterial(
+  catalog: AtelierCatalog,
+  current: AtelierFronts,
+  kind: FrontKind,
+  trail: MaterialTrail | null,
+  toneOf: ToneOf = measuredTone,
+): { fronts: AtelierFronts; approx: boolean; trail: MaterialTrail } | null {
+  const origin = trail && sameFronts(trail.produced, current) ? trail.origin : current;
+  if (origin.kind === kind) return { fronts: origin, approx: false, trail: { origin, produced: origin } };
+  const next = frontsInMaterial(catalog, origin, kind, toneOf);
+  if (!next) return null;
+  // painted fronts keep the client's paint options (model, both faces) when coming back to paint
+  const fronts = kind === "MDF_VOPSIT" && current.kind === "MDF_VOPSIT" ? { ...current, ralCode: next.fronts.ralCode } : next.fronts;
+  return { fronts, approx: next.approx, trail: { origin, produced: fronts } };
 }

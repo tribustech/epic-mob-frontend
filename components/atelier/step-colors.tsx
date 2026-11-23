@@ -1,20 +1,32 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Info, Search, X } from "lucide-react";
 import { COLOR_FAMILIES, FAMILY_LABELS, colorFamily, type ColorFamily } from "@/lib/atelier/color-families";
 import { doorFills } from "@/lib/atelier/door-types";
 import { trackFunnel } from "@/lib/atelier/funnel";
-import { frontsNoun, usesFronts } from "@/lib/atelier/handles";
+import { HANDLE_INFO, currentHandle, frontsNoun, needsPaintedFronts, usesFronts } from "@/lib/atelier/handles";
 import { FEATURED_WORKTOP_CODES, paletteAllowed, usableWorktops } from "@/lib/atelier/house-rules";
-import { PALETTES, defaultVopsitModelId, featuredFirst, type ResolvedPalette } from "@/lib/atelier/palettes";
+import {
+  FRONT_MATERIALS,
+  FRONT_MATERIAL_LABEL,
+  PALETTES,
+  defaultVopsitModelId,
+  featuredFirst,
+  frontMaterialsOffered,
+  switchFrontMaterial,
+  type MaterialTrail,
+  type ResolvedPalette,
+  type ToneOf,
+} from "@/lib/atelier/palettes";
 import { ralNameRo } from "@/lib/atelier/ral-names";
-import type { AtelierCatalog, AtelierConfig, AtelierFronts, AtelierMaterial } from "@/lib/atelier/types";
+import type { AtelierCatalog, AtelierConfig, AtelierFronts, AtelierMaterial, FrontKind } from "@/lib/atelier/types";
 import { glazingOf } from "./glass-look";
 import { cropBox, materialLook, paletteLooks, swatchStyle, worktopLook, worktopMaterialLook, type MaterialLook } from "./material-look";
+import { useMaterialPrices, type MaterialPrice } from "./material-prices";
 import { MiniPreview } from "./mini-preview";
 import { shapeOf, type Act } from "./session";
-import { Choice, Field, RadioGroup, SelectedMark, decorLabel, fold } from "./ui";
+import { Choice, Field, RadioGroup, SelectedMark, decorLabel, fold, formatLei } from "./ui";
 
 /** What is being coloured: the fronts (doors and drawer faces), the body, or — kitchens and bathrooms — the worktop. */
 export type ColorPart = "fronturi" | "corp" | "blat";
@@ -222,6 +234,70 @@ function Family({
   );
 }
 
+/* ── the front material ── */
+
+/** The tone used to match a colour across materials: the same one the swatches and the 3D view draw. */
+const toneOfDecor: ToneOf = (m) => materialLook(m, "PAL").color;
+
+/** „+1.240 lei" / „−310 lei" against PAL; null when either price is missing or it is PAL itself. */
+function deltaText(kind: FrontKind, prices: Partial<Record<FrontKind, MaterialPrice>>): string | null {
+  const own = prices[kind];
+  const base = prices.PAL;
+  if (kind === "PAL" || own?.state !== "ready" || base?.state !== "ready") return null;
+  const diff = Math.round(own.price - base.price);
+  if (diff === 0) return "la fel ca PAL";
+  return `${diff > 0 ? "+" : "−"}${formatLei(Math.abs(diff))} față de PAL`;
+}
+
+/** PAL · AGT · MDF vopsit: what the fronts are made of, with what this very piece of furniture costs in each. */
+function FrontMaterialPicker({
+  offered,
+  chosen,
+  prices,
+  handleNote,
+  onPick,
+}: {
+  offered: FrontKind[];
+  chosen: FrontKind;
+  prices: Partial<Record<FrontKind, MaterialPrice>>;
+  /** the handle the client chose is cut into the door: only painted fronts can take it */
+  handleNote: string | null;
+  onPick: (kind: FrontKind) => void;
+}) {
+  return (
+    <RadioGroup label="Materialul fronturilor" className="atelier-material">
+      {FRONT_MATERIALS.filter((m) => offered.includes(m.kind)).map((m) => {
+        const selected = m.kind === chosen;
+        const price = prices[m.kind];
+        const delta = deltaText(m.kind, prices);
+        const hint = handleNote && m.kind !== "MDF_VOPSIT" ? handleNote : m.hint;
+        const total = !price || price.state === "loading" ? "…" : price.state === "ready" ? formatLei(price.price) : "—";
+        return (
+          <button
+            key={m.kind}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            aria-label={`${m.label}, ${hint}${price?.state === "ready" ? `, ${total}` : ""}${delta ? `, ${delta}` : ""}`}
+            className="atelier-material__opt"
+            onClick={() => !selected && onPick(m.kind)}
+          >
+            <span className="atelier-material__mark" aria-hidden="true" />
+            <span className="atelier-material__text">
+              <span className="atelier-material__name">{m.label}</span>
+              <span className="atelier-material__hint">{hint}</span>
+            </span>
+            <span className="atelier-material__price" aria-hidden="true">
+              <span className={`atelier-material__total ${price?.state === "loading" ? "is-loading" : ""}`}>{total}</span>
+              {delta && <span className="atelier-material__delta">{delta}</span>}
+            </span>
+          </button>
+        );
+      })}
+    </RadioGroup>
+  );
+}
+
 /* ── the step ── */
 
 /** „Uși", „Sertare" or both — what this very piece of furniture has on its front. */
@@ -346,6 +422,34 @@ export function StepColors({
     act({ type: "setFronts", fronts: next });
     trackFunnel("material_changed", { part: "fronturi" });
   };
+  /* the front material: PAL · AGT · MDF vopsit, each priced for this very configuration */
+  const offered = useMemo(() => frontMaterialsOffered(catalog), [catalog]);
+  const [trail, setTrail] = useState<MaterialTrail | null>(null);
+  /** the colour a material switch chose, told in one line while it is still the one on the fronts */
+  const [switchNote, setSwitchNote] = useState<{ fronts: AtelierFronts; approx: boolean } | null>(null);
+  const targets = useMemo(() => {
+    const out: Partial<Record<FrontKind, AtelierFronts>> = {};
+    if (!hasFronts) return out;
+    for (const kind of offered) {
+      const next = kind === fronts.kind ? { fronts } : switchFrontMaterial(catalog, fronts, kind, trail, toneOfDecor);
+      if (next) out[kind] = next.fronts;
+    }
+    return out;
+  }, [catalog, fronts, trail, offered, hasFronts]);
+  const materialPrices = useMaterialPrices(config, catalog, targets);
+  const chooseMaterial = (kind: FrontKind) => {
+    const next = switchFrontMaterial(catalog, fronts, kind, trail, toneOfDecor);
+    if (!next) return;
+    setTrail(next.trail);
+    // back to the client's own colour: nothing to explain
+    setSwitchNote(next.fronts === next.trail.origin ? null : { fronts: next.fronts, approx: next.approx });
+    setQuery("");
+    setBrand(null);
+    setFronts(next.fronts);
+  };
+  const handleType = currentHandle(config);
+  const handleNote = handleType && needsPaintedFronts(handleType) ? `${HANDLE_INFO[handleType].name} se face doar pe MDF vopsit.` : null;
+
   const pick = (item: Swatch) => {
     const t = item.sets;
     if (t.part === "corp") {
@@ -412,8 +516,13 @@ export function StepColors({
   const painted = fronts.kind === "MDF_VOPSIT";
   const selectedKey =
     part === "corp" ? config.carcassMaterialId : part === "blat" ? (config.kitchen?.worktopId ?? "") : painted ? `ral:${fronts.ralCode}` : `${fronts.kind}:${fronts.materialId}`;
-  const decors = part === "corp" ? swatches.corp : part === "blat" ? blat : swatches.fronturi;
-  const paints = part === "fronturi" && canPaint ? swatches.vopsit : NO_SWATCHES;
+  // the fronts show the colours of their material only; a search still finds every material
+  const frontDecors = useMemo(
+    () => (fronts.kind === "MDF_VOPSIT" ? NO_SWATCHES : swatches.fronturi.filter((i) => i.sets.part === "fronturi" && i.sets.kind === fronts.kind)),
+    [swatches.fronturi, fronts.kind],
+  );
+  const decors = part === "corp" ? swatches.corp : part === "blat" ? blat : frontDecors;
+  const paints = part === "fronturi" && canPaint && painted ? swatches.vopsit : NO_SWATCHES;
   // a worktop is most often stone or wood: those families first there
   const families: ColorFamily[] = part === "blat" ? ["PIATRA", ...COLOR_FAMILIES.filter((f) => f !== "PIATRA")] : [...COLOR_FAMILIES];
 
@@ -427,14 +536,21 @@ export function StepColors({
 
   // every word typed must be found; „ral7016", „RAL 7016" and „7016" are the same search
   const typed = details ? fold(query.trim()) : "";
-  const found = useMemo(() => {
+  const found = ((): Swatch[] | null => {
     if (!typed) return null;
     const wordsTyped = typed.split(/\s+/).filter(Boolean);
     const joined = wordsTyped.join("");
-    return [...listed, ...(activeBrand ? [] : paints)].filter(
-      (i) => wordsTyped.every((w) => i.text.includes(w)) || i.text.replace(/\s+/g, "").includes(joined),
-    );
-  }, [typed, listed, paints, activeBrand]);
+    const pool = part !== "fronturi" ? listed : activeBrand ? listed : [...swatches.fronturi, ...(canPaint ? swatches.vopsit : [])];
+    return pool.filter((i) => wordsTyped.every((w) => i.text.includes(w)) || i.text.replace(/\s+/g, "").includes(joined));
+  })();
+  /** search results of the fronts, by material (the chosen material first) */
+  const foundGroups = (() => {
+    if (!found) return null;
+    if (part !== "fronturi") return [{ kind: null as FrontKind | null, items: found }];
+    const kindOf = (i: Swatch): FrontKind => (i.sets.part === "fronturi" ? i.sets.kind : "PAL");
+    const order = [fronts.kind, ...offered.filter((k) => k !== fronts.kind)];
+    return order.map((kind) => ({ kind: kind as FrontKind | null, items: found.filter((i) => kindOf(i) === kind) })).filter((g) => g.items.length > 0);
+  })();
 
   const currentName = (p: ColorPart): string => {
     const key = p === "corp" ? config.carcassMaterialId : p === "blat" ? (config.kitchen?.worktopId ?? "") : painted ? `ral:${fronts.ralCode}` : `${fronts.kind}:${fronts.materialId}`;
@@ -533,6 +649,23 @@ export function StepColors({
         )}
 
         <div className="atelier-colors" data-anchor={part} key={part}>
+          {part === "fronturi" && offered.length > 1 && (
+            <div className="atelier-material-block">
+              <h3 className="atelier-colors__title">Din ce sunt făcute {words.chip === "Sertare" ? "fețele sertarelor" : words.chip === "Uși" ? "ușile" : "ușile și sertarele"}</h3>
+              <p className="atelier-hint">Prețul e pentru mobila ta, așa cum e configurată acum.</p>
+              <FrontMaterialPicker offered={offered} chosen={fronts.kind} prices={materialPrices} handleNote={handleNote} onPick={chooseMaterial} />
+              {switchNote && JSON.stringify(switchNote.fronts) === JSON.stringify(fronts) && (
+                <div className="atelier-handlenote" role="status">
+                  <Info size={15} aria-hidden="true" />
+                  <p>
+                    {switchNote.approx
+                      ? `Vopseaua nu poate imita lemnul sau piatra, așa că am ales cea mai apropiată culoare uni: ${currentName("fronturi").replace(/, vopsit$/, "")}.`
+                      : `Am ales culoarea cea mai apropiată în ${FRONT_MATERIAL_LABEL[fronts.kind]}: ${currentName("fronturi").replace(/, vopsit$/, "")}.`}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
           <div className="atelier-colors__head">
             <div className="min-w-0">
               <h3 className="atelier-colors__title">{PART_INFO[part].of}</h3>
@@ -563,7 +696,7 @@ export function StepColors({
                     setQuery(e.target.value);
                     setAllFound(false);
                   }}
-                  placeholder={part === "blat" ? "Caută: stejar, marmură, beton…" : paints.length ? "Caută: stejar, alb, H1145, 7016…" : "Caută: stejar, alb, H1145…"}
+                  placeholder={part === "blat" ? "Caută: stejar, marmură, beton…" : part === "fronturi" && canPaint ? "Caută: stejar, alb, H1145, 7016…" : "Caută: stejar, alb, H1145…"}
                   aria-label={`Caută: ${PART_INFO[part].of.toLowerCase()}`}
                 />
               </div>
@@ -580,16 +713,30 @@ export function StepColors({
             </div>
           )}
 
-          {found ? (
+          {found && foundGroups ? (
             <div className="atelier-family">
               <div className="atelier-family__head">
                 <h4 className="atelier-family__title">{found.length > 0 ? `Găsite: ${found.length}` : "Nimic nu se potrivește căutării"}</h4>
               </div>
-              <RadioGroup label="Rezultatele căutării" className="atelier-tiles atelier-tiles--four">
-                {(allFound ? found : found.slice(0, SEARCH_LIMIT)).map((item) => (
-                  <SwatchTile key={item.key} item={item} selected={item.key === selectedKey} codes onPick={pick} />
-                ))}
-              </RadioGroup>
+              {(() => {
+                // one limit for all groups together
+                let room = allFound ? Infinity : SEARCH_LIMIT;
+                return foundGroups.map(({ kind, items }) => {
+                  const shown = items.slice(0, Math.max(0, room));
+                  room -= shown.length;
+                  if (shown.length === 0) return null;
+                  return (
+                    <div key={kind ?? "toate"}>
+                      {kind && <p className="atelier-material__group">{FRONT_MATERIAL_LABEL[kind]}</p>}
+                      <RadioGroup label={kind ? `Rezultatele căutării: ${FRONT_MATERIAL_LABEL[kind]}` : "Rezultatele căutării"} className="atelier-tiles atelier-tiles--four">
+                        {shown.map((item) => (
+                          <SwatchTile key={item.key} item={item} selected={item.key === selectedKey} codes onPick={pick} />
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  );
+                });
+              })()}
               {!allFound && found.length > SEARCH_LIMIT && (
                 <div className="atelier-family__more">
                   <button type="button" className="atelier-textbtn" onClick={() => setAllFound(true)}>
@@ -602,7 +749,7 @@ export function StepColors({
             <>
               {families.map((family) => (
                 <Family
-                  key={`${family}:${activeBrand ?? ""}`}
+                  key={`${part === "fronturi" ? fronts.kind : part}:${family}:${activeBrand ?? ""}`}
                   title={FAMILY_LABELS[family]}
                   items={listed.filter((i) => i.family === family)}
                   selectedKey={selectedKey}
@@ -613,8 +760,8 @@ export function StepColors({
               {paints.length > 0 && !activeBrand && (
                 <>
                   <Family
-                    title="Vopsit în orice culoare"
-                    hint="Uși vopsite mat, în culoarea pe care o vrei. Cele mai cerute sunt primele."
+                    title="Culori de vopsea (RAL)"
+                    hint="Vopsim mat, în orice culoare. Cele mai cerute sunt primele."
                     items={paints}
                     selectedKey={selectedKey}
                     codes={details}

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { FRONT_SLUG } from "@/lib/shop/fronts";
 import { splitSizeKey } from "@/lib/shop/sizes";
 import { ArrowLeft, ArrowRight, CheckCircle2, CircleAlert, Minus, PhoneCall, Plus, Ruler, ShoppingBag, Trash2, Truck } from "lucide-react";
 import { trackPixel } from "@/lib/meta-pixel";
@@ -289,7 +290,7 @@ export function CartView() {
             {lines.map((l) => {
               const img = lineImage(l);
               const sk = splitSizeKey(l.paletteId);
-              const href = `/magazin/${l.slug}?culoare=${sk.paletteId}${sk.widthMm ? `&latime=${sk.widthMm}` : ""}`;
+              const href = `/magazin/${l.slug}?culoare=${sk.paletteId}${sk.front ? `&fronturi=${FRONT_SLUG[sk.front]}` : ""}${sk.widthMm ? `&latime=${sk.widthMm}` : ""}`;
               const onOffer = l.regularPrice != null && l.price != null && l.regularPrice > l.price && l.offerPercent > 0;
               const unavailable = gone.includes(lineKey(l));
               return (

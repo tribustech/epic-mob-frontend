@@ -6411,6 +6411,112 @@ a.atelier-share__btn--wa {
   }
 }
 
+/* ── atelier: the front material (PAL · AGT · MDF vopsit), each with its price for this configuration ── */
+.atelier-material-block {
+  margin-bottom: 1.1rem;
+}
+
+.atelier-material {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.atelier-material__opt {
+  display: flex;
+  min-height: 3.6rem;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--at-line);
+  border-radius: 0.85rem;
+  background: #fff;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.atelier-material__opt:hover {
+  border-color: #cfc8bb;
+}
+
+.atelier-material__opt[aria-checked="true"] {
+  border-color: var(--at-accent);
+  background: #fdf3e7;
+  box-shadow: inset 0 0 0 1px var(--at-accent);
+}
+
+.atelier-material__mark {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  border: 1.5px solid #bdb5a8;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.atelier-material__opt[aria-checked="true"] .atelier-material__mark {
+  border: 5px solid var(--at-accent);
+}
+
+.atelier-material__text {
+  display: block;
+  min-width: 0;
+  flex: 1;
+}
+
+.atelier-material__name {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--at-ink);
+}
+
+.atelier-material__hint {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.76rem;
+  line-height: 1.3;
+  color: var(--at-muted);
+}
+
+.atelier-material__price {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.atelier-material__total {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--at-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.atelier-material__total.is-loading {
+  color: var(--at-muted);
+}
+
+.atelier-material__delta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--at-accent-dark);
+  white-space: nowrap;
+}
+
+.atelier-material__group {
+  margin: 0.6rem 0 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--at-muted);
+}
+
 /* ── atelier round 3: colours by part (doors / body / worktop), swatch families, combinations drawn on the furniture ── */
 .atelier-parts {
   position: sticky;

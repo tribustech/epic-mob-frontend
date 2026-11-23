@@ -5,6 +5,7 @@ import { ChevronRight, PhoneCall, Ruler, ShieldCheck, Wrench } from "lucide-reac
 import { withAllPrices } from "@/components/shop/all-prices";
 import { ProductCard } from "@/components/shop/product-card";
 import { ProductView } from "@/components/shop/product-view";
+import { FRONT_INFO } from "@/lib/shop/fronts";
 import { sizeOptions } from "@/lib/shop/sizes";
 import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/lib/business-data";
@@ -58,7 +59,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) notFound();
   const data = await getShopProduct(slug);
   if (!data) notFound();
-  const { item, scenes, configs } = data;
+  const { item, scenes, configs, fronts } = data;
+  // the boards of the fronts (PAL · AGT · vopsit) are offered on pieces that have doors or drawers
+  const hasFrontChoice = Object.values(fronts).some((list) => list.length > 1);
   const category = SHOP_CATEGORIES.find((c) => c.id === item.category);
   const categoryPage = categoryLandingOf(item.category);
 
@@ -69,8 +72,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .slice(0, 4);
   const relatedPriced = await withAllPrices(related);
 
-  // the widths it is sold in (3: the photographed one, one smaller, one larger); ?culoare= / ?latime= are read in the
-  // browser (ProductView), so the page stays static for search engines
+  // the widths it is sold in (3: the photographed one, one smaller, one larger); ?culoare= / ?latime= / ?fronturi= are
+  // read in the browser (ProductView), so the page stays static for search engines
   const widths = sizeOptions(product.preset).map((w) => ({ widthMm: w, size: sizeText(product.preset, w) }));
 
   // the first Blum line links to where the hinges and slides are explained (once per page)
@@ -126,7 +129,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </ol>
         </nav>
 
-        <ProductView item={item} scenes={scenes} configs={configs} widths={widths} />
+        <ProductView item={item} scenes={scenes} configs={configs} widths={widths} fronts={fronts} />
 
         <section className="shop-details">
           <div>
@@ -166,6 +169,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 </Link>{" "}
                 de 18 mm (Egger sau Kastamonu); decorul exact apare lângă fiecare culoare
               </li>
+              {hasFrontChoice && (
+                <li>
+                  Uși și fețe: la alegere, din{" "}
+                  <Link href={FRONT_INFO.PAL.href} className="shop-matlink">
+                    PAL melaminat
+                  </Link>
+                  ,{" "}
+                  <Link href={FRONT_INFO.AGT.href} className="shop-matlink">
+                    MDF melaminat AGT
+                  </Link>{" "}
+                  sau{" "}
+                  <Link href={FRONT_INFO.VOPSIT.href} className="shop-matlink">
+                    MDF vopsit
+                  </Link>
+                  ; prețul se schimbă după placă
+                </li>
+              )}
               {construction.map((f, i) => (
                 <li key={f}>{i === blumAt ? <LinkedPhrase text={f} phrase={BLUM} href={HARDWARE_PAGE} /> : f}</li>
               ))}

@@ -5,7 +5,7 @@ import { categoryRules } from "@/lib/atelier/categories";
 import { currentGlass, doorsSummary, hasGlass, hasMirror } from "@/lib/atelier/door-types";
 import { effectiveHandle, handleText, usesFronts } from "@/lib/atelier/handles";
 import { ralNameRo } from "@/lib/atelier/ral-names";
-import type { ResolvedPalette } from "@/lib/atelier/palettes";
+import { FRONT_MATERIAL_LABEL, type ResolvedPalette } from "@/lib/atelier/palettes";
 import { COMBO_PRESETS, presetById, presetsFor } from "@/lib/atelier/presets";
 import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
 import { glazingOf } from "./glass-look";
@@ -43,11 +43,18 @@ function Row({
   );
 }
 
-function Decor({ look, name }: { look: MaterialLook; name: string }) {
+function Decor({ look, name, material }: { look: MaterialLook; name: string; material?: string }) {
   return (
     <span className="flex min-w-0 items-center gap-2">
       <span className="atelier-current__dot" style={swatchStyle(look)} aria-hidden="true" />
-      <span className="min-w-0 truncate">{decorTitle(name)}</span>
+      {material ? (
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate">{decorTitle(name)}</span>
+          <span className="atelier-hint">{material}</span>
+        </span>
+      ) : (
+        <span className="min-w-0 truncate">{decorTitle(name)}</span>
+      )}
     </span>
   );
 }
@@ -105,10 +112,12 @@ export function StepOffer({
   const carcassName = catalog.carcass.find((m) => m.id === config.carcassMaterialId)?.name ?? "—";
   const { fronts } = config;
   const ral = catalog.ral.find((r) => r.code === fronts.ralCode);
-  const frontName =
+  // the material first (PAL / AGT / MDF vopsit: it makes the price), then the colour
+  const frontColour =
     fronts.kind === "MDF_VOPSIT"
-      ? ral ? `Vopsit: ${ralNameRo(ral.name) || ral.code} (${ral.code})` : "Vopsit"
-      : catalog.fronts[fronts.kind].find((m) => m.id === fronts.materialId)?.name ?? "—";
+      ? ral ? `${ralNameRo(ral.name) || ral.code} (${ral.code})${fronts.faces === 2 ? ", vopsit pe ambele fețe" : ""}` : null
+      : catalog.fronts[fronts.kind].find((m) => m.id === fronts.materialId)?.name ?? null;
+  const frontName = frontColour ?? "—";
   const doors = doorsSummary(config);
   // which mirror / glass, when a door has one and the catalog names the types
   const mirror = hasMirror(config) ? currentGlass(catalog.glass?.mirrors, config.doors.mirrorId) : null;
@@ -187,7 +196,7 @@ export function StepOffer({
             {/* only when a door or a drawer front is really made of it (not behind all-mirror doors) */}
             {usesFronts(config) && (
               <Row label="Fronturi" step="culori" anchor="fronturi" onStep={onStep}>
-                <Decor look={front} name={frontName} />
+                <Decor look={front} name={frontName} material={FRONT_MATERIAL_LABEL[fronts.kind]} />
               </Row>
             )}
             {kitchen && (
