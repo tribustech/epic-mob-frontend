@@ -26,7 +26,7 @@ import {
   noRaycast,
   type HardwareMaterials,
 } from "./viewer/hardware";
-import { hoodUnits } from "./viewer/hood";
+import { integrateHoods } from "./viewer/hood";
 import { refreshShadows, useTween } from "./viewer/motion";
 import {
   planScene,
@@ -654,9 +654,7 @@ function buildStatics(scene: AtelierScene, moving: string, legB: THREE.Matrix4 |
     if (piece.role === "FRONT") frontEdges.push(board);
     else if (piece.role === "CORP") corpEdges.push(board);
   };
-  // the side panels of a hood cabinet run down to the line of the other wall cabinets (drawn only)
-  const prolonged = new Map(hoodUnits(scene).flatMap((u) => u.sides.map((s) => [s.index, s.piece] as const)));
-  scene.pieces.forEach((piece, i) => add(prolonged.get(i) ?? piece, i));
+  scene.pieces.forEach((piece, i) => add(piece, i));
   return {
     carcass: mergeBoards(groups.carcass),
     back: mergeBoards(groups.back),
@@ -744,8 +742,6 @@ const APPLIANCE_MATERIALS: readonly ApplianceMaterial[] = ["inox", "glass", "bas
  */
 function buildAppliances(scene: AtelierScene, legB: THREE.Matrix4 | null): Record<ApplianceMaterial, THREE.BufferGeometry | null> {
   const parts: Record<ApplianceMaterial, THREE.BufferGeometry[]> = { inox: [], glass: [], basin: [], white: [], ring: [], ceramic: [], steel: [] };
-  const hoods = hoodUnits(scene);
-  let hoodIndex = 0;
   for (const piece of scene.pieces) {
     if (piece.role !== "APARAT") continue;
     const matrix = piece.leg === "B" ? legB : null;
@@ -819,20 +815,8 @@ function buildAppliances(scene: AtelierScene, legB: THREE.Matrix4 | null): Recor
         break;
       }
       case "HOTA": {
-        // a built-in telescopic hood between the cabinet's side panels (see viewer/hood.ts): the body
-        // inside the carcass, a filter grille underneath and a steel visor flush with the doors
-        const u = hoods[hoodIndex++];
-        if (!u) break;
-        const mm = (x: number, y: number, z: number, bw: number, bh: number, bd: number, material: ApplianceMaterial) =>
-          box([bw * S, bh * S, bd * S], centred({ x, y, z, w: bw, h: bh, d: bd, role: "APARAT" }, scene), material);
-        const inner = u.x1 - u.x0;
-        const visorD = 18;
-        mm(u.x0 + 1, u.y0 + 8, u.zBack, inner - 2, u.y1 - u.y0 - 8, u.zFront - visorD - u.zBack, "steel");
-        mm(u.x0 + 12, u.y0 + 5, u.zBack + 12, inner - 24, 3, u.zFront - visorD - u.zBack - 24, "glass");
-        mm(u.x0 + 2, u.y0 + 2, u.zFront - visorD, inner - 4, u.y1 - u.y0 - 5, visorD, "steel");
-        // the seam between the pull-out visor and the fixed fascia, and the control strip on the visor
-        mm(u.x0 + 2, u.y0 + 50, u.zFront - 0.5, inner - 4, 1.5, 1, "ring");
-        mm(u.x0 + inner / 2 - 60, u.y0 + 22, u.zFront - 0.5, 120, 6, 1.2, "glass");
+        // the hood sits behind the cabinet's doors (see viewer/hood.ts): only its filter shows from below
+        box([w, h, d], [cx, cy, cz], "ring");
         break;
       }
       default:
@@ -1944,7 +1928,9 @@ export default function Viewer3D({
   stale = false,
   worktop: worktopProp = null,
 }: Viewer3DProps) {
-  const scene = useHeld(sceneProp, useMemo(() => (sceneProp ? JSON.stringify(sceneProp) : ""), [sceneProp]));
+  const held = useHeld(sceneProp, useMemo(() => (sceneProp ? JSON.stringify(sceneProp) : ""), [sceneProp]));
+  // drawn, not priced: hood cabinets as full-height units with the hood behind the doors
+  const scene = useMemo(() => (held ? integrateHoods(held) : held), [held]);
   const columns = useHeld(columnsProp, columnsProp.join("|"));
   const railPositions = useHeld(railPositionsProp, railPositionsProp ? railPositionsProp.join("|") : "-");
   const carcass = useHeld(carcassProp, lookKey(carcassProp));
