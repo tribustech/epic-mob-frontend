@@ -89,3 +89,19 @@ test("home and quote page each have exactly one h1", () => {
   const quote = readFileSync("app/cere-oferta/page.tsx", "utf8");
   assert.equal(quote.match(/<h1\b/g)?.length, 1);
 });
+
+test("top menu: Materiale comes after Magazin and Atelier 3D (header, mobile menu and footer share it)", async () => {
+  const { navigation } = await import("../lib/site-data.ts");
+  assert.deepEqual(
+    navigation.map((n) => n.label),
+    ["Acasă", "Portofoliu", "Magazin", "Atelier 3D", "Materiale", "Contact"],
+  );
+});
+
+test("shop spec lines link to the page that explains their board", async () => {
+  const { materialPageOf } = await import("../lib/shop/specs.ts");
+  assert.equal(materialPageOf("PAL melaminat 18 mm, decor Egger W1000 ST9")?.href, "/materiale/pal-melaminat");
+  assert.equal(materialPageOf("MDF vopsit RAL 9016, mat")?.href, "/materiale/mdf-vopsit");
+  assert.equal(materialPageOf("MDF melaminat 18 mm")?.href, "/materiale/mdf-melaminat");
+  assert.equal(materialPageOf("Sticlă"), undefined);
+});

@@ -1,11 +1,11 @@
 import { categoryRules } from "@/lib/atelier/categories";
-import { COMBO_PRESETS, presetById, type PresetShape } from "@/lib/atelier/presets";
-import { resolvePalettes } from "@/lib/atelier/palettes";
+import { COMBO_PRESETS, START_COMBO_IDS, presetAvailable, presetById, type ComboPreset, type LayoutPreset, type PresetShape } from "@/lib/atelier/presets";
+import { resolvePalettes, type ResolvedPalette } from "@/lib/atelier/palettes";
 import { currentHandle, hasHandledFronts } from "@/lib/atelier/handles";
-import { followUps } from "@/lib/atelier/house-rules";
+import { followUps, paletteAllowed } from "@/lib/atelier/house-rules";
 import { parseConfig } from "@/lib/atelier/share";
 import { atelierReducer, defaultConfig, type AtelierAction } from "@/lib/atelier/state";
-import type { AtelierCatalog, AtelierConfig } from "@/lib/atelier/types";
+import type { AtelierCatalog, AtelierCategory, AtelierConfig } from "@/lib/atelier/types";
 
 /** The screens of the configurator, in order; the ids are also the funnel's `step` values and the URL hashes. */
 export const STEP_IDS = ["model", "dimensiuni", "usi", "culori", "interior", "oferta"] as const;
@@ -197,19 +197,54 @@ export function sessionReducer(state: AtelierSession, action: SessionAction): At
 }
 
 /** First screen: the first ready-made combination (model + colours) when it resolves, else the plain defaults. */
+/** A featured combination ready to apply: its model and its colours, both valid for this catalog. */
+export interface ShownCombo {
+  combo: ComboPreset;
+  preset: LayoutPreset;
+  palette: ResolvedPalette;
+}
+
+/** The combination as this catalog can show it, or null (model not offered, decors missing, house rule). */
+export function showCombo(combo: ComboPreset, catalog: AtelierCatalog, palettes: ResolvedPalette[]): ShownCombo | null {
+  const preset = presetById(combo.presetId);
+  const palette = palettes.find((p) => p.id === combo.paletteId);
+  if (!preset || !palette || !presetAvailable(preset, catalog) || !paletteAllowed(preset.category, palette.id)) return null;
+  return { combo, preset, palette };
+}
+
+/** The featured combinations of a category this catalog can show, in the order they are offered. */
+export function combosFor(category: AtelierCategory, catalog: AtelierCatalog, palettes: ResolvedPalette[]): ShownCombo[] {
+  return COMBO_PRESETS.flatMap((combo) => {
+    const shown = showCombo(combo, catalog, palettes);
+    return shown && shown.preset.category === category ? [shown] : [];
+  });
+}
+
+/** The combination a category opens on: its first featured one this catalog can show. */
+export function leadCombo(category: AtelierCategory, catalog: AtelierCatalog, palettes: ResolvedPalette[]): ShownCombo | null {
+  return combosFor(category, catalog, palettes)[0] ?? null;
+}
+
+/** The colours came from us (a featured combination's palette), not from the client: a new category may change them. */
+export function curatedColours(activePalette: string | null): boolean {
+  return !!activePalette && COMBO_PRESETS.some((c) => c.paletteId === activePalette);
+}
+
+const applyCombo = (config: AtelierConfig, { preset, palette }: ShownCombo): AtelierConfig =>
+  atelierReducer(atelierReducer(config, { type: "applyPreset", shape: preset.shape }), {
+    type: "applyPalette",
+    carcassMaterialId: palette.carcassMaterialId,
+    fronts: palette.fronts,
+  });
+
 export function initialSession(catalog: AtelierCatalog): AtelierSession {
   let config = defaultConfig(catalog);
-  const combo = COMBO_PRESETS.find((c) => presetById(c.presetId)?.category === "DRESSING") ?? COMBO_PRESETS[0];
-  const preset = combo && presetById(combo.presetId);
-  const palette = combo && resolvePalettes(catalog).find((p) => p.id === combo.paletteId);
-  if (preset && palette) {
-    config = atelierReducer(config, { type: "applyPreset", shape: preset.shape });
-    config = atelierReducer(config, {
-      type: "applyPalette",
-      carcassMaterialId: palette.carcassMaterialId,
-      fronts: palette.fronts,
-    });
-  }
+  const palettes = resolvePalettes(catalog);
+  const start = START_COMBO_IDS.map((id) => COMBO_PRESETS.find((c) => c.id === id))
+    .map((combo) => (combo ? showCombo(combo, catalog, palettes) : null))
+    .find(Boolean);
+  const first = start ?? leadCombo("DRESSING", catalog, palettes);
+  if (first) config = applyCombo(config, first);
   return { config: withGlassDefaults(config, catalog), past: [], pastWhat: [], undone: null, step: "model", contact: EMPTY_CONTACT, last: null, notices: NO_NOTICES };
 }
 

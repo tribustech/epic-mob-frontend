@@ -2428,3 +2428,17 @@
   font-size: 1.05rem;
   color: var(--shop-muted);
 }
+
+/* links from the shop to the materials pages: read as text, show they lead somewhere */
+.shop-matlink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--shop-accent) 55%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+.shop-matlink:hover,
+.shop-matlink:focus-visible {
+  color: var(--espresso);
+  text-decoration-color: currentColor;
+}

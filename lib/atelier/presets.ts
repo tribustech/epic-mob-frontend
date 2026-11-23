@@ -802,33 +802,52 @@ export const LAYOUT_PRESETS: LayoutPreset[] = [
   ...BAIE.map((p) => make("BAIE", p)),
 ];
 
-/** Featured model + colour pairs, in the order they are shown. */
+/**
+ * Featured model + colour pairs. Within a category they are shown in this order, and the first one that this
+ * catalog can show is the one the category opens on (leadCombo in components/atelier/session.ts): the
+ * best-looking piece in 3D first, warm wood + a soft colour rather than all-white (owner, 2026-11-23).
+ */
 export const COMBO_PRESETS: ComboPreset[] = [
+  // dressing: open first (the interior shows in 3D), then wood doors, then mirrors
+  { id: "walk-in-stejar", name: "Walk-in în stejar", tagline: "Dressing deschis, cald, cu totul la vedere.", presetId: "dressing-deschis-280", paletteId: "stejar-natur" },
   { id: "scandinav-luminos", name: "Scandinav luminos", tagline: "Dressing 2,4 m alb, cu uși în stejar natur.", presetId: "dressing-clasic-240", paletteId: "alb-stejar-natur" },
   { id: "dormitor-cu-oglinda", name: "Dormitor cu oglindă", tagline: "Uși glisante cu oglindă, corp alb și cașmir.", presetId: "dressing-oglinda-240", paletteId: "alb-casmir" },
   { id: "oglinda-la-mijloc", name: "Oglindă la mijloc", tagline: "Dulap alb cu uși cașmir și oglindă pe ușile din mijloc.", presetId: "dressing-oglinda-mijloc-240", paletteId: "alb-casmir" },
   { id: "nuc-crem-dormitor", name: "Nuc & crem de dormitor", tagline: "Dulap de 1,8 m în nuc, cu uși crem.", presetId: "dressing-dormitor-180", paletteId: "nuc-crem" },
   { id: "casmir-total", name: "Cașmir de la un perete la altul", tagline: "Dressing de 3,6 m, tot în gri cașmir.", presetId: "dressing-mare-360", paletteId: "gri-casmir" },
-  { id: "walk-in-stejar", name: "Walk-in în stejar", tagline: "Dressing deschis, cald, cu totul la vedere.", presetId: "dressing-deschis-280", paletteId: "stejar-natur" },
+  { id: "supermat-pana-in-tavan", name: "Supermat până în tavan", tagline: "Fronturi AGT crem supermat, fără mânere.", presetId: "dressing-tavan-270", paletteId: "supermat-crem" },
   { id: "hol-primitor", name: "Hol primitor", tagline: "Dulap de hol cașmir, cu uși albe.", presetId: "dressing-hol-120", paletteId: "casmir-alb" },
   { id: "camera-copilului", name: "Camera copilului", tagline: "Dulap alb cu uși albastru denim.", presetId: "dressing-copii-150", paletteId: "denim-alb" },
   { id: "grafit-elegant", name: "Grafit elegant", tagline: "Dulap cu sertare, antracit și stejar.", presetId: "dressing-sertare-200", paletteId: "antracit-stejar" },
-  { id: "supermat-pana-in-tavan", name: "Supermat până în tavan", tagline: "Fronturi AGT crem supermat, fără mânere.", presetId: "dressing-tavan-270", paletteId: "supermat-crem" },
-  { id: "comoda-nordica", name: "Comodă nordică", tagline: "Șase sertare albe pe corp de stejar.", presetId: "comoda-clasica-160", paletteId: "stejar-alb" },
-  { id: "living-stejar-casmir", name: "Living în stejar & cașmir", tagline: "Comodă TV de 2,4 m în stejar, cu fronturi cașmir.", presetId: "comoda-tv-240", paletteId: "stejar-casmir" },
-  { id: "noptiera-calda", name: "Noptieră caldă", tagline: "Stejar cu sertare cașmir.", presetId: "noptiera-50", paletteId: "stejar-casmir" },
+  // chests of drawers / living
   { id: "bufet-salvie", name: "Bufet verde salvie", tagline: "Uși și sertare salvie pe stejar deschis.", presetId: "comoda-mixta-180", paletteId: "salvie-stejar" },
+  { id: "living-stejar-casmir", name: "Living în stejar & cașmir", tagline: "Comodă TV de 2,4 m în stejar, cu fronturi cașmir.", presetId: "comoda-tv-240", paletteId: "stejar-casmir" },
+  { id: "comoda-nordica", name: "Comodă nordică", tagline: "Șase sertare albe pe corp de stejar.", presetId: "comoda-clasica-160", paletteId: "stejar-alb" },
+  { id: "noptiera-calda", name: "Noptieră caldă", tagline: "Stejar cu sertare cașmir.", presetId: "noptiera-50", paletteId: "stejar-casmir" },
+  // separators
   { id: "biblioteca-aerisita", name: "Bibliotecă aerisită", tagline: "Separator cu sertare albe la bază.", presetId: "separator-sertare-160", paletteId: "stejar-alb" },
-  { id: "separator-loft", name: "Separator de loft", tagline: "Rafturi scunde, antracit și stejar.", presetId: "separator-scund-200", paletteId: "antracit-stejar" },
   { id: "perete-de-carti", name: "Perete de cărți", tagline: "Separator înalt în stejar bardolino.", presetId: "separator-inalt-240", paletteId: "bardolino-gri" },
+  { id: "separator-loft", name: "Separator de loft", tagline: "Rafturi scunde, antracit și stejar.", presetId: "separator-scund-200", paletteId: "antracit-stejar" },
+  // wall units
   { id: "tv-plutitor", name: "TV plutitor", tagline: "Corp suspendat alb, cu uși în stejar natur.", presetId: "suspendat-tv-180", paletteId: "alb-stejar-natur" },
+  { id: "etajera-stejar", name: "Etajeră în stejar", tagline: "Trei nișe deschise, pentru cărți și plante.", presetId: "suspendat-etajera-150", paletteId: "stejar-natur" },
   { id: "baie-luminoasa", name: "Baie luminoasă", tagline: "Dulăpior alb cu ușă cașmir.", presetId: "suspendat-baie-60", paletteId: "alb-casmir" },
   { id: "birou-supermat", name: "Birou alb supermat", tagline: "Corpuri Aventos cu fronturi AGT albe.", presetId: "suspendat-aventos-180", paletteId: "supermat-alb" },
+  // kitchens
+  { id: "bucatarie-l-salvie", name: "Bucătărie în L, salvie", tagline: "Fronturi verde salvie pe stejar deschis, cu colț, chiuvetă și cuptor.", presetId: "bucatarie-l-270", paletteId: "salvie-stejar" },
+  { id: "bucatarie-aerisita", name: "Bucătărie aerisită", tagline: "Rafturi deschise în stejar și fronturi cașmir.", presetId: "bucatarie-rafturi-240", paletteId: "stejar-casmir" },
   { id: "bucatarie-luminoasa", name: "Bucătărie luminoasă", tagline: "2,4 m, corp alb și fronturi în stejar natur.", presetId: "bucatarie-240", paletteId: "alb-stejar-natur" },
   { id: "bucatarie-l-casmir", name: "Bucătărie în L, cașmir", tagline: "Colț, chiuvetă și cuptor, în alb și cașmir.", presetId: "bucatarie-l-270", paletteId: "alb-casmir" },
+  // bathroom
   { id: "baie-calda", name: "Baie caldă", tagline: "Mobilier lavoar suspendat cu coloană, alb și stejar natur.", presetId: "baie-lavoar-coloana-120", paletteId: "alb-stejar-natur" },
-  { id: "etajera-stejar", name: "Etajeră în stejar", tagline: "Trei nișe deschise, pentru cărți și plante.", presetId: "suspendat-etajera-150", paletteId: "stejar-natur" },
 ];
+
+/**
+ * What a visitor sees first when they open the Atelier with nothing saved and no shared link: the first
+ * of these combinations this catalog can show. A kitchen in sage green on light oak looks the richest in
+ * 3D (worktop, sink, hob, upper cabinets); the dressing is the fallback for a CRM that cannot price kitchens.
+ */
+export const START_COMBO_IDS: readonly string[] = ["bucatarie-l-salvie", "bucatarie-aerisita", "bufet-salvie", "walk-in-stejar", "scandinav-luminos"];
 
 export function presetsFor(category: AtelierCategory): LayoutPreset[] {
   return LAYOUT_PRESETS.filter((p) => p.category === category);

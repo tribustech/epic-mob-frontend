@@ -108,6 +108,13 @@ export default async function ShopPage() {
             <p className="shop-section-head__note">
               Schimbi lățimea, înălțimea, interiorul, ușile, mânerele și culorile în Atelierul 3D. Prețul se schimbă pe loc.
             </p>
+            <p className="shop-section-head__note">
+              Corpurile sunt din PAL melaminat de 18 mm, cu balamale și glisiere Blum cu închidere lină.{" "}
+              <Link href="/materiale" className="shop-matlink">
+                Află mai multe despre materialele și feroneria noastră
+              </Link>
+              .
+            </p>
           </div>
           <Link href="/configurator" className="btn-warm btn-warm--primary">
             Deschide Atelierul 3D <ArrowRight size={16} aria-hidden="true" />

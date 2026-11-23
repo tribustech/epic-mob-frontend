@@ -10,7 +10,7 @@ import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/lib/business-data";
 import { BRAND, baseOpenGraph } from "@/lib/seo";
 import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, colourCountText, pictureOf, productBySlug, productFacts, sizeText } from "@/lib/shop/products";
-import { DECOR_NOTE, constructionSpec } from "@/lib/shop/specs";
+import { BOARDS_PAGE, DECOR_NOTE, HARDWARE_PAGE, constructionSpec } from "@/lib/shop/specs";
 import { getShopItems, getShopProduct } from "@/lib/shop/server";
 
 export const revalidate = 600;
@@ -33,17 +33,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function ProductPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+/** „Balamale Blum CLIP top BLUMOTION, …" / „… glisiere Blum TANDEM BLUMOTION (…)": the Blum product name */
+const BLUM = /Blum [A-Za-z ]*?BLUMOTION/;
+
+/** The text with the first match of the phrase as a link. */
+function LinkedPhrase({ text, phrase, href }: { text: string; phrase: RegExp; href: string }) {
+  const m = phrase.exec(text);
+  if (!m) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, m.index)}
+      <Link href={href} className="shop-matlink">
+        {m[0]}
+      </Link>
+      {text.slice(m.index + m[0].length)}
+    </>
+  );
+}
+
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  // ?culoare= on the server, so the first paint shows that colour and price (ProductView checks it is one of the variants)
-  const culoare = (await searchParams).culoare;
-  const initialPaletteId = typeof culoare === "string" ? culoare : undefined;
   const product = productBySlug(slug);
   if (!product) notFound();
   const data = await getShopProduct(slug);
@@ -58,9 +67,13 @@ export default async function ProductPage({
     .slice(0, 4);
   const relatedPriced = await withAllPrices(related);
 
-  // the widths it is sold in (3: the photographed one, one smaller, one larger); ?latime= opens one
+  // the widths it is sold in (3: the photographed one, one smaller, one larger); ?culoare= / ?latime= are read in the
+  // browser (ProductView), so the page stays static for search engines
   const widths = sizeOptions(product.preset).map((w) => ({ widthMm: w, size: sizeText(product.preset, w) }));
-  const latime = Number((await searchParams).latime);
+
+  // the first Blum line links to where the hinges and slides are explained (once per page)
+  const construction = constructionSpec(product.preset);
+  const blumAt = construction.findIndex((f) => BLUM.test(f));
 
   const priced = item.variants.filter((v) => v.finalPrice != null);
   const jsonLd = priced.length
@@ -110,7 +123,7 @@ export default async function ProductPage({
           </ol>
         </nav>
 
-        <ProductView item={item} scenes={scenes} configs={configs} initialPaletteId={initialPaletteId} widths={widths} initialWidthMm={Number.isInteger(latime) ? latime : undefined} />
+        <ProductView item={item} scenes={scenes} configs={configs} widths={widths} />
 
         <section className="shop-details">
           <div>
@@ -125,12 +138,24 @@ export default async function ProductPage({
           <div>
             <h2 className="shop-details__title">Din ce e făcut</h2>
             <ul className="shop-facts">
-              <li>Corp și polițe: PAL melaminat de 18 mm (Egger sau Kastamonu); decorul exact apare lângă fiecare culoare</li>
-              {constructionSpec(product.preset).map((f) => (
-                <li key={f}>{f}</li>
+              <li>
+                Corp și polițe:{" "}
+                <Link href="/materiale/pal-melaminat" className="shop-matlink">
+                  PAL melaminat
+                </Link>{" "}
+                de 18 mm (Egger sau Kastamonu); decorul exact apare lângă fiecare culoare
+              </li>
+              {construction.map((f, i) => (
+                <li key={f}>{i === blumAt ? <LinkedPhrase text={f} phrase={BLUM} href={HARDWARE_PAGE} /> : f}</li>
               ))}
             </ul>
-            <p className="shop-details__note">{DECOR_NOTE}</p>
+            <p className="shop-details__note">
+              {DECOR_NOTE}{" "}
+              <Link href={BOARDS_PAGE} className="shop-matlink">
+                Vezi cum diferă PAL-ul și MDF-ul
+              </Link>
+              .
+            </p>
           </div>
           <div>
             <h2 className="shop-details__title">Cum comanzi</h2>

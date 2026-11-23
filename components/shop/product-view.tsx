@@ -9,6 +9,7 @@ import { encodeShare } from "@/lib/atelier/share";
 import type { AtelierConfig, AtelierScene } from "@/lib/atelier/types";
 import { MAX_QTY, addToCart, cartCount, cartSizeText, useCart, type AddResult } from "@/lib/shop/cart";
 import { DELIVERY_TEXT } from "@/lib/shop/products";
+import { materialPageOf } from "@/lib/shop/specs";
 import type { ShopItem, ShopVariant } from "@/lib/shop/server";
 import { resizedConfig, sizeKey, sizedName, widthLabel } from "@/lib/shop/sizes";
 import { trackPixel } from "@/lib/meta-pixel";
@@ -21,6 +22,23 @@ const Viewer3D = dynamic(() => import("@/components/atelier/viewer-3d"), {
   ssr: false,
   loading: () => <div className="shop-viewer__loading">Se încarcă vizualizarea 3D…</div>,
 });
+
+/**
+ * A board spec with its material name linked to the page that explains it. PAL melaminat is not
+ * linked here: „Din ce e făcut" under the product links it already (one link per target per page).
+ */
+function SpecText({ spec, link }: { spec: string; link: boolean }) {
+  const page = materialPageOf(spec);
+  if (!link || !page || page.name === "PAL melaminat") return <>{spec}</>;
+  return (
+    <>
+      <Link href={page.href} className="shop-matlink">
+        {page.name}
+      </Link>
+      {spec.slice(page.name.length)}
+    </>
+  );
+}
 
 /** „W1000 ST9 · Alb Premium" → „Alb Premium": the supplier code means nothing to a client */
 const plainDecor = (name: string) => name.replace(/^[A-Z]{0,4}[- ]?\d{2,5}(\s+[A-Z]{1,3}\d{1,3})?\s*[·\-–]\s*/u, "");
@@ -60,14 +78,17 @@ export function ProductView({
   const cart = useCart();
 
   // ?culoare=<palette> opens that colour (links from the shop grid, the home page, shared links). The server
-  // already passes it as initialPaletteId; this covers client-side navigation that keeps the component.
+  // page is static, so ?culoare= and ?latime= are applied here, after the first paint.
   useEffect(() => {
     const fromUrl = () => {
-      const wanted = new URLSearchParams(window.location.search).get("culoare");
+      const q = new URLSearchParams(window.location.search);
+      const wanted = q.get("culoare");
       if (wanted && item.variants.some((v) => v.paletteId === wanted)) setPaletteId(wanted);
+      const w = Number(q.get("latime"));
+      if (widths.some((x) => x.widthMm === w)) setWidthMm(w);
     };
     fromUrl();
-  }, [item.variants]);
+  }, [item.variants, widths]);
 
   // phones: once the big button is out of view, a slim bar with the price and the button stays at the bottom
   useEffect(() => {
@@ -257,10 +278,10 @@ export function ProductView({
           </div>
           <p className="shop-colours__materials">
             <span>
-              <strong>Corp:</strong> {variant.carcassSpec} ({plainDecor(variant.carcassName)})
+              <strong>Corp:</strong> <SpecText spec={variant.carcassSpec} link /> ({plainDecor(variant.carcassName)})
             </span>
             <span>
-              <strong>Uși și fețe:</strong> {variant.frontSpec} ({plainDecor(variant.frontName)})
+              <strong>Uși și fețe:</strong> <SpecText spec={variant.frontSpec} link={materialPageOf(variant.frontSpec) !== materialPageOf(variant.carcassSpec)} /> ({plainDecor(variant.frontName)})
             </span>
           </p>
         </fieldset>
