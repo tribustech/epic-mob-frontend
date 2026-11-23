@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Box, Check, ChevronRight, Image as ImageIcon, PencilRuler, ShoppingBag, Truck } from "lucide-react";
+import { ArrowRight, Box, Check, ChevronRight, Image as ImageIcon, PencilRuler, Ruler, ShoppingBag, Truck } from "lucide-react";
 import { effectiveHandle } from "@/lib/atelier/handles";
 import type { AtelierConfig, AtelierScene } from "@/lib/atelier/types";
 import { MAX_QTY, addToCart, cartCount, cartSizeText, useCart, type AddResult } from "@/lib/shop/cart";
@@ -28,7 +28,13 @@ export function ProductView({
   scenes,
   configs,
   initialPaletteId,
+  size,
+  sizes = [],
 }: {
+  /** „240 × 220 × 60 cm": the piece is sold at exactly this size */
+  size: string;
+  /** the same model in other sizes (this one included), for the size chips */
+  sizes?: { slug: string; label: string; price: number | null; current: boolean }[];
   item: ShopItem;
   scenes: Record<string, AtelierScene | null>;
   configs: Record<string, AtelierConfig>;
@@ -149,6 +155,9 @@ export function ProductView({
         {!item.offer && item.badge ? <span className="shop-tag shop-tag--soft">{item.badge}</span> : null}
         <h1 className="display-font shop-product__title">{item.name}</h1>
         <p className="shop-product__tagline">{item.tagline}</p>
+        <p className="shop-product__size">
+          <Ruler size={17} aria-hidden="true" /> <span>{size}</span> <span className="shop-product__size-key">lățime × înălțime × adâncime</span>
+        </p>
 
         <PriceLine variant={variant} offer={item.offer} size="lg" />
         {item.offer && variant.price != null && (
@@ -182,9 +191,35 @@ export function ProductView({
             })}
           </div>
           <p className="shop-colours__materials">
-            Corp: {plainDecor(variant.carcassName)} · Uși și fețe: {plainDecor(variant.frontName)}
+            <span>
+              <strong>Corp:</strong> {variant.carcassSpec} ({plainDecor(variant.carcassName)})
+            </span>
+            <span>
+              <strong>Uși și fețe:</strong> {variant.frontSpec} ({plainDecor(variant.frontName)})
+            </span>
           </p>
         </fieldset>
+
+        {sizes.length > 1 && (
+          <nav className="shop-sizes" aria-label="Alte mărimi">
+            <span className="shop-sizes__label">Mărimea</span>
+            <div className="shop-sizes__list">
+              {sizes.map((s) =>
+                s.current ? (
+                  <span key={s.slug} className="shop-size is-active" aria-current="page">
+                    <strong>{s.label}</strong>
+                    {variant.finalPrice != null && <span>{formatPrice(variant.finalPrice)}</span>}
+                  </span>
+                ) : (
+                  <Link key={s.slug} href={`/magazin/${s.slug}?culoare=${variant.paletteId}`} className="shop-size">
+                    <strong>{s.label}</strong>
+                    {s.price != null && <span>de la {formatPrice(s.price)}</span>}
+                  </Link>
+                ),
+              )}
+            </div>
+          </nav>
+        )}
 
         <div className="shop-buy" ref={buyRef}>
           <button type="button" className={`btn-warm btn-warm--primary shop-buy__main ${done ? "is-done" : ""}`} onClick={add} disabled={!canBuy}>
@@ -211,7 +246,7 @@ export function ProductView({
                 </Link>
               </>
             ) : (
-              <span className="shop-buy__hint">Nu plătești nimic acum. Te sunăm și venim întâi să măsurăm.</span>
+              <span className="shop-buy__hint">Comanzi exact ce vezi, la mărimea de mai sus. Nu plătești nimic online: te sunăm să confirmăm comanda.</span>
             )}
           </p>
         </div>
@@ -233,7 +268,7 @@ export function ProductView({
         </Link>
 
         <p className="shop-delivery">
-          <Truck size={18} aria-hidden="true" /> {DELIVERY_TEXT}. Venim întâi să măsurăm, ca să se potrivească perfect.
+          <Truck size={18} aria-hidden="true" /> {DELIVERY_TEXT}, montaj inclus. Dacă vrei, venim gratuit să verificăm măsurile înainte.
         </p>
       </div>
 
