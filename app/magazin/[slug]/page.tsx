@@ -8,7 +8,8 @@ import { ProductView } from "@/components/shop/product-view";
 import { JsonLd, buildBreadcrumbSchema } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/lib/business-data";
 import { BRAND, baseOpenGraph } from "@/lib/seo";
-import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, colourCountText, pictureOf, productBySlug, productFacts } from "@/lib/shop/products";
+import { ROOM_LABELS, SHOP_CATEGORIES, SHOP_PRODUCTS, colourCountText, pictureOf, productBySlug, productFacts, sizeText, typeOf } from "@/lib/shop/products";
+import { DECOR_NOTE, constructionSpec } from "@/lib/shop/specs";
 import { getShopItems, getShopProduct } from "@/lib/shop/server";
 
 export const revalidate = 600;
@@ -55,6 +56,19 @@ export default async function ProductPage({
     .sort((a, b) => Number(b.category === item.category) - Number(a.category === item.category))
     .slice(0, 4);
   const relatedPriced = await withAllPrices(related);
+
+  // the same model in other sizes: same category and kind of piece (TV unit, shoe cabinet…) or the same name
+  // without its width („dressing-clasic-240" / „dressing-clasic-180")
+  const stem = (s: string) => s.replace(/-\d+$/, "");
+  const sameModel = (o: (typeof items)[number]) =>
+    o.category === item.category && ((typeOf(o.slug) !== null && typeOf(o.slug) === typeOf(slug)) || stem(o.slug) === stem(slug));
+  const sizes = [item, ...items.filter((o) => o.slug !== slug && sameModel(o))]
+    .map((o) => {
+      const p = productBySlug(o.slug)!;
+      const prices = o.variants.map((v) => v.finalPrice).filter((x): x is number => x != null);
+      return { slug: o.slug, width: p.preset.shape.widthMm, label: `${Math.round(p.preset.shape.widthMm / 10)} cm`, price: prices.length ? Math.min(...prices) : null, current: o.slug === slug };
+    })
+    .sort((a, b) => a.width - b.width);
 
   const priced = item.variants.filter((v) => v.finalPrice != null);
   const jsonLd = priced.length
@@ -104,7 +118,7 @@ export default async function ProductPage({
           </ol>
         </nav>
 
-        <ProductView item={item} scenes={scenes} configs={configs} initialPaletteId={initialPaletteId} />
+        <ProductView item={item} scenes={scenes} configs={configs} initialPaletteId={initialPaletteId} size={sizeText(product.preset)} sizes={sizes} />
 
         <section className="shop-details">
           <div>
@@ -117,6 +131,16 @@ export default async function ProductPage({
             </ul>
           </div>
           <div>
+            <h2 className="shop-details__title">Din ce e făcut</h2>
+            <ul className="shop-facts">
+              <li>Corp și polițe: PAL melaminat de 18 mm (Egger sau Kastamonu); decorul exact apare lângă fiecare culoare</li>
+              {constructionSpec(product.preset).map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+            <p className="shop-details__note">{DECOR_NOTE}</p>
+          </div>
+          <div>
             <h2 className="shop-details__title">Cum comanzi</h2>
             <ol className="shop-steps">
               <li>
@@ -125,7 +149,7 @@ export default async function ProductPage({
               </li>
               <li>
                 <Ruler size={18} aria-hidden="true" />
-                <span>Venim la tine, măsurăm și îți confirmăm prețul.</span>
+                <span>Confirmăm comanda la telefon. Dacă vrei, venim gratuit să verificăm măsurile.</span>
               </li>
               <li>
                 <Wrench size={18} aria-hidden="true" />

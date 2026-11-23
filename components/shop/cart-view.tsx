@@ -28,6 +28,8 @@ export function CartView() {
   const lines = useCart();
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [form, setForm] = useState({ name: "", phone: "", city: "", notes: "", website: "" });
+  // the visit is optional: the pieces are sold at the sizes shown
+  const [measure, setMeasure] = useState(false);
   const [tried, setTried] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -110,7 +112,7 @@ export function CartView() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           lines: lines.map((l) => ({ slug: l.slug, paletteId: l.paletteId, qty: l.qty, price: l.price })),
-          contact: { name: form.name, phone: form.phone, city: form.city, notes: form.notes },
+          contact: { name: form.name, phone: form.phone, city: form.city, notes: [measure ? "Vrea să venim să măsurăm înainte." : "", form.notes].filter(Boolean).join(" ") },
           website: form.website,
         }),
       });
@@ -370,7 +372,7 @@ export function CartView() {
           <h2 id="cos-trimite" className="shop-details__title">
             Trimite comanda
           </h2>
-          <p className="shop-checkout__lede">Nu plătești nimic acum. Te sunăm, venim la măsurători și îți confirmăm prețul.</p>
+          <p className="shop-checkout__lede">Comanzi exact produsele din coș, la mărimile afișate. Nu plătești nimic online: te sunăm să confirmăm comanda și data montajului.</p>
           <form onSubmit={submit} className="shop-form" noValidate ref={formRef}>
             <div className="shop-form__field">
               <label htmlFor="cos-name">Numele tău</label>
@@ -393,6 +395,12 @@ export function CartView() {
               </label>
               <textarea id="cos-notes" rows={3} maxLength={400} value={form.notes} onChange={set("notes")} placeholder="De ex. etajul, când ești acasă, ce ai vrea să schimbăm" />
             </div>
+            <label className="shop-form__check">
+              <input type="checkbox" checked={measure} onChange={(e) => setMeasure(e.target.checked)} />
+              <span>
+                Vreau să veniți să măsurați înainte <span>(gratuit; recomandat dacă mobila intră între pereți sau sub tavan)</span>
+              </span>
+            </label>
             <input type="text" name="website" tabIndex={-1} autoComplete="off" className="shop-hp" value={form.website} onChange={set("website")} aria-hidden="true" />
             {status.kind === "error" && (
               <p className="shop-form__alert" role="alert">
@@ -410,7 +418,7 @@ export function CartView() {
               <PhoneCall size={16} aria-hidden="true" /> Te sunăm ca să stabilim detaliile.
             </li>
             <li>
-              <Ruler size={16} aria-hidden="true" /> Măsurăm la tine acasă înainte de orice.
+              <Ruler size={16} aria-hidden="true" /> Dacă vrei, venim gratuit să verificăm măsurile.
             </li>
           </ul>
         </section>

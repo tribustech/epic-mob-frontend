@@ -10,6 +10,7 @@ import { encodeShare } from "@/lib/atelier/share";
 import { atelierReducer } from "@/lib/atelier/state";
 import type { AtelierCatalog, AtelierConfig, AtelierPriceResult, AtelierScene } from "@/lib/atelier/types";
 import { offerFor, offerPrice, type ShopOffer } from "./offers";
+import { carcassSpec, frontSpec } from "./specs";
 import { SHOP_PRODUCTS, pictureOf, productBySlug, type ShopProduct } from "./products";
 
 /** One colour combination of a product, ready for the page (serializable). */
@@ -18,6 +19,9 @@ export interface ShopVariant {
   name: string;
   carcassName: string;
   frontName: string;
+  /** what the body / the fronts are made of: „PAL melaminat 18 mm, decor Egger W1000 ST9" */
+  carcassSpec: string;
+  frontSpec: string;
   carcass: MaterialLook;
   front: MaterialLook;
   /** usual price (= configurator price); null when the CRM could not price it now */
@@ -118,6 +122,8 @@ async function buildItem(
       name: palette.name,
       carcassName: palette.carcassName,
       frontName: palette.frontName,
+      carcassSpec: carcassSpec(palette, catalog),
+      frontSpec: frontSpec(palette, catalog),
       ...looks,
       price: priced,
       finalPrice: priced == null ? null : offerPrice(priced, offer),
