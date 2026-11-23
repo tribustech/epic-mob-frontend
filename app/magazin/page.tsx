@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, PencilRuler, ShieldCheck, Truck, Wrench } from "lucide-react";
 import { withAllPrices } from "@/components/shop/all-prices";
+import { LandingLinks } from "@/components/shop/landing-view";
 import { ProductCard } from "@/components/shop/product-card";
 import { ShopRail } from "@/components/shop/rail";
 import { ShopBrowser, ShopFilterLink } from "@/components/shop/shop-browser";
@@ -59,6 +60,8 @@ export default async function ShopPage() {
           </ul>
         </div>
       </section>
+
+      <LandingLinks />
 
       {offers.length > 0 && (
         <section className="shop-offers" aria-labelledby="shop-offers-title">

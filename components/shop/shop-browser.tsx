@@ -18,6 +18,7 @@ import {
   type ShopType,
   type ShopWidth,
 } from "@/lib/shop/products";
+import { categoryLandingOf, roomLandingOf } from "@/lib/shop/landing";
 import type { ShopItem } from "@/lib/shop/server";
 import { ProductCard, moodOf } from "./product-card";
 
@@ -192,6 +193,9 @@ export function ShopBrowser({ items }: { items: ShopItem[] }) {
 
   const offers = items.filter((i) => i.offer).length;
   const category = SHOP_CATEGORIES.find((c) => c.id === f.categorie);
+  /** the landing pages of the chosen category and room (/magazin/categorie/…, /magazin/camera/…) */
+  const categoryPage = f.categorie ? categoryLandingOf(f.categorie) : undefined;
+  const roomPage = f.camera ? roomLandingOf(f.camera) : undefined;
   const mirrors = items.filter((i) => META.get(i.slug)?.oglinda).length;
   const extraCount = Number(!!f.tip) + Number(!!f.camera) + Number(!!f.latime) + Number(!!f.culoare) + Number(f.oglinda) + Number(f.oferte);
   const anyFilter = !!f.categorie || extraCount > 0;
@@ -298,6 +302,17 @@ export function ShopBrowser({ items }: { items: ShopItem[] }) {
       <div className="shop-browser__head">
         <h2 className="display-font shop-section-head__title">{category ? category.label : "Toate produsele"}</h2>
         <p className="shop-section-head__note">{category ? category.blurb : "Alege un fel de mobilier sau spune-ne pentru ce cameră cauți."}</p>
+        {(categoryPage || roomPage) && (
+          <p className="shop-browser__pages">
+            {[categoryPage, roomPage]
+              .filter((l) => !!l)
+              .map((l) => (
+                <Link key={l.path} href={l.path} className="shop-matlink">
+                  {l.kind === "camera" ? `Totul pentru ${l.name.toLowerCase()}` : `Pagina ${l.name.toLowerCase()}`}, cu sfaturi și întrebări frecvente
+                </Link>
+              ))}
+          </p>
+        )}
       </div>
 
       {/* phones and tablets: categories in one row you swipe sideways */}
